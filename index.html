@@ -68,6 +68,7 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
   .brand{font-size:17px;}
 }
 .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-0.02em;}
+.version-tag{font-size:11px;font-weight:700;color:var(--muted);background:var(--cream);border:1px solid var(--line);padding:2px 7px;border-radius:999px;letter-spacing:0;}
 .brand-mark{
   width:34px;height:34px;border-radius:9px;background:var(--charcoal);
   display:flex;align-items:center;justify-content:center;color:var(--amber);
@@ -191,8 +192,8 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 /* ---------- Settings panel ---------- */
 .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
 .tab-btn{
-  flex:1;padding:8px 6px;border-radius:8px;border:1px solid var(--line);background:#fff;
-  font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);min-width:70px;
+  flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(--line);background:#fff;
+  font-size:11.5px;font-weight:700;cursor:pointer;color:var(--muted);min-width:56px;
 }
 .tab-btn.active{background:var(--charcoal);color:var(--amber);border-color:var(--charcoal);}
 .tab-panel{display:none;}
@@ -281,6 +282,14 @@ fieldset[disabled] {opacity:0.45;}
   font-size:12px;margin-bottom:10px;display:none;
 }
 .warn-banner.show{display:block;}
+.field-error{
+  background:#FBEAE4;border:1px solid #F0C0AE;color:#8a2f14;padding:7px 10px;border-radius:8px;
+  font-size:11.5px;margin-top:6px;font-weight:600;
+}
+.help-section{margin-bottom:16px;}
+.help-section h4{margin:0 0 5px 0;font-size:13px;font-weight:700;color:var(--charcoal);}
+.help-section p{margin:0;font-size:12.5px;line-height:1.55;color:#4a463c;}
+.help-section strong{color:var(--charcoal);}
 input[type=file].hidden-input{display:none;}
 .output-example{font-size:11.5px;color:var(--muted);margin-top:4px;font-family:monospace;}
 select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px;}
@@ -310,8 +319,8 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt</div>
-  <div class="privacy-badge"><span class="dot"></span> 🔒 Your documents never leave your computer</div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v1.0.0</span></div>
+  <div class="privacy-badge"><span class="dot"></span> 🔒 Your documents are processed locally in your browser</div>
 </div>
 
 <div class="app">
@@ -395,6 +404,9 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         <button class="btn btn-ghost btn-sm" id="importPresetBtn">Import JSON</button>
         <input type="file" id="importPresetInput" class="hidden-input" accept=".json">
       </div>
+      <div class="preset-actions" style="margin-top:6px;">
+        <button class="btn btn-rust btn-sm" id="resetSettingsBtn">Reset to defaults</button>
+      </div>
     </div>
 
     <div class="divider"></div>
@@ -405,7 +417,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <button class="toggle-btn" data-mode="combined">Both</button>
     </div>
 
-    <div class="warn-banner" id="fontWarnBanner">⚠ Could not load the Unicode font for non-Latin text. That watermark may render blank.</div>
+    <div class="warn-banner" id="fontWarnBanner">⚠ Could not load the Unicode font for this script. That watermark may render as blank boxes.</div>
 
     <!-- TEXT WATERMARK -->
     <fieldset id="textFieldset">
@@ -476,6 +488,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         <button class="btn btn-ghost btn-sm" id="logoUploadBtn" type="button">Upload PNG / JPG / SVG</button>
         <input type="file" id="logoInput" class="hidden-input" accept=".png,.jpg,.jpeg,.svg">
         <img id="logoPreview" class="logo-preview">
+        <div id="logoError" class="field-error" style="display:none;"></div>
       </div>
       <div class="field">
         <label>Scale <span id="logoScaleVal">30%</span> of page width</label>
@@ -492,6 +505,11 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <div class="checkbox-row">
         <input type="checkbox" id="logoAspect" checked><label for="logoAspect">Maintain aspect ratio</label>
       </div>
+      <div class="field" id="logoHeightField" style="display:none;">
+        <label>Height <span id="logoHeightVal">30%</span> of page height</label>
+        <div class="slider-row"><input type="range" id="logoHeight" min="5" max="100" value="30"></div>
+        <div class="hint">With aspect ratio off, width and height scale independently — this is where you can stretch or squash the logo.</div>
+      </div>
     </fieldset>
 
     <div class="divider"></div>
@@ -501,6 +519,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <button class="tab-btn" data-tab="pages">Pages</button>
       <button class="tab-btn" data-tab="extras">Extras</button>
       <button class="tab-btn" data-tab="output">Output</button>
+      <button class="tab-btn" data-tab="help">Help</button>
     </div>
 
     <!-- PLACEMENT TAB -->
@@ -529,11 +548,12 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </div>
       <div class="field"><label>Margin from edge (pt)</label><input type="number" id="marginEdge" value="36"></div>
       <div class="field">
-        <label>Layer order</label>
+        <label>Blend mode</label>
         <div class="toggle-btns">
-          <button class="toggle-btn active" data-layer="above" type="button">Above content</button>
-          <button class="toggle-btn" data-layer="below" type="button">Beneath (multiply)</button>
+          <button class="toggle-btn active" data-layer="above" type="button">Normal</button>
+          <button class="toggle-btn" data-layer="below" type="button">Multiply</button>
         </div>
+        <div class="hint">Multiply blends the watermark into the page content beneath it for a more natural look. It does not physically move the watermark under the text — true under-content placement isn't possible without rewriting the PDF's existing content.</div>
       </div>
     </div>
 
@@ -680,6 +700,61 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </div>
     </div>
 
+    <!-- HELP TAB -->
+    <div class="tab-panel" data-tabpanel="help">
+      <div class="help-section">
+        <h4>Getting started</h4>
+        <p>Drop PDFs or images (or a whole folder) into the left panel. Configure your watermark on this panel — the centre preview updates live. Hit <strong>Process all files</strong> to export everything as a .zip or as individual downloads.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Text vs. logo vs. both</h4>
+        <p>The <strong>mode switch</strong> above chooses whether each file gets a text watermark, an uploaded logo, or both at once, each positioned independently via the Placement tab.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Placement &amp; tiling</h4>
+        <p>Click a cell on the 9-point grid for a single placement, or turn on <strong>Tile / repeat</strong> to cover the whole page in a repeating pattern (with an optional brick-style stagger).</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Blend mode</h4>
+        <p><strong>Normal</strong> draws the watermark straight on top of the page. <strong>Multiply</strong> blends it with the content beneath for a softer, more natural look — it doesn't physically move the watermark under the existing text, since a PDF's own content can't be safely reordered without risking corruption.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Page numbering &amp; Bates numbering</h4>
+        <p><strong>Page numbering</strong> restarts at your chosen "starting number" for every file. <strong>Bates numbering</strong> is different — it keeps counting up continuously across every file in the batch, in the order they're listed, which is what legal and audit workflows expect.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Hindi &amp; other Indian-language text</h4>
+        <p>Type Devanagari, Bengali, Tamil, Telugu, Gujarati, Punjabi (Gurmukhi), Kannada, Malayalam, or Odia directly into the watermark or header/footer fields. StampIt detects the script and fetches the matching Noto Sans font automatically. If that download fails (e.g. no internet on first load), you'll see a warning banner instead of blank boxes.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Presets</h4>
+        <p>Save your current settings as a named preset, export them as a JSON file to share with colleagues, or import someone else's. <strong>Reset to defaults</strong> clears your current settings back to a blank slate without touching your saved presets.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Supported files &amp; limits</h4>
+        <p>PDF, JPG, PNG, and WebP, up to 100 MB each. Password-protected PDFs are detected and skipped automatically rather than breaking the batch — you'll see them marked "Locked" in the file list and in the final summary.</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="help-section">
+        <h4>Privacy &amp; offline use</h4>
+        <p>🔒 <strong>Your documents are processed locally in your browser</strong> — files are never uploaded anywhere. That said, StampIt does load its libraries (pdf-lib, pdf.js, JSZip) and Indian-language fonts from public CDNs, so it needs an internet connection the first time a page loads or a non-Latin font is used. It is not yet a fully bundled offline app.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>About</h4>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v1.0.0</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -720,7 +795,7 @@ function defaultConfig(){
     },
     image: {
       dataUrl: null, name:null, naturalW:0, naturalH:0,
-      scale: 30, opacity: 50, rotation: 0, keepAspect: true,
+      scale: 30, heightScale: 30, opacity: 50, rotation: 0, keepAspect: true,
     },
     placement: {
       position: 'center',
@@ -770,6 +845,19 @@ function formatDate(fmt){
   return `${dd}/${mm}/${yyyy}`;
 }
 
+// These two are the SINGLE source of truth for how page-number and
+// Bates labels are formatted. Both the live preview and the real
+// pdf-lib export call these same functions, so what you see in the
+// preview is guaranteed to match what gets written to the file —
+// including the configured "starting number" offset.
+function computePageNumberLabel(pnConfig, pageNum1based, totalPages){
+  const n = pageNum1based - 1 + pnConfig.start;
+  return pnConfig.format.replace('n', n).replace('t', totalPages);
+}
+function computeBatesLabel(batesConfig, sequentialNumber){
+  return batesConfig.prefix + pad(sequentialNumber, batesConfig.digits);
+}
+
 // Replace {date} {time} {filename} {page} {total} {n} tokens in a string.
 function replaceTokens(str, ctx){
   if(!str) return '';
@@ -814,8 +902,8 @@ function pageMatchesTarget(pageNum1, totalPages, target){
 }
 
 // Detect characters outside basic Latin — a strong signal we need a
-// Unicode font (Devanagari, Tamil, Bengali, Gurmukhi, etc.) instead of
-// pdf-lib's built-in Helvetica/Times/Courier, which only cover Latin-1.
+// Unicode font instead of pdf-lib's built-in Helvetica/Times/Courier,
+// which only cover Latin-1.
 function needsUnicodeFont(str){
   return /[^\u0000-\u00FF]/.test(str || '');
 }
@@ -834,40 +922,75 @@ function debounce(fn, ms){
 function uid(){ return 'f'+(state.nextFileId++); }
 
 /* ---------------------------------------------------------------
-   3. UNICODE FONT (for Indian-language watermarks)
-   pdf-lib's built-in fonts are Latin-only. If the watermark text
-   contains Devanagari/Tamil/etc, we fetch Noto Sans (which covers
-   most Indian scripts) once, cache the bytes, and embed it with
-   fontkit. If the fetch fails, we surface a warning banner rather
-   than silently producing blank boxes.
+   3. UNICODE FONTS (for Indian-language watermarks)
+   pdf-lib's built-in fonts are Latin-only, so any script outside
+   Latin-1 needs a real Unicode font embedded via fontkit. Rather
+   than a single Devanagari-only font, we detect which script the
+   text actually uses and load the matching Noto Sans family — so
+   Hindi/Marathi, Bengali, Tamil, Telugu, Gujarati, Punjabi, Kannada,
+   Malayalam, and Odia watermarks all render correctly instead of
+   silently falling back to a font that can't show their glyphs.
    --------------------------------------------------------------- */
-const NOTO_URLS = [
-  'https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/phaseIII_only/unhinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf',
-  'https://raw.githubusercontent.com/googlefonts/noto-fonts/main/phaseIII_only/unhinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf',
+const SCRIPT_RANGES = [
+  { name: 'Devanagari', family: 'NotoSansDevanagari', re: /[\u0900-\u097F]/ },
+  { name: 'Bengali',    family: 'NotoSansBengali',    re: /[\u0980-\u09FF]/ },
+  { name: 'Gurmukhi',   family: 'NotoSansGurmukhi',   re: /[\u0A00-\u0A7F]/ },
+  { name: 'Gujarati',   family: 'NotoSansGujarati',   re: /[\u0A80-\u0AFF]/ },
+  { name: 'Oriya',      family: 'NotoSansOriya',      re: /[\u0B00-\u0B7F]/ },
+  { name: 'Tamil',      family: 'NotoSansTamil',      re: /[\u0B80-\u0BFF]/ },
+  { name: 'Telugu',     family: 'NotoSansTelugu',     re: /[\u0C00-\u0C7F]/ },
+  { name: 'Kannada',    family: 'NotoSansKannada',    re: /[\u0C80-\u0CFF]/ },
+  { name: 'Malayalam',  family: 'NotoSansMalayalam',  re: /[\u0D00-\u0D7F]/ },
 ];
-let notoFontBytesPromise = null;
-let notoFontFailed = false;
+// Anything non-Latin that doesn't match a known Indian script range
+// (e.g. CJK, Cyrillic, Arabic) falls back to Noto Sans, which has
+// broad — though not universal — coverage.
+const FALLBACK_FAMILY = 'NotoSans';
 
-async function getNotoFontBytes(){
-  if(notoFontFailed) return null;
-  if(!notoFontBytesPromise){
-    notoFontBytesPromise = (async ()=>{
-      for(const url of NOTO_URLS){
+// Returns the Noto family name to use for a given piece of text, or
+// null if the text is plain Latin and needs no special font.
+function detectScriptFamily(str){
+  if(!needsUnicodeFont(str)) return null;
+  for(const s of SCRIPT_RANGES){ if(s.re.test(str)) return s.family; }
+  return FALLBACK_FAMILY;
+}
+function detectScriptName(family){
+  const hit = SCRIPT_RANGES.find(s=>s.family===family);
+  return hit ? hit.name : 'this script';
+}
+
+function notoUrlsFor(family){
+  return [
+    `https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/phaseIII_only/unhinted/ttf/${family}/${family}-Regular.ttf`,
+    `https://raw.githubusercontent.com/googlefonts/noto-fonts/main/phaseIII_only/unhinted/ttf/${family}/${family}-Regular.ttf`,
+  ];
+}
+
+const notoFontCache = {};   // family -> Promise<ArrayBuffer|null>
+const notoFontFailedSet = new Set();
+
+async function getNotoFontBytes(family){
+  if(notoFontFailedSet.has(family)) return null;
+  if(!notoFontCache[family]){
+    notoFontCache[family] = (async ()=>{
+      for(const url of notoUrlsFor(family)){
         try{
           const r = await fetch(url);
           if(r.ok) return await r.arrayBuffer();
         } catch(err){ /* try next mirror */ }
       }
-      notoFontFailed = true;
-      console.warn('Unicode font failed to load from all mirrors.');
+      notoFontFailedSet.add(family);
+      console.warn('Unicode font failed to load from all mirrors:', family);
       return null;
     })();
   }
-  return notoFontBytesPromise;
+  return notoFontCache[family];
 }
 
-function showFontWarning(){
-  document.getElementById('fontWarnBanner').classList.add('show');
+function showFontWarning(scriptName){
+  const el = document.getElementById('fontWarnBanner');
+  el.textContent = `⚠ Could not load the Unicode font for ${scriptName} text. That watermark may render as blank boxes — check your internet connection and try again.`;
+  el.classList.add('show');
 }
 function hideFontWarning(){
   document.getElementById('fontWarnBanner').classList.remove('show');
@@ -1190,23 +1313,34 @@ bindSlider('wmRotation','rotationVal', v=>{ state.config.text.rotation = v; retu
 document.getElementById('logoUploadBtn').addEventListener('click', ()=>document.getElementById('logoInput').click());
 document.getElementById('logoInput').addEventListener('change', async e=>{
   const file = e.target.files[0]; if(!file) return;
-  const dataUrl = await fileToDataUrl(file);
-  let finalDataUrl = dataUrl, w=0, h=0;
-  if(file.name.toLowerCase().endsWith('.svg')){
-    // Rasterize SVG to PNG so it can be embedded consistently in both
-    // the pdf-lib export and the canvas image path.
-    const rasterized = await rasterizeSvgToPng(dataUrl);
-    finalDataUrl = rasterized.dataUrl; w = rasterized.w; h = rasterized.h;
-  } else {
-    const dims = await imageDims(dataUrl); w = dims.w; h = dims.h;
+  const errEl = document.getElementById('logoError');
+  errEl.style.display = 'none';
+  try{
+    const dataUrl = await fileToDataUrl(file);
+    let finalDataUrl = dataUrl, w=0, h=0;
+    if(file.name.toLowerCase().endsWith('.svg')){
+      // Rasterize SVG to PNG so it can be embedded consistently in both
+      // the pdf-lib export and the canvas image path.
+      const rasterized = await rasterizeSvgToPng(dataUrl);
+      finalDataUrl = rasterized.dataUrl; w = rasterized.w; h = rasterized.h;
+    } else {
+      const dims = await imageDims(dataUrl); w = dims.w; h = dims.h;
+    }
+    if(!w || !h) throw new Error('Zero-size image after loading');
+    state.config.image.dataUrl = finalDataUrl;
+    state.config.image.name = file.name;
+    state.config.image.naturalW = w; state.config.image.naturalH = h;
+    const prev = document.getElementById('logoPreview');
+    prev.src = finalDataUrl; prev.style.display = 'block';
+    refreshPreviewLogoImg();
+    scheduleRender();
+  } catch(err){
+    console.warn('Logo upload failed:', err);
+    errEl.textContent = 'Unable to load this logo. Please use a PNG, JPG, or valid SVG file.';
+    errEl.style.display = 'block';
+  } finally {
+    e.target.value = '';
   }
-  state.config.image.dataUrl = finalDataUrl;
-  state.config.image.name = file.name;
-  state.config.image.naturalW = w; state.config.image.naturalH = h;
-  const prev = document.getElementById('logoPreview');
-  prev.src = finalDataUrl; prev.style.display = 'block';
-  refreshPreviewLogoImg();
-  scheduleRender();
 });
 
 function fileToDataUrl(file){
@@ -1218,13 +1352,17 @@ function imageDims(dataUrl){
 function rasterizeSvgToPng(svgDataUrl){
   return new Promise((resolve,reject)=>{
     const img = new Image();
+    const timer = setTimeout(()=>reject(new Error('SVG load timed out')), 8000);
     img.onload = ()=>{
-      const canvas = document.createElement('canvas');
-      canvas.width = img.naturalWidth || 512; canvas.height = img.naturalHeight || 512;
-      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
-      resolve({ dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height });
+      clearTimeout(timer);
+      try{
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth || 512; canvas.height = img.naturalHeight || 512;
+        canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+        resolve({ dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height });
+      } catch(err){ reject(err); }
     };
-    img.onerror = reject;
+    img.onerror = ()=>{ clearTimeout(timer); reject(new Error('Browser could not render this SVG')); };
     img.src = svgDataUrl;
   });
 }
@@ -1232,7 +1370,12 @@ function rasterizeSvgToPng(svgDataUrl){
 bindSlider('logoScale','logoScaleVal', v=>{ state.config.image.scale = v; return v+'%'; });
 bindSlider('logoOpacity','logoOpacityVal', v=>{ state.config.image.opacity = v; return v+'%'; });
 bindSlider('logoRotation','logoRotationVal', v=>{ state.config.image.rotation = v; return v+'°'; });
-document.getElementById('logoAspect').addEventListener('change', e=>{ state.config.image.keepAspect = e.target.checked; scheduleRender(); });
+bindSlider('logoHeight','logoHeightVal', v=>{ state.config.image.heightScale = v; return v+'%'; });
+document.getElementById('logoAspect').addEventListener('change', e=>{
+  state.config.image.keepAspect = e.target.checked;
+  document.getElementById('logoHeightField').style.display = e.target.checked ? 'none' : 'block';
+  scheduleRender();
+});
 
 function bindSlider(inputId, labelId, apply){
   const input = document.getElementById(inputId);
@@ -1462,10 +1605,26 @@ async function renderPreview(){
   octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
   if(state.previewMode === 'after'){
     const pxPerPt = overlayCanvas.width / pageW;
+    const batchOffset = computeBatchPageOffset(f.id);
     drawWatermarkOnCanvas(octx, pageW, pageH, pxPerPt, {
       filename: f.name, page: state.previewPage, total: f.kind==='pdf'?f.pages:1, n: 1,
+      batchPageIndex0: batchOffset + (state.previewPage - 1),
     });
   }
+}
+
+// Sums the page counts (1 per image) of every usable file that comes
+// before `fileId` in the batch, in processing order. Used so the
+// preview can show the exact same Bates number the export will
+// actually produce, instead of always showing the configured start.
+function computeBatchPageOffset(fileId){
+  let offset = 0;
+  for(const rec of state.files){
+    if(rec.kind==='error' || rec.locked) continue;
+    if(rec.id === fileId) break;
+    offset += rec.kind==='pdf' ? rec.pages : 1;
+  }
+  return offset;
 }
 
 function loadImageEl(src){
@@ -1528,8 +1687,9 @@ function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, 
   // ---- Logo watermark ----
   if((cfg.mode === 'image' || cfg.mode === 'combined') && cfg.image.dataUrl && previewLogoImg){
     const logoWpt = pageW * (cfg.image.scale/100);
-    const ratio = cfg.image.keepAspect ? (cfg.image.naturalH/cfg.image.naturalW) : (cfg.image.naturalH/cfg.image.naturalW);
-    const logoHpt = logoWpt * ratio;
+    const logoHpt = cfg.image.keepAspect
+      ? logoWpt * (cfg.image.naturalH/cfg.image.naturalW)   // locked — derive height from the image's own ratio
+      : pageH * (cfg.image.heightScale/100);                 // unlocked — height scales independently, can stretch/squash
     ctx.globalAlpha = cfg.image.opacity/100;
     ctx.globalCompositeOperation = cfg.placement.layer==='below' ? 'multiply' : 'source-over';
     // Pivot at (x,y) — the image's bottom-left corner in PDF space —
@@ -1587,8 +1747,7 @@ function drawExtrasOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, can
   }
 
   if(ex.pageNumber.enabled){
-    const label = ex.pageNumber.format
-      .replace('n', tokenCtx.page).replace('t', tokenCtx.total);
+    const label = computePageNumberLabel(ex.pageNumber, tokenCtx.page, tokenCtx.total);
     textAt(label, ex.pageNumber.size, ex.pageNumber.position, 24);
   }
   if(ex.header.enabled){
@@ -1609,8 +1768,8 @@ function drawExtrasOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, can
     textAt(formatDate(ex.dateStamp.format), 9, ex.dateStamp.position, 20);
   }
   if(ex.bates.enabled){
-    const num = pad(ex.bates.start, ex.bates.digits);
-    textAt(ex.bates.prefix+num, 9, 'bottom-right', 20);
+    const num = ex.bates.start + (tokenCtx.batchPageIndex0 || 0);
+    textAt(computeBatesLabel(ex.bates, num), 9, 'bottom-right', 20);
   }
   if(ex.border.enabled){
     ctx.strokeStyle = ex.border.color;
@@ -1685,6 +1844,9 @@ function applyPresetToUI(cfg){
   document.getElementById('logoRotation').value = state.config.image.rotation;
   document.getElementById('logoRotationVal').textContent = state.config.image.rotation+'°';
   document.getElementById('logoAspect').checked = state.config.image.keepAspect;
+  document.getElementById('logoHeight').value = state.config.image.heightScale;
+  document.getElementById('logoHeightVal').textContent = state.config.image.heightScale+'%';
+  document.getElementById('logoHeightField').style.display = state.config.image.keepAspect ? 'none' : 'block';
 
   document.querySelectorAll('#grid9 .cell').forEach(c=>c.classList.toggle('active', c.dataset.pos===state.config.placement.position));
   document.getElementById('tileMode').checked = state.config.placement.tile;
@@ -1736,10 +1898,13 @@ function applyPresetToUI(cfg){
   document.getElementById('jpgQuality').value = state.config.output.jpgQuality;
   document.getElementById('jpgQualityVal').textContent = state.config.output.jpgQuality+'%';
 
+  const logoPrevEl = document.getElementById('logoPreview');
   if(state.config.image.dataUrl){
-    const prev = document.getElementById('logoPreview');
-    prev.src = state.config.image.dataUrl; prev.style.display='block';
+    logoPrevEl.src = state.config.image.dataUrl; logoPrevEl.style.display='block';
+  } else {
+    logoPrevEl.src = ''; logoPrevEl.style.display='none';
   }
+  document.getElementById('logoError').style.display = 'none';
   refreshPreviewLogoImg();
   updateOutputExample();
   scheduleRender();
@@ -1808,6 +1973,12 @@ document.getElementById('importPresetInput').addEventListener('change', e=>{
   e.target.value = '';
 });
 
+document.getElementById('resetSettingsBtn').addEventListener('click', ()=>{
+  if(!confirm('Reset all watermark settings back to defaults? Your saved presets and uploaded files are not affected.')) return;
+  applyPresetToUI(defaultConfig());
+  document.getElementById('presetSelect').value = '';
+});
+
 /* ---------------------------------------------------------------
    7. PROCESSING ENGINE
    Runs the whole batch sequentially, yielding to the UI thread
@@ -1832,28 +2003,34 @@ function fontKeyFor(base, bold, italic){
 // and returns handles to them. Embeds the Unicode font too, if the
 // watermark or any extra text contains non-Latin characters.
 async function prepareFonts(doc, allTexts){
-  const anyUnicode = allTexts.some(needsUnicodeFont);
   const fonts = {};
   fonts.mainLatin = await doc.embedFont(StandardFonts[fontKeyFor(state.config.text.font, state.config.text.bold, state.config.text.italic)]);
   fonts.plain = await doc.embedFont(StandardFonts.Helvetica);
-  fonts.unicode = null;
-  if(anyUnicode){
-    const bytes = await getNotoFontBytes();
+  fonts.unicodeByFamily = {}; // family -> embedded pdf-lib font (or null if it failed to load)
+
+  const neededFamilies = new Set(allTexts.map(detectScriptFamily).filter(Boolean));
+  if(neededFamilies.size) doc.registerFontkit(fontkit);
+  for(const family of neededFamilies){
+    const bytes = await getNotoFontBytes(family);
     if(bytes){
-      doc.registerFontkit(fontkit);
-      fonts.unicode = await doc.embedFont(bytes, { subset: true });
+      fonts.unicodeByFamily[family] = await doc.embedFont(bytes, { subset: true });
     } else {
-      showFontWarning();
+      fonts.unicodeByFamily[family] = null;
+      showFontWarning(detectScriptName(family));
     }
   }
   return fonts;
 }
 
 function pickFont(fonts, text){
-  return needsUnicodeFont(text) && fonts.unicode ? fonts.unicode : fonts.mainLatin;
+  const family = detectScriptFamily(text);
+  if(family && fonts.unicodeByFamily[family]) return fonts.unicodeByFamily[family];
+  return fonts.mainLatin;
 }
 function pickPlainFont(fonts, text){
-  return needsUnicodeFont(text) && fonts.unicode ? fonts.unicode : fonts.plain;
+  const family = detectScriptFamily(text);
+  if(family && fonts.unicodeByFamily[family]) return fonts.unicodeByFamily[family];
+  return fonts.plain;
 }
 
 let embeddedLogoCache = null; // { doc, image } — re-embed only if the doc changes
@@ -1908,7 +2085,9 @@ async function stampPdfPage(doc, page, pageNum, totalPages, fonts, logoImg, toke
 
   if(onTarget && (cfg.mode==='image' || cfg.mode==='combined') && logoImg){
     const logoW = pageW*(cfg.image.scale/100);
-    const logoH = logoW * (logoImg.height/logoImg.width);
+    const logoH = cfg.image.keepAspect
+      ? logoW * (logoImg.height/logoImg.width)
+      : pageH * (cfg.image.heightScale/100);
     const drawOpts = { width:logoW, height:logoH, opacity: cfg.image.opacity/100, rotate: degrees(cfg.image.rotation), ...blend };
     if(cfg.placement.tile){
       computeTileOrigins(pageW, pageH, cfg.placement.tileH, cfg.placement.tileV, cfg.placement.stagger)
@@ -1930,8 +2109,7 @@ async function stampPdfPage(doc, page, pageNum, totalPages, fonts, logoImg, toke
     page.drawText(str, { x:anchor.x, y:anchor.y, font, size, color: rgb(0.06,0.06,0.06) });
   }
   if(ex.pageNumber.enabled){
-    const n = pageNum - 1 + ex.pageNumber.start;
-    const label = ex.pageNumber.format.replace('n', n).replace('t', totalPages);
+    const label = computePageNumberLabel(ex.pageNumber, pageNum, totalPages);
     drawExtraText(label, ex.pageNumber.size, ex.pageNumber.position, 24);
   }
   if(ex.header.enabled){
@@ -1949,7 +2127,7 @@ async function stampPdfPage(doc, page, pageNum, totalPages, fonts, logoImg, toke
   }
   let batesLabel = null;
   if(ex.bates.enabled){
-    batesLabel = ex.bates.prefix + pad(state.batesCounter, ex.bates.digits);
+    batesLabel = computeBatesLabel(ex.bates, state.batesCounter);
     state.batesCounter++;
     drawExtraText(batesLabel, 9, 'bottom-right', 20);
   }
@@ -2091,6 +2269,9 @@ function triggerDownload(blob, filename){
 /* ---------------------------------------------------------------
    8. INIT
    --------------------------------------------------------------- */
+const APP_VERSION = 'v1.0.0';
+document.getElementById('brandVersion').textContent = APP_VERSION;
+document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
 updateOutputExample();
 updateProcessButtonState();
