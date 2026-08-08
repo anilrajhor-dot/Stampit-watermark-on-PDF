@@ -25,27 +25,69 @@
    To recolor the app, edit the values in this :root block.
    ================================================================ */
 :root{
-  --charcoal:#0E0E10;
+  --charcoal:#0E0E10;      /* fixed dark chip colour (badges, active tabs) — stays dark in both themes */
+  --text:#0E0E10;          /* body text, labels, headings */
+  --text-soft:#4a463c;     /* secondary/help paragraph text */
   --amber:#F5B301;
   --amber-dark:#D99A00;
-  --cream:#F4EDE2;
-  --white:#FFFFFF;
+  --cream:#F4EDE2;         /* page background */
+  --white:#FFFFFF;         /* card / panel surface */
+  --surface-alt:#FEFDFB;   /* file-card surface, sits on white */
   --rust:#E2582B;
   --rust-dark:#C4491F;
+  --rust-soft-bg:#FBF0EC;  /* locked/skipped file card background */
+  --rust-soft-border:#F0C9BB;
   --line:#E7DFCF;
   --muted:#7A7568;
+  --checker-a:#EFE9DC;     /* transparency-preview checkerboard */
+  --checker-b:#F7F2E8;
   --shadow: 0 4px 16px rgba(14,14,16,0.08), 0 1px 3px rgba(14,14,16,0.06);
   --radius:12px;
 }
+
+/* Dark theme — toggled by adding data-theme="dark" to <html>.
+   The watermark/PDF preview itself is unaffected: it always renders
+   the actual page and stamp colours, since that's what the exported
+   file will look like regardless of which theme you're working in. */
+html[data-theme="dark"]{
+  --charcoal:#050505;
+  --text:#EDE8DC;
+  --text-soft:#C7C0AE;
+  --amber:#FFC531;
+  --amber-dark:#D99A00;
+  --cream:#1B1912;
+  --white:#242119;
+  --surface-alt:#2B2820;
+  --rust:#FF7A50;
+  --rust-dark:#E2582B;
+  --rust-soft-bg:#3A2018;
+  --rust-soft-border:#5C3226;
+  --line:#3A362C;
+  --muted:#A39C89;
+  --checker-a:#2A2820;
+  --checker-b:#332F26;
+  --shadow: 0 4px 16px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
+}
+html[data-theme="dark"] .dropzone{background:#211E17;}
+html[data-theme="dark"] .dropzone.drag-over{background:#3A2F0E;}
+html[data-theme="dark"] .chip:hover{background:#332E20;}
+html[data-theme="dark"] .btn-ghost:hover{background:#332E20;}
+html[data-theme="dark"] .summary-box{background:#16241A;border-color:#2B4A34;}
+html[data-theme="dark"] .summary-box.has-skips{background:#2E2317;border-color:#4A3826;}
+html[data-theme="dark"] .warn-banner{background:#332711;border-color:#5C4715;color:#F0D27A;}
+html[data-theme="dark"] .field-error{background:#331A14;border-color:#5C3226;color:#F0A98C;}
+html[data-theme="dark"] .empty-state svg{color:#4A4636;}
+html[data-theme="dark"] ::-webkit-scrollbar-thumb{background:#4A4636;}
 
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;overflow-x:hidden;}
 body{
   background:var(--cream);
-  color:var(--charcoal);
+  color:var(--text);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   -webkit-font-smoothing:antialiased;
   min-height:100vh;
+  transition:background .2s ease, color .2s ease;
 }
 h1,h2,h3,h4,button,.brand{font-family:'Poppins',sans-serif;}
 button{font-family:'Poppins',sans-serif;}
@@ -80,6 +122,14 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 }
 .privacy-badge .dot{width:7px;height:7px;border-radius:50%;background:#3ECF6F;box-shadow:0 0 0 3px rgba(62,207,111,0.25);}
 
+.topbar-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.theme-toggle{
+  width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--white);
+  color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:background .12s ease;
+}
+.theme-toggle:hover{background:var(--cream);}
+.theme-toggle svg{width:18px;height:18px;}
 /* ---------- Layout ---------- */
 .app{
   display:grid;
@@ -133,7 +183,7 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 .btn-amber:disabled{background:#EAD9A0;color:#9c8a55;cursor:not-allowed;}
 .btn-rust{background:var(--rust);color:#fff;}
 .btn-rust:hover{background:var(--rust-dark);}
-.btn-ghost{background:var(--cream);color:var(--charcoal);border:1px solid var(--line);}
+.btn-ghost{background:var(--cream);color:var(--text);border:1px solid var(--line);}
 .btn-ghost:hover{background:#EFE7D6;}
 .btn-dark{background:var(--charcoal);color:var(--cream);}
 .btn-sm{padding:6px 10px;font-size:12px;border-radius:7px;}
@@ -147,10 +197,17 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
   max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-top:10px;
 }
 .file-card{
-  display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);
-  border-radius:9px;background:#FEFDFB;position:relative;
+  display:flex;align-items:center;gap:8px;padding:8px;border:1px solid var(--line);
+  border-radius:9px;background:var(--surface-alt);position:relative;
 }
-.file-card.locked{opacity:0.6;background:#FBF0EC;border-color:#F0C9BB;}
+.file-card.locked{opacity:0.6;background:var(--rust-soft-bg);border-color:var(--rust-soft-border);}
+.file-reorder{display:flex;flex-direction:column;gap:1px;flex-shrink:0;}
+.reorder-btn{
+  background:none;border:1px solid var(--line);border-radius:4px;color:var(--muted);
+  cursor:pointer;font-size:8px;line-height:1;padding:2px 3px;
+}
+.reorder-btn:hover:not(:disabled){background:var(--cream);color:var(--text);}
+.reorder-btn:disabled{opacity:0.25;cursor:default;}
 .file-thumb{
   width:38px;height:48px;border-radius:4px;object-fit:cover;background:var(--cream);
   border:1px solid var(--line);flex-shrink:0;
@@ -168,15 +225,15 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 /* ---------- Empty state ---------- */
 .empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
 .empty-state svg{width:76px;height:76px;margin-bottom:14px;color:#D8CDB4;}
-.empty-state h3{margin:0 0 6px 0;color:var(--charcoal);font-size:16px;}
+.empty-state h3{margin:0 0 6px 0;color:var(--text);font-size:16px;}
 .empty-state p{margin:0;font-size:13px;}
 
 /* ---------- Preview ---------- */
 .preview-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
-.preview-toolbar select{padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;max-width:180px;}
+.preview-toolbar select{padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:var(--white);max-width:180px;}
 .preview-nav{display:flex;align-items:center;gap:6px;}
 .preview-stage{
-  background:repeating-conic-gradient(#EFE9DC 0% 25%, #F7F2E8 0% 50%) 50%/16px 16px;
+  background:repeating-conic-gradient(var(--checker-a) 0% 25%, var(--checker-b) 0% 50%) 50%/16px 16px;
   border-radius:var(--radius);border:1px solid var(--line);
   min-height:520px;display:flex;align-items:center;justify-content:center;overflow:auto;padding:20px;
 }
@@ -186,13 +243,13 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 .zoom-row{display:flex;align-items:center;gap:8px;}
 .zoom-row input[type=range]{width:90px;}
 .toggle-pill{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;}
-.toggle-pill button{border:none;background:#fff;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);}
+.toggle-pill button{border:none;background:var(--white);padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);}
 .toggle-pill button.active{background:var(--charcoal);color:var(--amber);}
 
 /* ---------- Settings panel ---------- */
 .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
 .tab-btn{
-  flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(--line);background:#fff;
+  flex:1;padding:8px 4px;border-radius:8px;border:1px solid var(--line);background:var(--white);
   font-size:11.5px;font-weight:700;cursor:pointer;color:var(--muted);min-width:56px;
 }
 .tab-btn.active{background:var(--charcoal);color:var(--amber);border-color:var(--charcoal);}
@@ -200,10 +257,10 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 .tab-panel.active{display:block;}
 
 .field{margin-bottom:14px;}
-.field label{display:block;font-size:12px;font-weight:700;color:var(--charcoal);margin-bottom:5px;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--text);margin-bottom:5px;}
 .field .hint{font-size:11px;color:var(--muted);margin-top:4px;}
 .field input[type=text],.field input[type=number],.field select,.field textarea{
-  width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--charcoal);
+  width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--white);color:var(--text);
 }
 .field textarea{resize:vertical;min-height:44px;}
 .row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
@@ -214,7 +271,7 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 
 .preset-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
 .chip{
-  padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;
+  padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:var(--white);
   font-size:11.5px;cursor:pointer;font-weight:600;
 }
 .chip:hover{background:var(--cream);}
@@ -224,12 +281,12 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 .slider-val{font-size:12px;font-weight:700;width:44px;text-align:right;color:var(--muted);}
 
 .color-row{display:flex;gap:8px;align-items:center;}
-.color-row input[type=color]{width:38px;height:34px;padding:2px;border-radius:8px;border:1px solid var(--line);background:#fff;}
+.color-row input[type=color]{width:38px;height:34px;padding:2px;border-radius:8px;border:1px solid var(--line);background:var(--white);}
 .color-row input[type=text]{flex:1;}
 
 .toggle-btns{display:flex;gap:6px;}
 .toggle-btn{
-  flex:1;padding:8px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;
+  flex:1;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--white);cursor:pointer;
   font-weight:700;font-size:13px;color:var(--muted);
 }
 .toggle-btn.active{background:var(--amber);color:var(--charcoal);border-color:var(--amber);}
@@ -242,7 +299,7 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
   display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:140px;margin:0 auto 6px auto;
 }
 .grid9 .cell{
-  width:100%;aspect-ratio:1/1;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;
+  width:100%;aspect-ratio:1/1;border-radius:6px;border:1px solid var(--line);background:var(--white);cursor:pointer;
   transition:background .1s ease;
 }
 .grid9 .cell.active{background:var(--amber);border-color:var(--amber-dark);}
@@ -253,7 +310,7 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 .checkbox-row label{font-size:13px;font-weight:600;margin:0;}
 
 fieldset{border:1px solid var(--line);border-radius:10px;padding:10px 12px 12px;margin:0 0 12px 0;}
-legend{font-size:12px;font-weight:700;padding:0 6px;color:var(--charcoal);}
+legend{font-size:12px;font-weight:700;padding:0 6px;color:var(--text);}
 fieldset[disabled] {opacity:0.45;}
 
 /* ---------- Process bar ---------- */
@@ -287,16 +344,24 @@ fieldset[disabled] {opacity:0.45;}
   font-size:11.5px;margin-top:6px;font-weight:600;
 }
 .help-section{margin-bottom:16px;}
-.help-section h4{margin:0 0 5px 0;font-size:13px;font-weight:700;color:var(--charcoal);}
-.help-section p{margin:0;font-size:12.5px;line-height:1.55;color:#4a463c;}
-.help-section strong{color:var(--charcoal);}
+.help-section h4{margin:0 0 5px 0;font-size:13px;font-weight:700;color:var(--text);}
+.help-section p{margin:0;font-size:12.5px;line-height:1.55;color:var(--text-soft);}
+.help-section strong{color:var(--text);}
+kbd{
+  display:inline-block;background:var(--cream);border:1px solid var(--line);border-bottom-width:2px;
+  border-radius:5px;padding:1px 6px;font-family:'SFMono-Regular',Consolas,monospace;font-size:11px;
+  font-weight:700;color:var(--text);
+}
+.shortcut-table{width:100%;border-collapse:collapse;}
+.shortcut-table td{padding:5px 8px 5px 0;font-size:12.5px;color:var(--text-soft);vertical-align:middle;}
+.shortcut-table td:first-child{white-space:nowrap;width:1%;}
 input[type=file].hidden-input{display:none;}
 .output-example{font-size:11.5px;color:var(--muted);margin-top:4px;font-family:monospace;}
 select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px;}
 .preset-actions{display:flex;gap:6px;flex-wrap:wrap;}
 .logo-preview{
   margin-top:8px;max-width:100%;max-height:80px;border-radius:6px;border:1px solid var(--line);
-  display:none;background:repeating-conic-gradient(#EFE9DC 0% 25%, #F7F2E8 0% 50%) 50%/10px 10px;
+  display:none;background:repeating-conic-gradient(var(--checker-a) 0% 25%, var(--checker-b) 0% 50%) 50%/10px 10px;
 }
 ::-webkit-scrollbar{width:9px;height:9px;}
 ::-webkit-scrollbar-thumb{background:#D8CDB4;border-radius:9px;}
@@ -305,6 +370,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 @media (pointer: coarse){
   .btn, .chip, .tab-btn, .toggle-btn, .cell{min-height:38px;}
   .file-remove{min-width:32px;min-height:32px;}
+  .reorder-btn{min-width:26px;min-height:22px;font-size:10px;}
   input[type=range]{height:28px;}
   input[type=checkbox]{width:19px;height:19px;}
   .grid9 .cell{min-height:0;}
@@ -320,7 +386,13 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
 <div class="topbar">
   <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v1.0.0</span></div>
-  <div class="privacy-badge"><span class="dot"></span> 🔒 Your documents are processed locally in your browser</div>
+  <div class="topbar-right">
+    <div class="privacy-badge"><span class="dot"></span> 🔒 Your documents are processed locally in your browser</div>
+    <button class="theme-toggle" id="themeToggle" type="button" title="Toggle dark mode (D)" aria-label="Toggle dark mode">
+      <svg id="themeIconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round"/></svg>
+      <svg id="themeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+    </button>
+  </div>
 </div>
 
 <div class="app">
@@ -397,6 +469,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <div class="preset-actions">
         <button class="btn btn-ghost btn-sm" id="savePresetBtn">Save as new</button>
         <button class="btn btn-ghost btn-sm" id="renamePresetBtn">Rename</button>
+        <button class="btn btn-ghost btn-sm" id="duplicatePresetBtn">Duplicate</button>
         <button class="btn btn-rust btn-sm" id="deletePresetBtn">Delete</button>
       </div>
       <div class="preset-actions" style="margin-top:6px;">
@@ -724,7 +797,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>Page numbering &amp; Bates numbering</h4>
-        <p><strong>Page numbering</strong> restarts at your chosen "starting number" for every file. <strong>Bates numbering</strong> is different — it keeps counting up continuously across every file in the batch, in the order they're listed, which is what legal and audit workflows expect.</p>
+        <p><strong>Page numbering</strong> restarts at your chosen "starting number" for every file. <strong>Bates numbering</strong> is different — it keeps counting up continuously across every file in the batch, in the order they're listed, which is what legal and audit workflows expect. Use the ▲▼ arrows on each file card to reorder the batch before processing if the Bates sequence needs to follow a specific file order.</p>
       </div>
 
       <div class="help-section">
@@ -734,12 +807,32 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>Presets</h4>
-        <p>Save your current settings as a named preset, export them as a JSON file to share with colleagues, or import someone else's. <strong>Reset to defaults</strong> clears your current settings back to a blank slate without touching your saved presets.</p>
+        <p>Save your current settings as a named preset, <strong>duplicate</strong> an existing preset under a new name, export them as a JSON file to share with colleagues, or import someone else's. <strong>Reset to defaults</strong> clears your current settings back to a blank slate without touching your saved presets. StampIt also remembers your current settings automatically between visits — no need to re-save a preset just to pick up where you left off.</p>
       </div>
 
       <div class="help-section">
         <h4>Supported files &amp; limits</h4>
         <p>PDF, JPG, PNG, and WebP, up to 100 MB each. Password-protected PDFs are detected and skipped automatically rather than breaking the batch — you'll see them marked "Locked" in the file list and in the final summary.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Dark mode</h4>
+        <p>Toggle it with the sun/moon button in the top-right corner, or press <kbd>D</kbd>. Your choice is remembered on this device. The watermark preview itself always shows the true page and stamp colours — dark mode only changes the app's own interface, not what gets exported.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Keyboard shortcuts</h4>
+        <table class="shortcut-table">
+          <tr><td><kbd>P</kbd></td><td>Process all files</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Cancel a running batch</td></tr>
+          <tr><td><kbd>T</kbd> / <kbd>L</kbd> / <kbd>M</kbd></td><td>Text / Logo / coMbined mode</td></tr>
+          <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Set placement (numpad layout — 7 8 9 top row, 1 2 3 bottom row)</td></tr>
+          <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>Previous / next preview page</td></tr>
+          <tr><td><kbd>+</kbd> / <kbd>-</kbd></td><td>Zoom preview in / out</td></tr>
+          <tr><td><kbd>D</kbd></td><td>Toggle dark mode</td></tr>
+          <tr><td><kbd>?</kbd></td><td>Open this Help tab</td></tr>
+        </table>
+        <p class="hint" style="margin-top:8px;">Shortcuts are ignored while you're typing in a text field, so they won't interfere with your watermark text.</p>
       </div>
 
       <div class="divider"></div>
@@ -1162,14 +1255,19 @@ function renderFileList(){
   }
   clearAllBtn.style.display = 'block';
   let totalPages = 0, totalSize = 0, count = 0;
-  fileListEl.innerHTML = state.files.map(f=>{
+  fileListEl.innerHTML = state.files.map((f,idx)=>{
     if(f.kind !== 'error'){ totalPages += (f.locked?0:f.pages); totalSize += f.size; count++; }
     const thumb = f.thumb ? `<img class="file-thumb" src="${f.thumb}">` : `<div class="file-thumb"></div>`;
     const sub = f.kind==='error' ? f.error :
       f.locked ? 'Locked — skipped' :
       f.kind==='pdf' ? `${f.pages} page${f.pages!==1?'s':''} · ${fmtBytes(f.size)}` :
       `Image · ${fmtBytes(f.size)}`;
+    const isFirst = idx===0, isLast = idx===state.files.length-1;
     return `<div class="file-card ${f.locked||f.kind==='error'?'locked':''}">
+      <div class="file-reorder">
+        <button class="reorder-btn" ${isFirst?'disabled':''} onclick="moveFile('${f.id}',-1)" title="Move up">▲</button>
+        <button class="reorder-btn" ${isLast?'disabled':''} onclick="moveFile('${f.id}',1)" title="Move down">▼</button>
+      </div>
       ${thumb}
       <div class="file-meta">
         <div class="fname">${escapeHtml(f.name)}</div>
@@ -1180,6 +1278,25 @@ function renderFileList(){
     </div>`;
   }).join('');
   fileTotalsEl.textContent = `${count} file${count!==1?'s':''} · ${totalPages} page${totalPages!==1?'s':''} · ${fmtBytes(totalSize)}`;
+  if(count>1){
+    fileTotalsEl.textContent += ' · order affects Bates numbering';
+  }
+}
+
+// Reorders the batch — matters because Bates numbering (and the {n}
+// token) follow file order, so users need a way to fix the sequence
+// without removing and re-adding files.
+function moveFile(id, direction){
+  const idx = state.files.findIndex(f=>f.id===id);
+  if(idx<0) return;
+  const target = idx+direction;
+  if(target<0 || target>=state.files.length) return;
+  const tmp = state.files[idx];
+  state.files[idx] = state.files[target];
+  state.files[target] = tmp;
+  renderFileList();
+  updatePreviewFileOptions();
+  renderPreview();
 }
 
 function escapeHtml(s){
@@ -1238,7 +1355,15 @@ function computeTileOrigins(pageW, pageH, hSpace, vSpace, stagger){
    Every control just writes into state.config and calls
    scheduleRender() (debounced) so the preview stays live.
    --------------------------------------------------------------- */
-const scheduleRender = debounce(()=>renderPreview(), 150);
+// Persists the current watermark configuration so it survives a page
+// reload — closing the tab shouldn't mean reconfiguring everything
+// from scratch. Files themselves are never persisted (only settings).
+const AUTOSAVE_KEY = 'stampit_last_config';
+const autosaveConfig = debounce(()=>{
+  try{ localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state.config)); }catch(e){ /* storage full or unavailable — safe to skip */ }
+}, 400);
+
+const scheduleRender = debounce(()=>{ renderPreview(); autosaveConfig(); }, 150);
 
 // ---- Preset quick-text chips ----
 const QUICK_TEXTS = ['CONFIDENTIAL','DRAFT','COPY','ORIGINAL','PAID','SAMPLE','DO NOT COPY','APPROVED','FOR INTERNAL USE ONLY','URGENT'];
@@ -1939,6 +2064,22 @@ document.getElementById('renamePresetBtn').addEventListener('click', ()=>{
   refreshPresetSelect(newName);
 });
 
+document.getElementById('duplicatePresetBtn').addEventListener('click', ()=>{
+  const sel = document.getElementById('presetSelect');
+  const name = sel.value;
+  const cfg = BUILTIN_PRESETS[name] || loadStoredPresets()[name];
+  if(!cfg){ alert('Select a preset first.'); return; }
+  const newName = prompt('Duplicate this preset as:', name+' copy');
+  if(!newName) return;
+  const store = loadStoredPresets();
+  if(BUILTIN_PRESETS[newName] || store[newName]){
+    if(!confirm(`"${newName}" already exists. Overwrite it?`)) return;
+  }
+  store[newName] = JSON.parse(JSON.stringify(cfg));
+  saveStoredPresets(store);
+  refreshPresetSelect(newName);
+});
+
 document.getElementById('deletePresetBtn').addEventListener('click', ()=>{
   const sel = document.getElementById('presetSelect');
   const name = sel.value;
@@ -2267,12 +2408,121 @@ function triggerDownload(blob, filename){
 }
 
 /* ---------------------------------------------------------------
-   8. INIT
+   9. DARK MODE
+   Preference is stored separately from watermark settings (it's a
+   UI preference, not part of what gets exported into a preset).
+   Falls back to the OS/browser's prefers-color-scheme on first
+   visit if the person hasn't chosen explicitly.
+   --------------------------------------------------------------- */
+const THEME_KEY = 'stampit_theme';
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeIconSun').style.display = theme==='dark' ? 'none' : 'block';
+  document.getElementById('themeIconMoon').style.display = theme==='dark' ? 'block' : 'none';
+  try{ localStorage.setItem(THEME_KEY, theme); }catch(e){ /* ignore */ }
+}
+function toggleTheme(){
+  const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+  scheduleRender(); // re-render so the preview canvas backdrop matches immediately
+}
+document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+(function initTheme(){
+  let stored = null;
+  try{ stored = localStorage.getItem(THEME_KEY); }catch(e){ /* ignore */ }
+  if(stored === 'dark' || stored === 'light'){ applyTheme(stored); return; }
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(prefersDark ? 'dark' : 'light');
+})();
+
+/* ---------------------------------------------------------------
+   10. KEYBOARD SHORTCUTS
+   Only fire when focus isn't in a text field, and never hijack a
+   Ctrl/Cmd/Alt combo — those stay reserved for the browser/OS.
+   --------------------------------------------------------------- */
+const GRID_KEY_MAP = { // numpad-style layout, matching the 9-point grid's own arrangement
+  '7':'top-left', '8':'top-center', '9':'top-right',
+  '4':'middle-left', '5':'center', '6':'middle-right',
+  '1':'bottom-left', '2':'bottom-center', '3':'bottom-right',
+};
+function isTypingContext(el){
+  if(!el) return false;
+  const tag = el.tagName;
+  return tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || el.isContentEditable;
+}
+function adjustZoom(delta){
+  const el = document.getElementById('zoomSlider');
+  el.value = Math.min(200, Math.max(50, Number(el.value)+delta));
+  renderPreview();
+}
+document.addEventListener('keydown', e=>{
+  if(isTypingContext(document.activeElement)) return;
+  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  const key = e.key;
+
+  if(GRID_KEY_MAP[key]){
+    document.querySelector(`#grid9 .cell[data-pos="${GRID_KEY_MAP[key]}"]`).click();
+    e.preventDefault(); return;
+  }
+  switch(key){
+    case 'p': case 'P':
+      document.getElementById('processBtn').click(); e.preventDefault(); break;
+    case 'Escape':
+      if(state.processing) document.getElementById('cancelBtn').click();
+      break;
+    case 't': case 'T':
+      document.querySelector('.mode-switch [data-mode="text"]').click(); break;
+    case 'l': case 'L':
+      document.querySelector('.mode-switch [data-mode="image"]').click(); break;
+    case 'm': case 'M':
+      document.querySelector('.mode-switch [data-mode="combined"]').click(); break;
+    case 'd': case 'D':
+      toggleTheme(); break;
+    case 'ArrowLeft':
+      document.getElementById('prevPageBtn').click(); break;
+    case 'ArrowRight':
+      document.getElementById('nextPageBtn').click(); break;
+    case '+': case '=':
+      adjustZoom(10); break;
+    case '-': case '_':
+      adjustZoom(-10); break;
+    case '?':
+      document.querySelector('.tab-btn[data-tab="help"]').click(); break;
+  }
+});
+
+/* ---------------------------------------------------------------
+   11. INIT
    --------------------------------------------------------------- */
 const APP_VERSION = 'v1.0.0';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
+// Recursively fills in any fields missing from a saved config (e.g.
+// added in a later version) using the current defaults, one level of
+// nesting at a time, instead of a shallow Object.assign that would
+// silently drop new nested fields whenever an old saved blob is present.
+function mergeConfigWithDefaults(defaults, saved){
+  const out = {};
+  for(const key in defaults){
+    const dVal = defaults[key], sVal = saved ? saved[key] : undefined;
+    if(sVal !== undefined && dVal !== null && typeof dVal === 'object' && !Array.isArray(dVal)){
+      out[key] = mergeConfigWithDefaults(dVal, sVal);
+    } else {
+      out[key] = sVal !== undefined ? sVal : dVal;
+    }
+  }
+  return out;
+}
+
+(function restoreLastConfig(){
+  try{
+    const raw = localStorage.getItem(AUTOSAVE_KEY);
+    if(raw){
+      applyPresetToUI(mergeConfigWithDefaults(defaultConfig(), JSON.parse(raw)));
+    }
+  } catch(e){ /* corrupted/unavailable storage — just start from defaults */ }
+})();
 updateOutputExample();
 updateProcessButtonState();
 setToggle();
