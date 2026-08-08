@@ -1,0 +1,2104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StampIt — Bulk Watermark &amp; Stamp Tool</title>
+
+<!-- ============================================================
+     FONTS — Poppins for headings, system sans for body text
+     ============================================================ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<!-- ============================================================
+     LIBRARIES (all loaded from CDN — no build step, no backend)
+     ============================================================ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+<style>
+/* ================================================================
+   DESIGN TOKENS
+   To recolor the app, edit the values in this :root block.
+   ================================================================ */
+:root{
+  --charcoal:#0E0E10;
+  --amber:#F5B301;
+  --amber-dark:#D99A00;
+  --cream:#F4EDE2;
+  --white:#FFFFFF;
+  --rust:#E2582B;
+  --rust-dark:#C4491F;
+  --line:#E7DFCF;
+  --muted:#7A7568;
+  --shadow: 0 4px 16px rgba(14,14,16,0.08), 0 1px 3px rgba(14,14,16,0.06);
+  --radius:12px;
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;overflow-x:hidden;}
+body{
+  background:var(--cream);
+  color:var(--charcoal);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+h1,h2,h3,h4,button,.brand{font-family:'Poppins',sans-serif;}
+button{font-family:'Poppins',sans-serif;}
+
+a{color:inherit;}
+input,select,button,textarea{font-family:inherit;font-size:14px;}
+::selection{background:var(--amber);color:var(--charcoal);}
+
+/* ---------- Top bar ---------- */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  padding:14px 24px;background:var(--white);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:50;
+}
+@media (max-width: 480px){
+  .topbar{padding:10px 14px;}
+  .app{padding:10px;gap:12px;}
+  .panel{padding:12px;}
+  .privacy-badge{font-size:11.5px;padding:6px 10px;}
+  .brand{font-size:17px;}
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-0.02em;}
+.brand-mark{
+  width:34px;height:34px;border-radius:9px;background:var(--charcoal);
+  display:flex;align-items:center;justify-content:center;color:var(--amber);
+  font-weight:800;font-size:16px;flex-shrink:0;
+}
+.privacy-badge{
+  display:flex;align-items:center;gap:8px;background:var(--charcoal);color:var(--cream);
+  padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;
+}
+.privacy-badge .dot{width:7px;height:7px;border-radius:50%;background:#3ECF6F;box-shadow:0 0 0 3px rgba(62,207,111,0.25);}
+
+/* ---------- Layout ---------- */
+.app{
+  display:grid;
+  grid-template-columns: 300px 1fr 360px;
+  gap:18px;
+  padding:18px;
+  align-items:start;
+  max-width:1680px;
+  margin:0 auto;
+}
+@media (max-width: 1180px){
+  .app{grid-template-columns: 1fr;}
+  .preview-stage{min-height:420px;}
+}
+@media (min-width: 1181px) and (max-width: 1400px){
+  .app{grid-template-columns: 260px 1fr 320px;}
+}
+
+.panel{
+  background:var(--white);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:16px;
+}
+.panel h2{
+  font-size:14px;text-transform:uppercase;letter-spacing:0.06em;
+  color:var(--muted);margin:0 0 12px 0;font-weight:700;
+}
+.panel + .panel{margin-top:18px;}
+
+/* ---------- Dropzone / file list ---------- */
+.dropzone{
+  border:2px dashed var(--line);border-radius:var(--radius);
+  padding:22px 12px;text-align:center;cursor:pointer;
+  transition:border-color .15s ease, background .15s ease;
+  background:#FBF8F2;
+}
+.dropzone.drag-over{border-color:var(--amber);background:#FFF6DE;}
+.dropzone svg{width:44px;height:44px;margin-bottom:8px;color:var(--muted);}
+.dropzone p{margin:4px 0;font-size:13px;color:var(--muted);}
+.dropzone .browse-row{display:flex;gap:8px;justify-content:center;margin-top:10px;flex-wrap:wrap;}
+
+.btn{
+  border:none;border-radius:9px;padding:9px 14px;font-weight:600;font-size:13px;
+  cursor:pointer;transition:transform .08s ease, filter .12s ease, box-shadow .12s ease;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn:active{transform:translateY(1px);}
+.btn-amber{background:var(--amber);color:var(--charcoal);}
+.btn-amber:hover{filter:brightness(1.05);}
+.btn-amber:disabled{background:#EAD9A0;color:#9c8a55;cursor:not-allowed;}
+.btn-rust{background:var(--rust);color:#fff;}
+.btn-rust:hover{background:var(--rust-dark);}
+.btn-ghost{background:var(--cream);color:var(--charcoal);border:1px solid var(--line);}
+.btn-ghost:hover{background:#EFE7D6;}
+.btn-dark{background:var(--charcoal);color:var(--cream);}
+.btn-sm{padding:6px 10px;font-size:12px;border-radius:7px;}
+.btn-block{width:100%;justify-content:center;}
+
+.file-totals{
+  font-size:12.5px;color:var(--muted);margin:10px 0;text-align:center;font-weight:600;
+}
+
+.file-list{
+  max-height:420px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-top:10px;
+}
+.file-card{
+  display:flex;align-items:center;gap:10px;padding:8px;border:1px solid var(--line);
+  border-radius:9px;background:#FEFDFB;position:relative;
+}
+.file-card.locked{opacity:0.6;background:#FBF0EC;border-color:#F0C9BB;}
+.file-thumb{
+  width:38px;height:48px;border-radius:4px;object-fit:cover;background:var(--cream);
+  border:1px solid var(--line);flex-shrink:0;
+}
+.file-meta{flex:1;min-width:0;}
+.file-meta .fname{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.file-meta .fsub{font-size:11px;color:var(--muted);}
+.file-remove{
+  background:none;border:none;color:var(--rust);cursor:pointer;font-size:16px;line-height:1;
+  padding:4px;flex-shrink:0;
+}
+.file-remove:hover{color:var(--rust-dark);}
+.tag-locked{font-size:10px;background:var(--rust);color:#fff;padding:2px 6px;border-radius:5px;font-weight:700;}
+
+/* ---------- Empty state ---------- */
+.empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
+.empty-state svg{width:76px;height:76px;margin-bottom:14px;color:#D8CDB4;}
+.empty-state h3{margin:0 0 6px 0;color:var(--charcoal);font-size:16px;}
+.empty-state p{margin:0;font-size:13px;}
+
+/* ---------- Preview ---------- */
+.preview-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.preview-toolbar select{padding:7px 10px;border-radius:7px;border:1px solid var(--line);background:#fff;max-width:180px;}
+.preview-nav{display:flex;align-items:center;gap:6px;}
+.preview-stage{
+  background:repeating-conic-gradient(#EFE9DC 0% 25%, #F7F2E8 0% 50%) 50%/16px 16px;
+  border-radius:var(--radius);border:1px solid var(--line);
+  min-height:520px;display:flex;align-items:center;justify-content:center;overflow:auto;padding:20px;
+}
+#previewCanvasWrap{position:relative;box-shadow:0 8px 30px rgba(0,0,0,0.18);}
+#pdfCanvas,#overlayCanvas{display:block;}
+#overlayCanvas{position:absolute;top:0;left:0;pointer-events:none;}
+.zoom-row{display:flex;align-items:center;gap:8px;}
+.zoom-row input[type=range]{width:90px;}
+.toggle-pill{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;}
+.toggle-pill button{border:none;background:#fff;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);}
+.toggle-pill button.active{background:var(--charcoal);color:var(--amber);}
+
+/* ---------- Settings panel ---------- */
+.tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.tab-btn{
+  flex:1;padding:8px 6px;border-radius:8px;border:1px solid var(--line);background:#fff;
+  font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);min-width:70px;
+}
+.tab-btn.active{background:var(--charcoal);color:var(--amber);border-color:var(--charcoal);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--charcoal);margin-bottom:5px;}
+.field .hint{font-size:11px;color:var(--muted);margin-top:4px;}
+.field input[type=text],.field input[type=number],.field select,.field textarea{
+  width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--charcoal);
+}
+.field textarea{resize:vertical;min-height:44px;}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+@media (max-width: 420px){
+  .row-3{grid-template-columns:1fr;}
+}
+
+.preset-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.chip{
+  padding:5px 10px;border-radius:999px;border:1px solid var(--line);background:#fff;
+  font-size:11.5px;cursor:pointer;font-weight:600;
+}
+.chip:hover{background:var(--cream);}
+
+.slider-row{display:flex;align-items:center;gap:10px;}
+.slider-row input[type=range]{flex:1;accent-color:var(--amber);}
+.slider-val{font-size:12px;font-weight:700;width:44px;text-align:right;color:var(--muted);}
+
+.color-row{display:flex;gap:8px;align-items:center;}
+.color-row input[type=color]{width:38px;height:34px;padding:2px;border-radius:8px;border:1px solid var(--line);background:#fff;}
+.color-row input[type=text]{flex:1;}
+
+.toggle-btns{display:flex;gap:6px;}
+.toggle-btn{
+  flex:1;padding:8px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;
+  font-weight:700;font-size:13px;color:var(--muted);
+}
+.toggle-btn.active{background:var(--amber);color:var(--charcoal);border-color:var(--amber);}
+
+.mode-switch{display:flex;gap:6px;margin-bottom:14px;}
+.mode-switch button{flex:1;}
+
+/* 9-point grid */
+.grid9{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:6px;width:140px;margin:0 auto 6px auto;
+}
+.grid9 .cell{
+  width:100%;aspect-ratio:1/1;border-radius:6px;border:1px solid var(--line);background:#fff;cursor:pointer;
+  transition:background .1s ease;
+}
+.grid9 .cell.active{background:var(--amber);border-color:var(--amber-dark);}
+.grid9 .cell:hover{background:#FFF3D2;}
+
+.checkbox-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.checkbox-row input{width:16px;height:16px;accent-color:var(--amber);}
+.checkbox-row label{font-size:13px;font-weight:600;margin:0;}
+
+fieldset{border:1px solid var(--line);border-radius:10px;padding:10px 12px 12px;margin:0 0 12px 0;}
+legend{font-size:12px;font-weight:700;padding:0 6px;color:var(--charcoal);}
+fieldset[disabled] {opacity:0.45;}
+
+/* ---------- Process bar ---------- */
+.process-bar-wrap{margin-top:14px;}
+.progress-outer{height:10px;border-radius:999px;background:var(--cream);overflow:hidden;border:1px solid var(--line);}
+.progress-inner{height:100%;background:linear-gradient(90deg,var(--amber),var(--amber-dark));width:0%;transition:width .2s ease;}
+.progress-label{font-size:12px;color:var(--muted);margin-top:6px;text-align:center;font-weight:600;}
+
+.summary-box{
+  margin-top:12px;padding:12px;border-radius:10px;background:#F1FBF3;border:1px solid #CDEAD3;font-size:13px;
+}
+.summary-box.has-skips{background:#FBF3EC;border-color:#F0D8BE;}
+.summary-box ul{margin:6px 0 0 18px;padding:0;font-size:12px;color:var(--muted);}
+
+/* ---------- Misc ---------- */
+.divider{height:1px;background:var(--line);margin:14px 0;}
+.token-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
+.token-chip{
+  font-size:10.5px;background:var(--cream);border:1px solid var(--line);border-radius:6px;padding:3px 7px;
+  cursor:pointer;font-family:'SFMono-Regular',Consolas,monospace;font-weight:600;
+}
+.token-chip:hover{background:#EFE7D6;}
+.small-note{font-size:11px;color:var(--muted);}
+.warn-banner{
+  background:#FFF3D2;border:1px solid #F0D27A;color:#6b5205;padding:8px 10px;border-radius:8px;
+  font-size:12px;margin-bottom:10px;display:none;
+}
+.warn-banner.show{display:block;}
+input[type=file].hidden-input{display:none;}
+.output-example{font-size:11.5px;color:var(--muted);margin-top:4px;font-family:monospace;}
+select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid var(--line);margin-bottom:8px;}
+.preset-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.logo-preview{
+  margin-top:8px;max-width:100%;max-height:80px;border-radius:6px;border:1px solid var(--line);
+  display:none;background:repeating-conic-gradient(#EFE9DC 0% 25%, #F7F2E8 0% 50%) 50%/10px 10px;
+}
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-thumb{background:#D8CDB4;border-radius:9px;}
+
+/* ---------- Touch-friendly sizing on phones/tablets ---------- */
+@media (pointer: coarse){
+  .btn, .chip, .tab-btn, .toggle-btn, .cell{min-height:38px;}
+  .file-remove{min-width:32px;min-height:32px;}
+  input[type=range]{height:28px;}
+  input[type=checkbox]{width:19px;height:19px;}
+  .grid9 .cell{min-height:0;}
+  select, .field input[type=text], .field input[type=number]{min-height:40px;}
+}
+@media (max-width: 900px){
+  .preview-toolbar select{max-width:none;flex:1 1 140px;}
+  .zoom-row input[type=range]{width:70px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><div class="brand-mark">S</div>StampIt</div>
+  <div class="privacy-badge"><span class="dot"></span> 🔒 Your documents never leave your computer</div>
+</div>
+
+<div class="app">
+
+  <!-- ============ LEFT PANEL: FILE INTAKE ============ -->
+  <div class="panel" id="filesPanel">
+    <h2>Files</h2>
+    <div class="dropzone" id="dropzone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4m0 0L7 9m5-5l5 5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p><strong>Drag &amp; drop</strong> PDFs or images here</p>
+      <p>or a whole folder</p>
+      <div class="browse-row">
+        <button class="btn btn-ghost btn-sm" id="browseBtn">Browse files</button>
+        <button class="btn btn-ghost btn-sm" id="browseFolderBtn">Browse folder</button>
+      </div>
+    </div>
+    <input type="file" id="fileInput" class="hidden-input" multiple accept=".pdf,.jpg,.jpeg,.png,.webp">
+    <input type="file" id="folderInput" class="hidden-input" multiple webkitdirectory directory>
+
+    <div class="file-totals" id="fileTotals">0 files · 0 pages · 0 MB</div>
+    <div class="file-list" id="fileList"></div>
+    <button class="btn btn-ghost btn-block btn-sm" id="clearAllBtn" style="margin-top:10px;display:none;">Clear all</button>
+  </div>
+
+  <!-- ============ CENTER: LIVE PREVIEW ============ -->
+  <div class="panel" id="previewPanel">
+    <h2>Live preview</h2>
+    <div class="preview-toolbar">
+      <select id="previewFileSelect"><option>No files yet</option></select>
+      <div class="preview-nav">
+        <button class="btn btn-ghost btn-sm" id="prevPageBtn">‹</button>
+        <span class="small-note" id="pageIndicator">– / –</span>
+        <button class="btn btn-ghost btn-sm" id="nextPageBtn">›</button>
+      </div>
+      <div class="zoom-row">
+        <span class="small-note">Zoom</span>
+        <input type="range" id="zoomSlider" min="50" max="200" value="100">
+      </div>
+      <div class="toggle-pill">
+        <button id="beforeBtn">Before</button>
+        <button id="afterBtn" class="active">After</button>
+      </div>
+    </div>
+    <div class="preview-stage" id="previewStage">
+      <div class="empty-state" id="previewEmpty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke-linecap="round"/></svg>
+        <h3>Nothing to preview yet</h3>
+        <p>Add files on the left to see your watermark rendered live.</p>
+      </div>
+      <div id="previewCanvasWrap" style="display:none;">
+        <canvas id="pdfCanvas"></canvas>
+        <canvas id="overlayCanvas"></canvas>
+      </div>
+    </div>
+
+    <div class="process-bar-wrap">
+      <button class="btn btn-amber btn-block" id="processBtn" style="padding:13px;font-size:15px;" disabled>Process all files</button>
+      <button class="btn btn-rust btn-block" id="cancelBtn" style="margin-top:8px;display:none;">Cancel</button>
+      <div id="progressWrap" style="display:none;">
+        <div class="progress-outer"><div class="progress-inner" id="progressInner"></div></div>
+        <div class="progress-label" id="progressLabel">—</div>
+      </div>
+      <div id="summaryBox" class="summary-box" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ============ RIGHT PANEL: SETTINGS ============ -->
+  <div class="panel" id="settingsPanel">
+    <h2>Watermark settings</h2>
+
+    <div class="field">
+      <label>Preset</label>
+      <select id="presetSelect"></select>
+      <div class="preset-actions">
+        <button class="btn btn-ghost btn-sm" id="savePresetBtn">Save as new</button>
+        <button class="btn btn-ghost btn-sm" id="renamePresetBtn">Rename</button>
+        <button class="btn btn-rust btn-sm" id="deletePresetBtn">Delete</button>
+      </div>
+      <div class="preset-actions" style="margin-top:6px;">
+        <button class="btn btn-ghost btn-sm" id="exportPresetBtn">Export JSON</button>
+        <button class="btn btn-ghost btn-sm" id="importPresetBtn">Import JSON</button>
+        <input type="file" id="importPresetInput" class="hidden-input" accept=".json">
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="mode-switch">
+      <button class="toggle-btn active" data-mode="text">Text</button>
+      <button class="toggle-btn" data-mode="image">Logo</button>
+      <button class="toggle-btn" data-mode="combined">Both</button>
+    </div>
+
+    <div class="warn-banner" id="fontWarnBanner">⚠ Could not load the Unicode font for non-Latin text. That watermark may render blank.</div>
+
+    <!-- TEXT WATERMARK -->
+    <fieldset id="textFieldset">
+      <legend>Text watermark</legend>
+      <div class="field">
+        <label>Watermark text</label>
+        <textarea id="wmText">CONFIDENTIAL</textarea>
+        <div class="token-row">
+          <span class="token-chip" data-token="{date}">{date}</span>
+          <span class="token-chip" data-token="{time}">{time}</span>
+          <span class="token-chip" data-token="{filename}">{filename}</span>
+          <span class="token-chip" data-token="{page}">{page}</span>
+          <span class="token-chip" data-token="{total}">{total}</span>
+          <span class="token-chip" data-token="{n}">{n}</span>
+        </div>
+      </div>
+      <div class="preset-chips" id="presetTextChips"></div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Font</label>
+          <select id="wmFont">
+            <option value="Helvetica">Helvetica</option>
+            <option value="TimesRoman">Times Roman</option>
+            <option value="Courier">Courier</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Style</label>
+          <div class="toggle-btns">
+            <button class="toggle-btn" id="boldToggle" type="button">B</button>
+            <button class="toggle-btn" id="italicToggle" type="button">I</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Font size <span id="fontSizeVal">48</span>pt</label>
+        <div class="slider-row"><input type="range" id="fontSize" min="8" max="200" value="48"></div>
+        <div class="checkbox-row" style="margin-top:6px;">
+          <input type="checkbox" id="autoFit"><label for="autoFit">Auto-fit to page width</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Colour</label>
+        <div class="color-row">
+          <input type="color" id="wmColor" value="#E2582B">
+          <input type="text" id="wmColorHex" value="#E2582B">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Opacity <span id="opacityVal">20%</span></label>
+        <div class="slider-row"><input type="range" id="wmOpacity" min="5" max="100" value="20"></div>
+      </div>
+
+      <div class="field">
+        <label>Rotation <span id="rotationVal">45°</span></label>
+        <div class="slider-row"><input type="range" id="wmRotation" min="-90" max="90" value="45"></div>
+      </div>
+    </fieldset>
+
+    <!-- IMAGE WATERMARK -->
+    <fieldset id="imageFieldset" disabled>
+      <legend>Logo watermark</legend>
+      <div class="field">
+        <button class="btn btn-ghost btn-sm" id="logoUploadBtn" type="button">Upload PNG / JPG / SVG</button>
+        <input type="file" id="logoInput" class="hidden-input" accept=".png,.jpg,.jpeg,.svg">
+        <img id="logoPreview" class="logo-preview">
+      </div>
+      <div class="field">
+        <label>Scale <span id="logoScaleVal">30%</span> of page width</label>
+        <div class="slider-row"><input type="range" id="logoScale" min="5" max="100" value="30"></div>
+      </div>
+      <div class="field">
+        <label>Opacity <span id="logoOpacityVal">50%</span></label>
+        <div class="slider-row"><input type="range" id="logoOpacity" min="5" max="100" value="50"></div>
+      </div>
+      <div class="field">
+        <label>Rotation <span id="logoRotationVal">0°</span></label>
+        <div class="slider-row"><input type="range" id="logoRotation" min="-90" max="90" value="0"></div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="logoAspect" checked><label for="logoAspect">Maintain aspect ratio</label>
+      </div>
+    </fieldset>
+
+    <div class="divider"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="placement">Placement</button>
+      <button class="tab-btn" data-tab="pages">Pages</button>
+      <button class="tab-btn" data-tab="extras">Extras</button>
+      <button class="tab-btn" data-tab="output">Output</button>
+    </div>
+
+    <!-- PLACEMENT TAB -->
+    <div class="tab-panel active" data-tabpanel="placement">
+      <div class="field">
+        <label>Position</label>
+        <div class="grid9" id="grid9">
+          <div class="cell" data-pos="top-left"></div><div class="cell" data-pos="top-center"></div><div class="cell" data-pos="top-right"></div>
+          <div class="cell" data-pos="middle-left"></div><div class="cell active" data-pos="center"></div><div class="cell" data-pos="middle-right"></div>
+          <div class="cell" data-pos="bottom-left"></div><div class="cell" data-pos="bottom-center"></div><div class="cell" data-pos="bottom-right"></div>
+        </div>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="tileMode"><label for="tileMode">Tile / repeat across whole page</label>
+      </div>
+      <div id="tileControls" style="display:none;">
+        <div class="row-2">
+          <div class="field"><label>H spacing <span id="tileHVal">150</span>pt</label><input type="range" id="tileH" min="40" max="400" value="150"></div>
+          <div class="field"><label>V spacing <span id="tileVVal">150</span>pt</label><input type="range" id="tileV" min="40" max="400" value="150"></div>
+        </div>
+        <div class="checkbox-row"><input type="checkbox" id="tileStagger"><label for="tileStagger">Brick-style stagger</label></div>
+      </div>
+      <div class="row-2">
+        <div class="field"><label>X offset (pt)</label><input type="number" id="offsetX" value="0"></div>
+        <div class="field"><label>Y offset (pt)</label><input type="number" id="offsetY" value="0"></div>
+      </div>
+      <div class="field"><label>Margin from edge (pt)</label><input type="number" id="marginEdge" value="36"></div>
+      <div class="field">
+        <label>Layer order</label>
+        <div class="toggle-btns">
+          <button class="toggle-btn active" data-layer="above" type="button">Above content</button>
+          <button class="toggle-btn" data-layer="below" type="button">Beneath (multiply)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGES TAB -->
+    <div class="tab-panel" data-tabpanel="pages">
+      <div class="field">
+        <label>Apply watermark to</label>
+        <select id="pageTargetMode">
+          <option value="all">All pages</option>
+          <option value="first">First page only</option>
+          <option value="last">Last page only</option>
+          <option value="odd">Odd pages only</option>
+          <option value="even">Even pages only</option>
+          <option value="exceptFirst">All except first page</option>
+          <option value="custom">Custom range</option>
+        </select>
+      </div>
+      <div class="field" id="customRangeField" style="display:none;">
+        <label>Custom range</label>
+        <input type="text" id="customRange" placeholder="1-3, 7, 10-12">
+        <div class="hint">Comma-separated page numbers and ranges.</div>
+      </div>
+    </div>
+
+    <!-- EXTRAS TAB -->
+    <div class="tab-panel" data-tabpanel="extras">
+      <fieldset>
+        <legend><input type="checkbox" id="pnEnabled"> Page numbering</legend>
+        <div class="field">
+          <label>Format</label>
+          <select id="pnFormat">
+            <option value="n">1</option>
+            <option value="Page n">Page 1</option>
+            <option value="n of t">1 of 20</option>
+            <option value="Page n of t">Page 1 of 20</option>
+          </select>
+        </div>
+        <div class="row-2">
+          <div class="field"><label>Position</label>
+            <select id="pnPosition">
+              <option value="bottom-center">Bottom centre</option>
+              <option value="bottom-right">Bottom right</option>
+              <option value="bottom-left">Bottom left</option>
+              <option value="top-center">Top centre</option>
+              <option value="top-right">Top right</option>
+              <option value="top-left">Top left</option>
+            </select>
+          </div>
+          <div class="field"><label>Font size</label><input type="number" id="pnSize" value="10"></div>
+        </div>
+        <div class="field"><label>Starting number</label><input type="number" id="pnStart" value="1"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend><input type="checkbox" id="headerEnabled"> Header strip</legend>
+        <div class="row-3">
+          <div class="field"><label>Left</label><input type="text" id="headerLeft"></div>
+          <div class="field"><label>Centre</label><input type="text" id="headerCenter"></div>
+          <div class="field"><label>Right</label><input type="text" id="headerRight"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><input type="checkbox" id="footerEnabled"> Footer strip</legend>
+        <div class="row-3">
+          <div class="field"><label>Left</label><input type="text" id="footerLeft"></div>
+          <div class="field"><label>Centre</label><input type="text" id="footerCenter"></div>
+          <div class="field"><label>Right</label><input type="text" id="footerRight"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><input type="checkbox" id="dateEnabled"> Date stamp</legend>
+        <div class="row-2">
+          <div class="field"><label>Position</label>
+            <select id="datePosition">
+              <option value="top-right">Top right</option>
+              <option value="top-left">Top left</option>
+              <option value="bottom-right">Bottom right</option>
+              <option value="bottom-left">Bottom left</option>
+            </select>
+          </div>
+          <div class="field"><label>Format</label>
+            <select id="dateFormat">
+              <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+              <option value="DD-MMM-YYYY">DD-MMM-YYYY</option>
+              <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend><input type="checkbox" id="batesEnabled"> Bates numbering</legend>
+        <div class="row-3">
+          <div class="field"><label>Prefix</label><input type="text" id="batesPrefix" value="ABC-"></div>
+          <div class="field"><label>Digits</label><input type="number" id="batesDigits" value="6"></div>
+          <div class="field"><label>Start at</label><input type="number" id="batesStart" value="1"></div>
+        </div>
+        <div class="small-note">Continues sequentially across every file in the batch.</div>
+      </fieldset>
+
+      <fieldset>
+        <legend><input type="checkbox" id="borderEnabled"> Border box around corner stamp</legend>
+        <div class="row-2">
+          <div class="field"><label>Colour</label><input type="color" id="borderColor" value="#0E0E10"></div>
+          <div class="field"><label>Thickness (pt)</label><input type="number" id="borderThickness" value="1"></div>
+        </div>
+      </fieldset>
+    </div>
+
+    <!-- OUTPUT TAB -->
+    <div class="tab-panel" data-tabpanel="output">
+      <div class="field">
+        <label>Filename prefix</label>
+        <input type="text" id="outPrefix" value="WM_">
+      </div>
+      <div class="field">
+        <label>Filename suffix</label>
+        <input type="text" id="outSuffix" value="">
+      </div>
+      <div class="output-example" id="outExample">WM_report.pdf</div>
+
+      <div class="divider"></div>
+
+      <div class="field">
+        <label>Download as</label>
+        <select id="downloadMode">
+          <option value="zip">Single .zip file</option>
+          <option value="individual">Individual files</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Image output format</label>
+        <select id="imageFormat">
+          <option value="png">PNG (preserves transparency)</option>
+          <option value="jpeg">JPG</option>
+        </select>
+      </div>
+      <div class="field" id="jpgQualityField" style="display:none;">
+        <label>JPG quality <span id="jpgQualityVal">90%</span></label>
+        <input type="range" id="jpgQuality" min="10" max="100" value="90">
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script id="app-script">
+/* ================================================================
+   STAMPIT — application script
+   Sections: STATE → HELPERS → FONTS → FILE INTAKE → SETTINGS UI →
+   PLACEMENT MATH → PREVIEW → PRESETS → PROCESSING → OUTPUT
+   ================================================================ */
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+/* ---------------------------------------------------------------
+   1. STATE
+   Everything the app knows lives here. The UI reads/writes this
+   object, and the processing engine reads it too, so there is a
+   single source of truth.
+   --------------------------------------------------------------- */
+const state = {
+  files: [],          // {id, file, kind:'pdf'|'image', name, size, pages, thumb, locked, error}
+  nextFileId: 1,
+  config: defaultConfig(),
+  previewFileId: null,
+  previewPage: 1,
+  previewMode: 'after', // 'before' | 'after'
+  processing: false,
+  cancelRequested: false,
+};
+
+function defaultConfig(){
+  return {
+    mode: 'text', // text | image | combined
+    text: {
+      value: 'CONFIDENTIAL',
+      font: 'Helvetica', bold:false, italic:false,
+      size: 48, autoFit:false,
+      color: '#E2582B', opacity: 20, rotation: 45,
+    },
+    image: {
+      dataUrl: null, name:null, naturalW:0, naturalH:0,
+      scale: 30, opacity: 50, rotation: 0, keepAspect: true,
+    },
+    placement: {
+      position: 'center',
+      tile: false, tileH: 150, tileV: 150, stagger: false,
+      offsetX: 0, offsetY: 0, margin: 36,
+      layer: 'above',
+    },
+    pageTarget: { mode: 'all', customRange: '' },
+    extras: {
+      pageNumber: { enabled:false, format:'Page n of t', position:'bottom-center', size:10, start:1 },
+      header: { enabled:false, left:'', center:'', right:'' },
+      footer: { enabled:false, left:'', center:'', right:'' },
+      dateStamp: { enabled:false, position:'top-right', format:'DD/MM/YYYY' },
+      bates: { enabled:false, prefix:'ABC-', digits:6, start:1 },
+      border: { enabled:false, color:'#0E0E10', thickness:1 },
+    },
+    output: { prefix:'WM_', suffix:'', downloadMode:'zip', imageFormat:'png', jpgQuality:90 },
+  };
+}
+
+/* ---------------------------------------------------------------
+   2. HELPERS — formatting, tokens, page-range parsing
+   --------------------------------------------------------------- */
+function fmtBytes(bytes){
+  if(bytes < 1024) return bytes+' B';
+  if(bytes < 1024*1024) return (bytes/1024).toFixed(1)+' KB';
+  return (bytes/(1024*1024)).toFixed(1)+' MB';
+}
+
+function pad(n,w){ return String(n).padStart(w,'0'); }
+
+function todayStr(){
+  const d = new Date();
+  return pad(d.getDate(),2)+'/'+pad(d.getMonth()+1,2)+'/'+d.getFullYear();
+}
+function nowTimeStr(){
+  const d = new Date();
+  return pad(d.getHours(),2)+':'+pad(d.getMinutes(),2);
+}
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function formatDate(fmt){
+  const d = new Date();
+  const dd = pad(d.getDate(),2), mm = pad(d.getMonth()+1,2), yyyy = d.getFullYear();
+  if(fmt === 'DD/MM/YYYY') return `${dd}/${mm}/${yyyy}`;
+  if(fmt === 'DD-MMM-YYYY') return `${dd}-${MONTHS[d.getMonth()]}-${yyyy}`;
+  if(fmt === 'YYYY-MM-DD') return `${yyyy}-${mm}-${dd}`;
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+// Replace {date} {time} {filename} {page} {total} {n} tokens in a string.
+function replaceTokens(str, ctx){
+  if(!str) return '';
+  return str
+    .replace(/\{date\}/g, ctx.date != null ? ctx.date : todayStr())
+    .replace(/\{time\}/g, ctx.time != null ? ctx.time : nowTimeStr())
+    .replace(/\{filename\}/g, ctx.filename || '')
+    .replace(/\{page\}/g, ctx.page != null ? ctx.page : '')
+    .replace(/\{total\}/g, ctx.total != null ? ctx.total : '')
+    .replace(/\{n\}/g, ctx.n != null ? ctx.n : '');
+}
+
+// Parse "1-3, 7, 10-12" into a Set of page numbers, clamped to totalPages.
+function parseRange(str, totalPages){
+  const set = new Set();
+  (str||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(part=>{
+    if(part.includes('-')){
+      const bits = part.split('-').map(s=>parseInt(s.trim(),10));
+      let a = bits[0], b = bits.length>1 ? bits[1] : bits[0];
+      if(isNaN(a)) return;
+      if(isNaN(b)) b = a;
+      for(let i=Math.max(1,a); i<=Math.min(b,totalPages); i++) set.add(i);
+    } else {
+      const n = parseInt(part,10);
+      if(!isNaN(n) && n>=1 && n<=totalPages) set.add(n);
+    }
+  });
+  return set;
+}
+
+function pageMatchesTarget(pageNum1, totalPages, target){
+  switch(target.mode){
+    case 'all': return true;
+    case 'first': return pageNum1 === 1;
+    case 'last': return pageNum1 === totalPages;
+    case 'odd': return pageNum1 % 2 === 1;
+    case 'even': return pageNum1 % 2 === 0;
+    case 'exceptFirst': return pageNum1 !== 1;
+    case 'custom': return parseRange(target.customRange, totalPages).has(pageNum1);
+    default: return true;
+  }
+}
+
+// Detect characters outside basic Latin — a strong signal we need a
+// Unicode font (Devanagari, Tamil, Bengali, Gurmukhi, etc.) instead of
+// pdf-lib's built-in Helvetica/Times/Courier, which only cover Latin-1.
+function needsUnicodeFont(str){
+  return /[^\u0000-\u00FF]/.test(str || '');
+}
+
+function hexToRgb01(hex){
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex||'#000000');
+  if(!m) return {r:0,g:0,b:0};
+  return { r: parseInt(m[1],16)/255, g: parseInt(m[2],16)/255, b: parseInt(m[3],16)/255 };
+}
+
+function debounce(fn, ms){
+  let t;
+  return function(...args){ clearTimeout(t); t = setTimeout(()=>fn.apply(this,args), ms); };
+}
+
+function uid(){ return 'f'+(state.nextFileId++); }
+
+/* ---------------------------------------------------------------
+   3. UNICODE FONT (for Indian-language watermarks)
+   pdf-lib's built-in fonts are Latin-only. If the watermark text
+   contains Devanagari/Tamil/etc, we fetch Noto Sans (which covers
+   most Indian scripts) once, cache the bytes, and embed it with
+   fontkit. If the fetch fails, we surface a warning banner rather
+   than silently producing blank boxes.
+   --------------------------------------------------------------- */
+const NOTO_URLS = [
+  'https://cdn.jsdelivr.net/gh/googlefonts/noto-fonts@main/phaseIII_only/unhinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf',
+  'https://raw.githubusercontent.com/googlefonts/noto-fonts/main/phaseIII_only/unhinted/ttf/NotoSansDevanagari/NotoSansDevanagari-Regular.ttf',
+];
+let notoFontBytesPromise = null;
+let notoFontFailed = false;
+
+async function getNotoFontBytes(){
+  if(notoFontFailed) return null;
+  if(!notoFontBytesPromise){
+    notoFontBytesPromise = (async ()=>{
+      for(const url of NOTO_URLS){
+        try{
+          const r = await fetch(url);
+          if(r.ok) return await r.arrayBuffer();
+        } catch(err){ /* try next mirror */ }
+      }
+      notoFontFailed = true;
+      console.warn('Unicode font failed to load from all mirrors.');
+      return null;
+    })();
+  }
+  return notoFontBytesPromise;
+}
+
+function showFontWarning(){
+  document.getElementById('fontWarnBanner').classList.add('show');
+}
+function hideFontWarning(){
+  document.getElementById('fontWarnBanner').classList.remove('show');
+}
+
+/* ---------------------------------------------------------------
+   FILE INTAKE
+   --------------------------------------------------------------- */
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const folderInput = document.getElementById('folderInput');
+const fileListEl = document.getElementById('fileList');
+const fileTotalsEl = document.getElementById('fileTotals');
+const clearAllBtn = document.getElementById('clearAllBtn');
+
+const ACCEPTED_EXT = ['pdf','jpg','jpeg','png','webp'];
+const MAX_SIZE = 100*1024*1024; // 100 MB
+
+document.getElementById('browseBtn').onclick = ()=>fileInput.click();
+document.getElementById('browseFolderBtn').onclick = ()=>folderInput.click();
+fileInput.onchange = e => ingestFiles(Array.from(e.target.files)).then(()=>{fileInput.value='';});
+folderInput.onchange = e => ingestFiles(Array.from(e.target.files)).then(()=>{folderInput.value='';});
+
+['dragenter','dragover'].forEach(evt=>{
+  dropzone.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); dropzone.classList.add('drag-over'); });
+});
+['dragleave','drop'].forEach(evt=>{
+  dropzone.addEventListener(evt, e=>{ e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('drag-over'); });
+});
+dropzone.addEventListener('drop', e=>{
+  const items = e.dataTransfer.items;
+  if(items && items.length && items[0].webkitGetAsEntry){
+    // Support folder drops via the webkit entry API.
+    const entries = Array.from(items).map(it=>it.webkitGetAsEntry()).filter(Boolean);
+    readEntries(entries).then(files=>ingestFiles(files));
+  } else {
+    ingestFiles(Array.from(e.dataTransfer.files));
+  }
+});
+dropzone.addEventListener('click', ()=>fileInput.click());
+
+function readEntries(entries){
+  const files = [];
+  function walk(entry){
+    return new Promise(resolve=>{
+      if(entry.isFile){
+        entry.file(f=>{ files.push(f); resolve(); }, ()=>resolve());
+      } else if(entry.isDirectory){
+        const reader = entry.createReader();
+        reader.readEntries(subEntries=>{
+          Promise.all(subEntries.map(walk)).then(()=>resolve());
+        }, ()=>resolve());
+      } else resolve();
+    });
+  }
+  return Promise.all(entries.map(walk)).then(()=>files);
+}
+
+async function ingestFiles(fileArray){
+  for(const file of fileArray){
+    const ext = (file.name.split('.').pop()||'').toLowerCase();
+    if(!ACCEPTED_EXT.includes(ext)) continue; // silently skip unsupported types found in folders
+    if(file.size > MAX_SIZE){
+      addFileCardError(file.name, file.size, 'Over 100 MB — skipped');
+      continue;
+    }
+    const rec = {
+      id: uid(), file, name: file.name, size: file.size,
+      kind: ext === 'pdf' ? 'pdf' : 'image',
+      pages: 1, thumb: null, locked: false, error: null,
+    };
+    state.files.push(rec);
+    renderFileList(); // show it immediately, fill details async
+    try{
+      if(rec.kind === 'pdf'){
+        await loadPdfMeta(rec);
+      } else {
+        await loadImageMeta(rec);
+      }
+    } catch(err){
+      rec.error = 'Could not read file — skipped';
+      console.warn('File read error', file.name, err);
+    }
+    renderFileList();
+    updatePreviewFileOptions();
+  }
+  if(state.files.length && state.previewFileId===null){
+    setPreviewFile(state.files[0].id);
+  }
+  updateProcessButtonState();
+}
+
+async function loadPdfMeta(rec){
+  const buf = await rec.file.arrayBuffer();
+  rec._arrayBuffer = buf; // cache for later thumbnail/preview use
+  try{
+    const doc = await pdfjsLib.getDocument({ data: buf.slice(0) }).promise;
+    rec.pages = doc.numPages;
+    const page = await doc.getPage(1);
+    const viewport = page.getViewport({ scale: 0.2 });
+    const canvas = document.createElement('canvas');
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+    rec.thumb = canvas.toDataURL();
+  } catch(err){
+    if(err && err.name === 'PasswordException'){
+      rec.locked = true;
+      rec.error = 'Locked — skipped';
+    } else {
+      throw err;
+    }
+  }
+}
+
+function loadImageMeta(rec){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      const img = new Image();
+      img.onload = ()=>{
+        rec.thumb = reader.result;
+        rec.naturalW = img.naturalWidth;
+        rec.naturalH = img.naturalHeight;
+        resolve();
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(rec.file);
+  });
+}
+
+function addFileCardError(name, size, msg){
+  state.files.push({ id: uid(), name, size, kind:'error', error: msg, pages:0, locked:false, thumb:null });
+  renderFileList();
+}
+
+function removeFile(id){
+  state.files = state.files.filter(f=>f.id!==id);
+  if(state.previewFileId===id){
+    state.previewFileId = state.files.length ? state.files[0].id : null;
+  }
+  renderFileList();
+  updatePreviewFileOptions();
+  renderPreview();
+  updateProcessButtonState();
+}
+
+clearAllBtn.onclick = ()=>{
+  if(!state.files.length) return;
+  if(confirm('Remove all '+state.files.length+' files from this batch?')){
+    state.files = [];
+    state.previewFileId = null;
+    renderFileList();
+    updatePreviewFileOptions();
+    renderPreview();
+    updateProcessButtonState();
+  }
+};
+
+function renderFileList(){
+  const emptyEl = document.getElementById('previewEmpty');
+  if(!state.files.length){
+    fileListEl.innerHTML = '';
+    fileTotalsEl.textContent = '0 files · 0 pages · 0 MB';
+    clearAllBtn.style.display = 'none';
+    return;
+  }
+  clearAllBtn.style.display = 'block';
+  let totalPages = 0, totalSize = 0, count = 0;
+  fileListEl.innerHTML = state.files.map(f=>{
+    if(f.kind !== 'error'){ totalPages += (f.locked?0:f.pages); totalSize += f.size; count++; }
+    const thumb = f.thumb ? `<img class="file-thumb" src="${f.thumb}">` : `<div class="file-thumb"></div>`;
+    const sub = f.kind==='error' ? f.error :
+      f.locked ? 'Locked — skipped' :
+      f.kind==='pdf' ? `${f.pages} page${f.pages!==1?'s':''} · ${fmtBytes(f.size)}` :
+      `Image · ${fmtBytes(f.size)}`;
+    return `<div class="file-card ${f.locked||f.kind==='error'?'locked':''}">
+      ${thumb}
+      <div class="file-meta">
+        <div class="fname">${escapeHtml(f.name)}</div>
+        <div class="fsub">${sub}</div>
+      </div>
+      ${f.locked||f.kind==='error' ? '<span class="tag-locked">SKIPPED</span>' : ''}
+      <button class="file-remove" onclick="removeFile('${f.id}')" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+  fileTotalsEl.textContent = `${count} file${count!==1?'s':''} · ${totalPages} page${totalPages!==1?'s':''} · ${fmtBytes(totalSize)}`;
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------------------------------------------------------------
+   4. PLACEMENT MATH
+   All placement is computed in PDF points, with the origin at the
+   bottom-left of the page (the PDF convention). The same function
+   is reused for both the real pdf-lib export and the live canvas
+   preview, so what you see is genuinely what you get.
+   --------------------------------------------------------------- */
+
+// Given a page size and the bounding box of the content being placed,
+// return the {x,y} of the content's bottom-left corner for a given
+// 9-point position, honouring margin and any manual x/y nudge.
+function computeAnchor(pageW, pageH, contentW, contentH, placement){
+  const m = placement.margin;
+  let x, y;
+  switch(placement.position){
+    case 'top-left':      x = m;                    y = pageH - m - contentH; break;
+    case 'top-center':    x = (pageW-contentW)/2;    y = pageH - m - contentH; break;
+    case 'top-right':     x = pageW - m - contentW;  y = pageH - m - contentH; break;
+    case 'middle-left':   x = m;                    y = (pageH-contentH)/2;   break;
+    case 'center':        x = (pageW-contentW)/2;    y = (pageH-contentH)/2;   break;
+    case 'middle-right':  x = pageW - m - contentW;  y = (pageH-contentH)/2;   break;
+    case 'bottom-left':   x = m;                    y = m;                    break;
+    case 'bottom-center': x = (pageW-contentW)/2;    y = m;                    break;
+    case 'bottom-right':  x = pageW - m - contentW;  y = m;                    break;
+    default:               x = (pageW-contentW)/2;    y = (pageH-contentH)/2;   break;
+  }
+  x += Number(placement.offsetX)||0;
+  y += Number(placement.offsetY)||0;
+  return {x,y};
+}
+
+// Build the list of tile origins that cover a page (plus a margin of
+// extra tiles so rotated text still fills the corners), honouring the
+// stagger (brick offset) option.
+function computeTileOrigins(pageW, pageH, hSpace, vSpace, stagger){
+  const origins = [];
+  const cols = Math.ceil(pageW / hSpace) + 2;
+  const rows = Math.ceil(pageH / vSpace) + 2;
+  for(let r = -1; r <= rows; r++){
+    const rowOffset = (stagger && (r % 2 !== 0)) ? hSpace/2 : 0;
+    for(let c = -1; c <= cols; c++){
+      origins.push({ x: c*hSpace + rowOffset, y: r*vSpace });
+    }
+  }
+  return origins;
+}
+
+/* ---------------------------------------------------------------
+   SETTINGS UI WIRING
+   Every control just writes into state.config and calls
+   scheduleRender() (debounced) so the preview stays live.
+   --------------------------------------------------------------- */
+const scheduleRender = debounce(()=>renderPreview(), 150);
+
+// ---- Preset quick-text chips ----
+const QUICK_TEXTS = ['CONFIDENTIAL','DRAFT','COPY','ORIGINAL','PAID','SAMPLE','DO NOT COPY','APPROVED','FOR INTERNAL USE ONLY','URGENT'];
+document.getElementById('presetTextChips').innerHTML = QUICK_TEXTS.map(t=>`<span class="chip" data-text="${t}">${t}</span>`).join('');
+document.getElementById('presetTextChips').addEventListener('click', e=>{
+  const chip = e.target.closest('.chip'); if(!chip) return;
+  document.getElementById('wmText').value = chip.dataset.text;
+  state.config.text.value = chip.dataset.text;
+  scheduleRender();
+});
+
+// ---- Token insertion ----
+document.querySelectorAll('.token-chip').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    const ta = document.getElementById('wmText');
+    const start = ta.selectionStart ?? ta.value.length;
+    const end = ta.selectionEnd ?? ta.value.length;
+    ta.value = ta.value.slice(0,start) + chip.dataset.token + ta.value.slice(end);
+    ta.focus();
+    state.config.text.value = ta.value;
+    scheduleRender();
+  });
+});
+
+// ---- Mode switch (text / image / combined) ----
+document.querySelectorAll('.mode-switch [data-mode]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-switch [data-mode]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.config.mode = btn.dataset.mode;
+    document.getElementById('textFieldset').disabled = (state.config.mode === 'image');
+    document.getElementById('imageFieldset').disabled = (state.config.mode === 'text');
+    scheduleRender();
+  });
+});
+
+// ---- Text watermark fields ----
+const wmText = document.getElementById('wmText');
+wmText.addEventListener('input', ()=>{ state.config.text.value = wmText.value; scheduleRender(); });
+
+document.getElementById('wmFont').addEventListener('change', e=>{ state.config.text.font = e.target.value; scheduleRender(); });
+
+document.getElementById('boldToggle').addEventListener('click', function(){
+  this.classList.toggle('active'); state.config.text.bold = this.classList.contains('active'); scheduleRender();
+});
+document.getElementById('italicToggle').addEventListener('click', function(){
+  this.classList.toggle('active'); state.config.text.italic = this.classList.contains('active'); scheduleRender();
+});
+
+bindSlider('fontSize','fontSizeVal', v=>{ state.config.text.size = v; return v; });
+document.getElementById('autoFit').addEventListener('change', e=>{ state.config.text.autoFit = e.target.checked; scheduleRender(); });
+
+document.getElementById('wmColor').addEventListener('input', e=>{
+  state.config.text.color = e.target.value;
+  document.getElementById('wmColorHex').value = e.target.value;
+  scheduleRender();
+});
+document.getElementById('wmColorHex').addEventListener('input', e=>{
+  let v = e.target.value;
+  if(/^#?[0-9a-f]{6}$/i.test(v)){
+    if(!v.startsWith('#')) v = '#'+v;
+    state.config.text.color = v;
+    document.getElementById('wmColor').value = v;
+    scheduleRender();
+  }
+});
+
+bindSlider('wmOpacity','opacityVal', v=>{ state.config.text.opacity = v; return v+'%'; });
+bindSlider('wmRotation','rotationVal', v=>{ state.config.text.rotation = v; return v+'°'; });
+
+// ---- Image / logo watermark ----
+document.getElementById('logoUploadBtn').addEventListener('click', ()=>document.getElementById('logoInput').click());
+document.getElementById('logoInput').addEventListener('change', async e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const dataUrl = await fileToDataUrl(file);
+  let finalDataUrl = dataUrl, w=0, h=0;
+  if(file.name.toLowerCase().endsWith('.svg')){
+    // Rasterize SVG to PNG so it can be embedded consistently in both
+    // the pdf-lib export and the canvas image path.
+    const rasterized = await rasterizeSvgToPng(dataUrl);
+    finalDataUrl = rasterized.dataUrl; w = rasterized.w; h = rasterized.h;
+  } else {
+    const dims = await imageDims(dataUrl); w = dims.w; h = dims.h;
+  }
+  state.config.image.dataUrl = finalDataUrl;
+  state.config.image.name = file.name;
+  state.config.image.naturalW = w; state.config.image.naturalH = h;
+  const prev = document.getElementById('logoPreview');
+  prev.src = finalDataUrl; prev.style.display = 'block';
+  refreshPreviewLogoImg();
+  scheduleRender();
+});
+
+function fileToDataUrl(file){
+  return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); });
+}
+function imageDims(dataUrl){
+  return new Promise(res=>{ const img=new Image(); img.onload=()=>res({w:img.naturalWidth,h:img.naturalHeight}); img.src=dataUrl; });
+}
+function rasterizeSvgToPng(svgDataUrl){
+  return new Promise((resolve,reject)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      const canvas = document.createElement('canvas');
+      canvas.width = img.naturalWidth || 512; canvas.height = img.naturalHeight || 512;
+      canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);
+      resolve({ dataUrl: canvas.toDataURL('image/png'), w: canvas.width, h: canvas.height });
+    };
+    img.onerror = reject;
+    img.src = svgDataUrl;
+  });
+}
+
+bindSlider('logoScale','logoScaleVal', v=>{ state.config.image.scale = v; return v+'%'; });
+bindSlider('logoOpacity','logoOpacityVal', v=>{ state.config.image.opacity = v; return v+'%'; });
+bindSlider('logoRotation','logoRotationVal', v=>{ state.config.image.rotation = v; return v+'°'; });
+document.getElementById('logoAspect').addEventListener('change', e=>{ state.config.image.keepAspect = e.target.checked; scheduleRender(); });
+
+function bindSlider(inputId, labelId, apply){
+  const input = document.getElementById(inputId);
+  const label = document.getElementById(labelId);
+  input.addEventListener('input', ()=>{
+    const display = apply(Number(input.value));
+    if(label) label.textContent = display;
+    scheduleRender();
+  });
+}
+
+// ---- Tabs ----
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelector(`.tab-panel[data-tabpanel="${btn.dataset.tab}"]`).classList.add('active');
+  });
+});
+
+// ---- 9-point grid ----
+document.getElementById('grid9').addEventListener('click', e=>{
+  const cell = e.target.closest('.cell'); if(!cell) return;
+  document.querySelectorAll('#grid9 .cell').forEach(c=>c.classList.remove('active'));
+  cell.classList.add('active');
+  state.config.placement.position = cell.dataset.pos;
+  scheduleRender();
+});
+
+// ---- Tiling ----
+document.getElementById('tileMode').addEventListener('change', e=>{
+  state.config.placement.tile = e.target.checked;
+  document.getElementById('tileControls').style.display = e.target.checked ? 'block' : 'none';
+  scheduleRender();
+});
+bindSlider('tileH','tileHVal', v=>{ state.config.placement.tileH = v; return v; });
+bindSlider('tileV','tileVVal', v=>{ state.config.placement.tileV = v; return v; });
+document.getElementById('tileStagger').addEventListener('change', e=>{ state.config.placement.stagger = e.target.checked; scheduleRender(); });
+
+// ---- Offsets / margin / layer ----
+document.getElementById('offsetX').addEventListener('input', e=>{ state.config.placement.offsetX = Number(e.target.value)||0; scheduleRender(); });
+document.getElementById('offsetY').addEventListener('input', e=>{ state.config.placement.offsetY = Number(e.target.value)||0; scheduleRender(); });
+document.getElementById('marginEdge').addEventListener('input', e=>{ state.config.placement.margin = Number(e.target.value)||0; scheduleRender(); });
+document.querySelectorAll('[data-layer]').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('[data-layer]').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.config.placement.layer = btn.dataset.layer;
+    scheduleRender();
+  });
+});
+
+// ---- Page targeting ----
+document.getElementById('pageTargetMode').addEventListener('change', e=>{
+  state.config.pageTarget.mode = e.target.value;
+  document.getElementById('customRangeField').style.display = e.target.value==='custom' ? 'block' : 'none';
+  scheduleRender();
+});
+document.getElementById('customRange').addEventListener('input', e=>{ state.config.pageTarget.customRange = e.target.value; scheduleRender(); });
+
+// ---- Extras: page numbering ----
+document.getElementById('pnEnabled').addEventListener('change', e=>{ state.config.extras.pageNumber.enabled = e.target.checked; scheduleRender(); });
+document.getElementById('pnFormat').addEventListener('change', e=>{ state.config.extras.pageNumber.format = e.target.value; scheduleRender(); });
+document.getElementById('pnPosition').addEventListener('change', e=>{ state.config.extras.pageNumber.position = e.target.value; scheduleRender(); });
+document.getElementById('pnSize').addEventListener('input', e=>{ state.config.extras.pageNumber.size = Number(e.target.value)||10; scheduleRender(); });
+document.getElementById('pnStart').addEventListener('input', e=>{ state.config.extras.pageNumber.start = Number(e.target.value)||1; scheduleRender(); });
+
+// ---- Extras: header / footer ----
+['header','footer'].forEach(kind=>{
+  document.getElementById(kind+'Enabled').addEventListener('change', e=>{ state.config.extras[kind].enabled = e.target.checked; scheduleRender(); });
+  ['Left','Center','Right'].forEach(slot=>{
+    document.getElementById(kind+slot).addEventListener('input', e=>{
+      state.config.extras[kind][slot.toLowerCase()] = e.target.value; scheduleRender();
+    });
+  });
+});
+
+// ---- Extras: date stamp ----
+document.getElementById('dateEnabled').addEventListener('change', e=>{ state.config.extras.dateStamp.enabled = e.target.checked; scheduleRender(); });
+document.getElementById('datePosition').addEventListener('change', e=>{ state.config.extras.dateStamp.position = e.target.value; scheduleRender(); });
+document.getElementById('dateFormat').addEventListener('change', e=>{ state.config.extras.dateStamp.format = e.target.value; scheduleRender(); });
+
+// ---- Extras: bates ----
+document.getElementById('batesEnabled').addEventListener('change', e=>{ state.config.extras.bates.enabled = e.target.checked; scheduleRender(); });
+document.getElementById('batesPrefix').addEventListener('input', e=>{ state.config.extras.bates.prefix = e.target.value; scheduleRender(); });
+document.getElementById('batesDigits').addEventListener('input', e=>{ state.config.extras.bates.digits = Number(e.target.value)||6; scheduleRender(); });
+document.getElementById('batesStart').addEventListener('input', e=>{ state.config.extras.bates.start = Number(e.target.value)||1; scheduleRender(); });
+
+// ---- Extras: border ----
+document.getElementById('borderEnabled').addEventListener('change', e=>{ state.config.extras.border.enabled = e.target.checked; scheduleRender(); });
+document.getElementById('borderColor').addEventListener('input', e=>{ state.config.extras.border.color = e.target.value; scheduleRender(); });
+document.getElementById('borderThickness').addEventListener('input', e=>{ state.config.extras.border.thickness = Number(e.target.value)||1; scheduleRender(); });
+
+// ---- Output ----
+function updateOutputExample(){
+  const cfg = state.config.output;
+  const sample = state.files.find(f=>f.kind!=='error') ;
+  const base = sample ? sample.name.replace(/\.[^.]+$/,'') : 'report';
+  const ext = sample && sample.kind==='image' ? (cfg.imageFormat==='png'?'png':'jpg') : 'pdf';
+  document.getElementById('outExample').textContent = `${cfg.prefix}${base}${cfg.suffix}.${ext}`;
+}
+document.getElementById('outPrefix').addEventListener('input', e=>{ state.config.output.prefix = e.target.value; updateOutputExample(); });
+document.getElementById('outSuffix').addEventListener('input', e=>{ state.config.output.suffix = e.target.value; updateOutputExample(); });
+document.getElementById('downloadMode').addEventListener('change', e=>{ state.config.output.downloadMode = e.target.value; });
+document.getElementById('imageFormat').addEventListener('change', e=>{
+  state.config.output.imageFormat = e.target.value;
+  document.getElementById('jpgQualityField').style.display = e.target.value==='jpeg' ? 'block' : 'none';
+  updateOutputExample();
+});
+document.getElementById('jpgQuality').addEventListener('input', e=>{
+  state.config.output.jpgQuality = Number(e.target.value);
+  document.getElementById('jpgQualityVal').textContent = e.target.value+'%';
+});
+
+/* ---------------------------------------------------------------
+   5. LIVE PREVIEW
+   Renders the current file's current page onto #pdfCanvas (via
+   pdf.js, or directly for images), then draws the watermark onto a
+   transparent #overlayCanvas stacked on top using the exact same
+   placement math as the real export, just converted from PDF-point
+   space (origin bottom-left) into canvas-pixel space (origin
+   top-left). Debounced by scheduleRender() upstream so dragging a
+   slider feels instant instead of re-processing the whole file.
+   --------------------------------------------------------------- */
+const previewFileSelect = document.getElementById('previewFileSelect');
+const previewEmpty = document.getElementById('previewEmpty');
+const previewCanvasWrap = document.getElementById('previewCanvasWrap');
+const pdfCanvas = document.getElementById('pdfCanvas');
+const overlayCanvas = document.getElementById('overlayCanvas');
+const pageIndicator = document.getElementById('pageIndicator');
+
+function updatePreviewFileOptions(){
+  const usable = state.files.filter(f=>f.kind!=='error' && !f.locked);
+  if(!usable.length){
+    previewFileSelect.innerHTML = '<option>No files yet</option>';
+    return;
+  }
+  previewFileSelect.innerHTML = usable.map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
+  if(state.previewFileId) previewFileSelect.value = state.previewFileId;
+}
+previewFileSelect.addEventListener('change', ()=> setPreviewFile(previewFileSelect.value));
+
+function setPreviewFile(id){
+  state.previewFileId = id;
+  state.previewPage = 1;
+  previewFileSelect.value = id;
+  renderPreview();
+}
+
+document.getElementById('prevPageBtn').onclick = ()=>{
+  const f = currentPreviewFile(); if(!f) return;
+  state.previewPage = Math.max(1, state.previewPage-1);
+  renderPreview();
+};
+document.getElementById('nextPageBtn').onclick = ()=>{
+  const f = currentPreviewFile(); if(!f) return;
+  const total = f.kind==='pdf' ? f.pages : 1;
+  state.previewPage = Math.min(total, state.previewPage+1);
+  renderPreview();
+};
+document.getElementById('zoomSlider').addEventListener('input', debounce(renderPreview, 80));
+window.addEventListener('resize', debounce(renderPreview, 150));
+window.addEventListener('orientationchange', debounce(renderPreview, 150));
+document.getElementById('beforeBtn').onclick = ()=>{ state.previewMode='before'; setToggle(); renderPreview(); };
+document.getElementById('afterBtn').onclick = ()=>{ state.previewMode='after'; setToggle(); renderPreview(); };
+function setToggle(){
+  document.getElementById('beforeBtn').classList.toggle('active', state.previewMode==='before');
+  document.getElementById('afterBtn').classList.toggle('active', state.previewMode==='after');
+}
+
+function currentPreviewFile(){
+  return state.files.find(f=>f.id===state.previewFileId);
+}
+
+let previewRenderToken = 0;
+async function renderPreview(){
+  const f = currentPreviewFile();
+  updateOutputExample();
+  if(!f){
+    previewEmpty.style.display = 'block';
+    previewCanvasWrap.style.display = 'none';
+    pageIndicator.textContent = '– / –';
+    return;
+  }
+  const myToken = ++previewRenderToken;
+  previewEmpty.style.display = 'none';
+  previewCanvasWrap.style.display = 'block';
+  const zoomPct = Number(document.getElementById('zoomSlider').value)/100;
+
+  // Fit the page to the available preview width first (so mobile,
+  // laptop, and desktop all show the whole page without forcing a
+  // horizontal scroll), then let the zoom slider scale up/down from
+  // that fitted baseline.
+  const stage = document.getElementById('previewStage');
+  const availW = Math.max(220, stage.clientWidth - 40);
+
+  let pageW, pageH;
+  if(f.kind === 'pdf'){
+    const total = f.pages;
+    state.previewPage = Math.min(Math.max(1,state.previewPage), total);
+    pageIndicator.textContent = `${state.previewPage} / ${total}`;
+    const doc = await pdfjsLib.getDocument({ data: f._arrayBuffer.slice(0) }).promise;
+    const page = await doc.getPage(state.previewPage);
+    const rawViewport = page.getViewport({ scale: 1 });
+    const fitScale = Math.min(2.2, Math.max(0.35, availW / rawViewport.width));
+    const viewport = page.getViewport({ scale: fitScale * zoomPct });
+    if(myToken !== previewRenderToken) return;
+    pdfCanvas.width = overlayCanvas.width = viewport.width;
+    pdfCanvas.height = overlayCanvas.height = viewport.height;
+    await page.render({ canvasContext: pdfCanvas.getContext('2d'), viewport }).promise;
+    pageW = page.view[2]-page.view[0]; pageH = page.view[3]-page.view[1];
+  } else {
+    pageIndicator.textContent = '1 / 1';
+    const img = await loadImageEl(f.thumbFull || f.thumb);
+    pageW = img.naturalWidth; pageH = img.naturalHeight;
+    const fitScale = Math.min(2.2, Math.max(0.1, availW / pageW));
+    const scale = fitScale * zoomPct;
+    pdfCanvas.width = overlayCanvas.width = pageW*scale;
+    pdfCanvas.height = overlayCanvas.height = pageH*scale;
+    const ctx = pdfCanvas.getContext('2d');
+    ctx.clearRect(0,0,pdfCanvas.width,pdfCanvas.height);
+    ctx.drawImage(img,0,0,pdfCanvas.width,pdfCanvas.height);
+  }
+
+  const octx = overlayCanvas.getContext('2d');
+  octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
+  if(state.previewMode === 'after'){
+    const pxPerPt = overlayCanvas.width / pageW;
+    drawWatermarkOnCanvas(octx, pageW, pageH, pxPerPt, {
+      filename: f.name, page: state.previewPage, total: f.kind==='pdf'?f.pages:1, n: 1,
+    });
+  }
+}
+
+function loadImageEl(src){
+  return new Promise(res=>{ const img=new Image(); img.onload=()=>res(img); img.src=src; });
+}
+
+// Draws the full watermark stack (text and/or logo, tiled or single,
+// plus header/footer/date/page-number/bates/border extras) onto a 2D
+// canvas context. `pxPerPt` converts PDF points to canvas pixels, and
+// canvas Y grows downward while PDF Y grows upward, so every y is
+// flipped with (canvasHeightPt - y).
+function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, canvasPxH){
+  canvasPxW = canvasPxW != null ? canvasPxW : pageW*pxPerPt;
+  canvasPxH = canvasPxH != null ? canvasPxH : pageH*pxPerPt;
+  const cfg = state.config;
+  const toPx = v => v*pxPerPt;
+  const flip = y => (pageH - y) * pxPerPt;
+
+  ctx.save();
+
+  // ---- Text watermark ----
+  if(cfg.mode === 'text' || cfg.mode === 'combined'){
+    const text = replaceTokens(cfg.text.value, tokenCtx);
+    if(text){
+      const fontPx = toPx(cfg.text.size);
+      const weight = cfg.text.bold ? '700' : '400';
+      const style = cfg.text.italic ? 'italic' : 'normal';
+      ctx.font = `${style} ${weight} ${fontPx}px ${fontFamilyFor(cfg.text.font)}`;
+      const metrics = ctx.measureText(text);
+      const tw = metrics.width, th = fontPx;
+      ctx.fillStyle = cfg.text.color;
+      ctx.globalAlpha = cfg.text.opacity/100;
+      ctx.globalCompositeOperation = cfg.placement.layer==='below' ? 'multiply' : 'source-over';
+
+      if(cfg.placement.tile){
+        const origins = computeTileOrigins(pageW, pageH, cfg.placement.tileH, cfg.placement.tileV, cfg.placement.stagger);
+        origins.forEach(o=>{
+          ctx.save();
+          ctx.translate(toPx(o.x), flip(o.y));
+          ctx.rotate(-cfg.text.rotation*Math.PI/180);
+          ctx.textBaseline = 'alphabetic';
+          ctx.fillText(text, 0, 0);
+          ctx.restore();
+        });
+      } else {
+        // anchor.y is treated as the text baseline, exactly like pdf-lib's
+        // drawText(x,y) — canvas's default 'alphabetic' baseline matches.
+        const anchor = computeAnchor(pageW, pageH, tw/pxPerPt, th/pxPerPt, cfg.placement);
+        ctx.save();
+        ctx.textBaseline = 'alphabetic';
+        ctx.translate(toPx(anchor.x), flip(anchor.y));
+        ctx.rotate(-cfg.text.rotation*Math.PI/180);
+        ctx.fillText(text, 0, 0);
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    }
+  }
+
+  // ---- Logo watermark ----
+  if((cfg.mode === 'image' || cfg.mode === 'combined') && cfg.image.dataUrl && previewLogoImg){
+    const logoWpt = pageW * (cfg.image.scale/100);
+    const ratio = cfg.image.keepAspect ? (cfg.image.naturalH/cfg.image.naturalW) : (cfg.image.naturalH/cfg.image.naturalW);
+    const logoHpt = logoWpt * ratio;
+    ctx.globalAlpha = cfg.image.opacity/100;
+    ctx.globalCompositeOperation = cfg.placement.layer==='below' ? 'multiply' : 'source-over';
+    // Pivot at (x,y) — the image's bottom-left corner in PDF space —
+    // to exactly match pdf-lib's drawImage rotation behaviour.
+    const drawOne = (x,yBottom) => {
+      ctx.save();
+      ctx.translate(toPx(x), flip(yBottom));
+      ctx.rotate(-cfg.image.rotation*Math.PI/180);
+      ctx.drawImage(previewLogoImg, 0, -toPx(logoHpt), toPx(logoWpt), toPx(logoHpt));
+      ctx.restore();
+    };
+    if(cfg.placement.tile){
+      computeTileOrigins(pageW, pageH, cfg.placement.tileH, cfg.placement.tileV, cfg.placement.stagger).forEach(o=>drawOne(o.x, o.y));
+    } else {
+      const anchor = computeAnchor(pageW, pageH, logoWpt, logoHpt, cfg.placement);
+      drawOne(anchor.x, anchor.y);
+    }
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  }
+
+  // ---- Extras ----
+  drawExtrasOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, canvasPxH);
+
+  ctx.restore();
+}
+
+function fontFamilyFor(f){
+  if(f==='TimesRoman') return "'Times New Roman', Times, serif";
+  if(f==='Courier') return "'Courier New', Courier, monospace";
+  return "Helvetica, Arial, sans-serif";
+}
+
+let previewLogoImg = null;
+function refreshPreviewLogoImg(){
+  if(!state.config.image.dataUrl){ previewLogoImg = null; return; }
+  const img = new Image();
+  img.onload = ()=>{ previewLogoImg = img; scheduleRender(); };
+  img.src = state.config.image.dataUrl;
+}
+
+function drawExtrasOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, canvasPxH){
+  const ex = state.config.extras;
+  const toPx = v=>v*pxPerPt;
+  const flip = y=>(pageH-y)*pxPerPt;
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = '#000';
+
+  function textAt(str, size, position, marginPt){
+    if(!str) return;
+    const fontPx = toPx(size);
+    ctx.font = `400 ${fontPx}px Helvetica, Arial, sans-serif`;
+    const w = ctx.measureText(str).width/pxPerPt;
+    const anchor = computeAnchor(pageW, pageH, w, size, { position, offsetX:0, offsetY:0, margin: marginPt });
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillText(str, toPx(anchor.x), flip(anchor.y));
+  }
+
+  if(ex.pageNumber.enabled){
+    const label = ex.pageNumber.format
+      .replace('n', tokenCtx.page).replace('t', tokenCtx.total);
+    textAt(label, ex.pageNumber.size, ex.pageNumber.position, 24);
+  }
+  if(ex.header.enabled){
+    ['left','center','right'].forEach(slot=>{
+      const val = replaceTokens(ex.header[slot], tokenCtx); if(!val) return;
+      const pos = slot==='left'?'top-left':slot==='right'?'top-right':'top-center';
+      textAt(val, 9, pos, 20);
+    });
+  }
+  if(ex.footer.enabled){
+    ['left','center','right'].forEach(slot=>{
+      const val = replaceTokens(ex.footer[slot], tokenCtx); if(!val) return;
+      const pos = slot==='left'?'bottom-left':slot==='right'?'bottom-right':'bottom-center';
+      textAt(val, 9, pos, 20);
+    });
+  }
+  if(ex.dateStamp.enabled){
+    textAt(formatDate(ex.dateStamp.format), 9, ex.dateStamp.position, 20);
+  }
+  if(ex.bates.enabled){
+    const num = pad(ex.bates.start, ex.bates.digits);
+    textAt(ex.bates.prefix+num, 9, 'bottom-right', 20);
+  }
+  if(ex.border.enabled){
+    ctx.strokeStyle = ex.border.color;
+    ctx.lineWidth = toPx(ex.border.thickness);
+    const bw = toPx(90), bh = toPx(30);
+    ctx.strokeRect(canvasPxW-bw-toPx(16), toPx(16), bw, bh);
+  }
+}
+
+/* ---------------------------------------------------------------
+   6. PRESETS
+   Presets are full copies of state.config, keyed by name, stored in
+   localStorage under 'stampit_presets'. Three built-in presets ship
+   with the app and cannot be deleted (they just reset if "deleted").
+   --------------------------------------------------------------- */
+const BUILTIN_PRESETS = {
+  'Confidential Diagonal': (()=>{ const c = defaultConfig();
+    c.text.value='CONFIDENTIAL'; c.text.rotation=45; c.text.opacity=20; c.text.size=54;
+    c.placement.position='center'; c.placement.tile=false; return c; })(),
+  'Draft Copy': (()=>{ const c = defaultConfig();
+    c.text.value='DRAFT — {date}'; c.text.rotation=45; c.text.opacity=15; c.text.size=64;
+    c.placement.tile=true; c.placement.tileH=220; c.placement.tileV=220; c.placement.stagger=true; return c; })(),
+  'Company Letterhead Footer': (()=>{ const c = defaultConfig();
+    c.mode='text'; c.text.value=''; c.text.opacity=0;
+    c.extras.footer.enabled=true; c.extras.footer.left='{filename}'; c.extras.footer.center='';
+    c.extras.footer.right='Page {page} of {total}';
+    c.extras.pageNumber.enabled=false; return c; })(),
+};
+
+function loadStoredPresets(){
+  try{ return JSON.parse(localStorage.getItem('stampit_presets')||'{}'); }catch(e){ return {}; }
+}
+function saveStoredPresets(obj){
+  localStorage.setItem('stampit_presets', JSON.stringify(obj));
+}
+
+function allPresetNames(){
+  return [...Object.keys(BUILTIN_PRESETS), ...Object.keys(loadStoredPresets())];
+}
+
+function refreshPresetSelect(selectName){
+  const sel = document.getElementById('presetSelect');
+  sel.innerHTML = allPresetNames().map(n=>`<option value="${escapeHtml(n)}">${escapeHtml(n)}${BUILTIN_PRESETS[n]?' (built-in)':''}</option>`).join('');
+  if(selectName) sel.value = selectName;
+}
+
+function applyPresetToUI(cfg){
+  state.config = JSON.parse(JSON.stringify(cfg));
+  // Re-sync every control to reflect the loaded config.
+  document.getElementById('wmText').value = state.config.text.value;
+  document.getElementById('wmFont').value = state.config.text.font;
+  document.getElementById('boldToggle').classList.toggle('active', state.config.text.bold);
+  document.getElementById('italicToggle').classList.toggle('active', state.config.text.italic);
+  document.getElementById('fontSize').value = state.config.text.size;
+  document.getElementById('fontSizeVal').textContent = state.config.text.size;
+  document.getElementById('autoFit').checked = state.config.text.autoFit;
+  document.getElementById('wmColor').value = state.config.text.color;
+  document.getElementById('wmColorHex').value = state.config.text.color;
+  document.getElementById('wmOpacity').value = state.config.text.opacity;
+  document.getElementById('opacityVal').textContent = state.config.text.opacity+'%';
+  document.getElementById('wmRotation').value = state.config.text.rotation;
+  document.getElementById('rotationVal').textContent = state.config.text.rotation+'°';
+
+  document.querySelectorAll('.mode-switch [data-mode]').forEach(b=>b.classList.toggle('active', b.dataset.mode===state.config.mode));
+  document.getElementById('textFieldset').disabled = state.config.mode==='image';
+  document.getElementById('imageFieldset').disabled = state.config.mode==='text';
+
+  document.getElementById('logoScale').value = state.config.image.scale;
+  document.getElementById('logoScaleVal').textContent = state.config.image.scale+'%';
+  document.getElementById('logoOpacity').value = state.config.image.opacity;
+  document.getElementById('logoOpacityVal').textContent = state.config.image.opacity+'%';
+  document.getElementById('logoRotation').value = state.config.image.rotation;
+  document.getElementById('logoRotationVal').textContent = state.config.image.rotation+'°';
+  document.getElementById('logoAspect').checked = state.config.image.keepAspect;
+
+  document.querySelectorAll('#grid9 .cell').forEach(c=>c.classList.toggle('active', c.dataset.pos===state.config.placement.position));
+  document.getElementById('tileMode').checked = state.config.placement.tile;
+  document.getElementById('tileControls').style.display = state.config.placement.tile?'block':'none';
+  document.getElementById('tileH').value = state.config.placement.tileH;
+  document.getElementById('tileHVal').textContent = state.config.placement.tileH;
+  document.getElementById('tileV').value = state.config.placement.tileV;
+  document.getElementById('tileVVal').textContent = state.config.placement.tileV;
+  document.getElementById('tileStagger').checked = state.config.placement.stagger;
+  document.getElementById('offsetX').value = state.config.placement.offsetX;
+  document.getElementById('offsetY').value = state.config.placement.offsetY;
+  document.getElementById('marginEdge').value = state.config.placement.margin;
+  document.querySelectorAll('[data-layer]').forEach(b=>b.classList.toggle('active', b.dataset.layer===state.config.placement.layer));
+
+  document.getElementById('pageTargetMode').value = state.config.pageTarget.mode;
+  document.getElementById('customRangeField').style.display = state.config.pageTarget.mode==='custom'?'block':'none';
+  document.getElementById('customRange').value = state.config.pageTarget.customRange;
+
+  const ex = state.config.extras;
+  document.getElementById('pnEnabled').checked = ex.pageNumber.enabled;
+  document.getElementById('pnFormat').value = ex.pageNumber.format;
+  document.getElementById('pnPosition').value = ex.pageNumber.position;
+  document.getElementById('pnSize').value = ex.pageNumber.size;
+  document.getElementById('pnStart').value = ex.pageNumber.start;
+  document.getElementById('headerEnabled').checked = ex.header.enabled;
+  document.getElementById('headerLeft').value = ex.header.left;
+  document.getElementById('headerCenter').value = ex.header.center;
+  document.getElementById('headerRight').value = ex.header.right;
+  document.getElementById('footerEnabled').checked = ex.footer.enabled;
+  document.getElementById('footerLeft').value = ex.footer.left;
+  document.getElementById('footerCenter').value = ex.footer.center;
+  document.getElementById('footerRight').value = ex.footer.right;
+  document.getElementById('dateEnabled').checked = ex.dateStamp.enabled;
+  document.getElementById('datePosition').value = ex.dateStamp.position;
+  document.getElementById('dateFormat').value = ex.dateStamp.format;
+  document.getElementById('batesEnabled').checked = ex.bates.enabled;
+  document.getElementById('batesPrefix').value = ex.bates.prefix;
+  document.getElementById('batesDigits').value = ex.bates.digits;
+  document.getElementById('batesStart').value = ex.bates.start;
+  document.getElementById('borderEnabled').checked = ex.border.enabled;
+  document.getElementById('borderColor').value = ex.border.color;
+  document.getElementById('borderThickness').value = ex.border.thickness;
+
+  document.getElementById('outPrefix').value = state.config.output.prefix;
+  document.getElementById('outSuffix').value = state.config.output.suffix;
+  document.getElementById('downloadMode').value = state.config.output.downloadMode;
+  document.getElementById('imageFormat').value = state.config.output.imageFormat;
+  document.getElementById('jpgQualityField').style.display = state.config.output.imageFormat==='jpeg'?'block':'none';
+  document.getElementById('jpgQuality').value = state.config.output.jpgQuality;
+  document.getElementById('jpgQualityVal').textContent = state.config.output.jpgQuality+'%';
+
+  if(state.config.image.dataUrl){
+    const prev = document.getElementById('logoPreview');
+    prev.src = state.config.image.dataUrl; prev.style.display='block';
+  }
+  refreshPreviewLogoImg();
+  updateOutputExample();
+  scheduleRender();
+}
+
+document.getElementById('presetSelect').addEventListener('change', e=>{
+  const name = e.target.value;
+  const cfg = BUILTIN_PRESETS[name] || loadStoredPresets()[name];
+  if(cfg) applyPresetToUI(cfg);
+});
+
+document.getElementById('savePresetBtn').addEventListener('click', ()=>{
+  const name = prompt('Save current settings as a preset named:');
+  if(!name) return;
+  const store = loadStoredPresets();
+  store[name] = state.config;
+  saveStoredPresets(store);
+  refreshPresetSelect(name);
+});
+
+document.getElementById('renamePresetBtn').addEventListener('click', ()=>{
+  const sel = document.getElementById('presetSelect');
+  const name = sel.value;
+  if(BUILTIN_PRESETS[name]){ alert('Built-in presets can\'t be renamed. Save as a new preset instead.'); return; }
+  const store = loadStoredPresets();
+  if(!store[name]) return;
+  const newName = prompt('Rename preset to:', name);
+  if(!newName || newName===name) return;
+  store[newName] = store[name];
+  delete store[name];
+  saveStoredPresets(store);
+  refreshPresetSelect(newName);
+});
+
+document.getElementById('deletePresetBtn').addEventListener('click', ()=>{
+  const sel = document.getElementById('presetSelect');
+  const name = sel.value;
+  if(BUILTIN_PRESETS[name]){ alert('Built-in presets can\'t be deleted.'); return; }
+  const store = loadStoredPresets();
+  if(!store[name]) return;
+  if(!confirm(`Delete preset "${name}"?`)) return;
+  delete store[name];
+  saveStoredPresets(store);
+  refreshPresetSelect();
+});
+
+document.getElementById('exportPresetBtn').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(state.config, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'stampit-preset.json';
+  a.click();
+});
+document.getElementById('importPresetBtn').addEventListener('click', ()=>document.getElementById('importPresetInput').click());
+document.getElementById('importPresetInput').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const cfg = JSON.parse(reader.result);
+      applyPresetToUI(cfg);
+      alert('Preset imported. Use "Save as new" to keep it for later.');
+    }catch(err){ alert('That file is not a valid StampIt preset (invalid JSON).'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+/* ---------------------------------------------------------------
+   7. PROCESSING ENGINE
+   Runs the whole batch sequentially, yielding to the UI thread
+   between files so the tab never freezes. Text/logo placement in
+   the exported PDF uses the exact same computeAnchor/computeTile-
+   Origins point-space math as the live preview.
+   --------------------------------------------------------------- */
+const { PDFDocument, StandardFonts, rgb, degrees, BlendMode } = PDFLib;
+
+function fontKeyFor(base, bold, italic){
+  const map = {
+    Helvetica: ['Helvetica','HelveticaBold','HelveticaOblique','HelveticaBoldOblique'],
+    TimesRoman: ['TimesRoman','TimesRomanBold','TimesRomanItalic','TimesRomanBoldItalic'],
+    Courier: ['Courier','CourierBold','CourierOblique','CourierBoldOblique'],
+  };
+  const set = map[base] || map.Helvetica;
+  const idx = (bold?1:0) + (italic?2:0);
+  return set[idx];
+}
+
+// Embeds every font this job will need onto a freshly-loaded PDFDocument
+// and returns handles to them. Embeds the Unicode font too, if the
+// watermark or any extra text contains non-Latin characters.
+async function prepareFonts(doc, allTexts){
+  const anyUnicode = allTexts.some(needsUnicodeFont);
+  const fonts = {};
+  fonts.mainLatin = await doc.embedFont(StandardFonts[fontKeyFor(state.config.text.font, state.config.text.bold, state.config.text.italic)]);
+  fonts.plain = await doc.embedFont(StandardFonts.Helvetica);
+  fonts.unicode = null;
+  if(anyUnicode){
+    const bytes = await getNotoFontBytes();
+    if(bytes){
+      doc.registerFontkit(fontkit);
+      fonts.unicode = await doc.embedFont(bytes, { subset: true });
+    } else {
+      showFontWarning();
+    }
+  }
+  return fonts;
+}
+
+function pickFont(fonts, text){
+  return needsUnicodeFont(text) && fonts.unicode ? fonts.unicode : fonts.mainLatin;
+}
+function pickPlainFont(fonts, text){
+  return needsUnicodeFont(text) && fonts.unicode ? fonts.unicode : fonts.plain;
+}
+
+let embeddedLogoCache = null; // { doc, image } — re-embed only if the doc changes
+async function embedLogoForDoc(doc){
+  const cfg = state.config.image;
+  if(!cfg.dataUrl) return null;
+  const isPng = cfg.dataUrl.startsWith('data:image/png');
+  const base64 = cfg.dataUrl.split(',')[1];
+  const bytes = Uint8Array.from(atob(base64), c=>c.charCodeAt(0));
+  return isPng ? await doc.embedPng(bytes) : await doc.embedJpg(bytes);
+}
+
+function safeBlendOpts(layer){
+  try{ return layer==='below' ? { blendMode: BlendMode.Multiply } : {}; }catch(e){ return {}; }
+}
+
+// Draws the text watermark, logo watermark, and every enabled extra
+// stamp onto a single pdf-lib page, honouring page targeting.
+async function stampPdfPage(doc, page, pageNum, totalPages, fonts, logoImg, tokenCtx){
+  const cfg = state.config;
+  const { width: pageW, height: pageH } = page.getSize();
+  const blend = safeBlendOpts(cfg.placement.layer);
+
+  const onTarget = pageMatchesTarget(pageNum, totalPages, cfg.pageTarget);
+
+  if(onTarget && (cfg.mode==='text' || cfg.mode==='combined')){
+    const text = replaceTokens(cfg.text.value, tokenCtx);
+    if(text){
+      const font = pickFont(fonts, text);
+      let size = cfg.text.size;
+      if(cfg.text.autoFit){
+        const targetW = pageW - 2*cfg.placement.margin;
+        const w = font.widthOfTextAtSize(text, size);
+        if(w>0) size = Math.max(6, size * (targetW/w));
+      }
+      const tw = font.widthOfTextAtSize(text, size);
+      const th = font.heightAtSize(size);
+      const rgbColor = hexToRgb01(cfg.text.color);
+      const drawOpts = {
+        font, size, color: rgb(rgbColor.r, rgbColor.g, rgbColor.b),
+        opacity: cfg.text.opacity/100, rotate: degrees(cfg.text.rotation), ...blend,
+      };
+      if(cfg.placement.tile){
+        computeTileOrigins(pageW, pageH, cfg.placement.tileH, cfg.placement.tileV, cfg.placement.stagger)
+          .forEach(o=> page.drawText(text, { x:o.x, y:o.y, ...drawOpts }));
+      } else {
+        const anchor = computeAnchor(pageW, pageH, tw, th, cfg.placement);
+        page.drawText(text, { x:anchor.x, y:anchor.y, ...drawOpts });
+      }
+    }
+  }
+
+  if(onTarget && (cfg.mode==='image' || cfg.mode==='combined') && logoImg){
+    const logoW = pageW*(cfg.image.scale/100);
+    const logoH = logoW * (logoImg.height/logoImg.width);
+    const drawOpts = { width:logoW, height:logoH, opacity: cfg.image.opacity/100, rotate: degrees(cfg.image.rotation), ...blend };
+    if(cfg.placement.tile){
+      computeTileOrigins(pageW, pageH, cfg.placement.tileH, cfg.placement.tileV, cfg.placement.stagger)
+        .forEach(o=> page.drawImage(logoImg, { x:o.x, y:o.y, ...drawOpts }));
+    } else {
+      const anchor = computeAnchor(pageW, pageH, logoW, logoH, cfg.placement);
+      page.drawImage(logoImg, { x:anchor.x, y:anchor.y, ...drawOpts });
+    }
+  }
+
+  // ---- Extras (drawn regardless of page targeting — they're independent stamps) ----
+  const ex = cfg.extras;
+  function drawExtraText(str, size, position, margin){
+    if(!str) return;
+    const font = pickPlainFont(fonts, str);
+    const w = font.widthOfTextAtSize(str, size);
+    const h = font.heightAtSize(size);
+    const anchor = computeAnchor(pageW, pageH, w, h, { position, offsetX:0, offsetY:0, margin });
+    page.drawText(str, { x:anchor.x, y:anchor.y, font, size, color: rgb(0.06,0.06,0.06) });
+  }
+  if(ex.pageNumber.enabled){
+    const n = pageNum - 1 + ex.pageNumber.start;
+    const label = ex.pageNumber.format.replace('n', n).replace('t', totalPages);
+    drawExtraText(label, ex.pageNumber.size, ex.pageNumber.position, 24);
+  }
+  if(ex.header.enabled){
+    drawExtraText(replaceTokens(ex.header.left, tokenCtx), 9, 'top-left', 20);
+    drawExtraText(replaceTokens(ex.header.center, tokenCtx), 9, 'top-center', 20);
+    drawExtraText(replaceTokens(ex.header.right, tokenCtx), 9, 'top-right', 20);
+  }
+  if(ex.footer.enabled){
+    drawExtraText(replaceTokens(ex.footer.left, tokenCtx), 9, 'bottom-left', 20);
+    drawExtraText(replaceTokens(ex.footer.center, tokenCtx), 9, 'bottom-center', 20);
+    drawExtraText(replaceTokens(ex.footer.right, tokenCtx), 9, 'bottom-right', 20);
+  }
+  if(ex.dateStamp.enabled){
+    drawExtraText(formatDate(ex.dateStamp.format), 9, ex.dateStamp.position, 20);
+  }
+  let batesLabel = null;
+  if(ex.bates.enabled){
+    batesLabel = ex.bates.prefix + pad(state.batesCounter, ex.bates.digits);
+    state.batesCounter++;
+    drawExtraText(batesLabel, 9, 'bottom-right', 20);
+  }
+  if(ex.border.enabled){
+    const bc = hexToRgb01(ex.border.color);
+    page.drawRectangle({
+      x: pageW-106, y: 14, width: 90, height: 30,
+      borderColor: rgb(bc.r, bc.g, bc.b),
+      borderWidth: ex.border.thickness,
+    });
+  }
+}
+
+async function processPdfFile(rec, fileIndex, batchN){
+  const buf = rec._arrayBuffer.slice(0);
+  const doc = await PDFDocument.load(buf, { ignoreEncryption:false });
+  const totalPages = doc.getPageCount();
+  const cfg = state.config;
+
+  const allTexts = [cfg.text.value, cfg.extras.header.left, cfg.extras.header.center, cfg.extras.header.right,
+    cfg.extras.footer.left, cfg.extras.footer.center, cfg.extras.footer.right, cfg.extras.bates.prefix];
+  const fonts = await prepareFonts(doc, allTexts);
+  const logoImg = (cfg.mode!=='text') ? await embedLogoForDoc(doc) : null;
+
+  const pages = doc.getPages();
+  for(let i=0;i<pages.length;i++){
+    const pageNum = i+1;
+    const tokenCtx = { filename: rec.name, page: pageNum, total: totalPages, n: batchN, date: todayStr(), time: nowTimeStr() };
+    await stampPdfPage(doc, pages[i], pageNum, totalPages, fonts, logoImg, tokenCtx);
+  }
+  const bytes = await doc.save();
+  return { bytes, mime:'application/pdf', ext:'pdf' };
+}
+
+async function processImageFile(rec, fileIndex, batchN){
+  const cfg = state.config;
+  const dataUrl = await fileToDataUrl(rec.file);
+  const img = await loadImageEl(dataUrl);
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0);
+  if(cfg.image.dataUrl && !previewLogoImg) await new Promise(r=>{ const li=new Image(); li.onload=()=>{previewLogoImg=li; r();}; li.src=cfg.image.dataUrl; });
+  const tokenCtx = { filename: rec.name, page:1, total:1, n: batchN, date: todayStr(), time: nowTimeStr() };
+  drawWatermarkOnCanvas(ctx, canvas.width, canvas.height, 1, tokenCtx, canvas.width, canvas.height);
+  const format = cfg.output.imageFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
+  const quality = cfg.output.jpgQuality/100;
+  const blob = await new Promise(res=>canvas.toBlob(res, format, quality));
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  return { bytes, mime: format, ext: format==='image/jpeg' ? 'jpg' : 'png' };
+}
+
+function outputFilename(rec, ext){
+  const cfg = state.config.output;
+  const base = rec.name.replace(/\.[^.]+$/,'');
+  return `${cfg.prefix}${base}${cfg.suffix}.${ext}`;
+}
+
+/* ---- Process button / progress / cancel ---- */
+const processBtn = document.getElementById('processBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const progressWrap = document.getElementById('progressWrap');
+const progressInner = document.getElementById('progressInner');
+const progressLabel = document.getElementById('progressLabel');
+const summaryBox = document.getElementById('summaryBox');
+
+function updateProcessButtonState(){
+  const usable = state.files.filter(f=>f.kind!=='error' && !f.locked);
+  processBtn.disabled = usable.length===0 || state.processing;
+}
+
+cancelBtn.addEventListener('click', ()=>{ state.cancelRequested = true; });
+
+processBtn.addEventListener('click', async ()=>{
+  const usable = state.files.filter(f=>f.kind!=='error' && !f.locked);
+  if(!usable.length) return;
+
+  state.processing = true; state.cancelRequested = false;
+  state.batesCounter = state.config.extras.bates.start;
+  hideFontWarning();
+  processBtn.style.display='none'; cancelBtn.style.display='block';
+  progressWrap.style.display='block'; summaryBox.style.display='none';
+
+  const results = []; const skipped = [];
+  // Already-known skips (locked / errored at intake time) go straight into the summary.
+  state.files.filter(f=>f.kind==='error'||f.locked).forEach(f=>skipped.push(f.name+' — '+(f.error||'skipped')));
+
+  for(let i=0;i<usable.length;i++){
+    if(state.cancelRequested) break;
+    const rec = usable[i];
+    progressInner.style.width = Math.round((i/usable.length)*100)+'%';
+    progressLabel.textContent = `Processing file ${i+1} of ${usable.length} · ${rec.name}`;
+    await new Promise(r=>setTimeout(r,0)); // yield to the UI thread
+
+    try{
+      const out = rec.kind==='pdf' ? await processPdfFile(rec, i, i+1) : await processImageFile(rec, i, i+1);
+      results.push({ name: outputFilename(rec, out.ext), bytes: out.bytes, mime: out.mime });
+    } catch(err){
+      console.warn('Processing failed for', rec.name, err);
+      skipped.push(rec.name+' — processing failed');
+    }
+  }
+  progressInner.style.width='100%';
+  progressLabel.textContent = state.cancelRequested ? 'Cancelled' : 'Done';
+
+  if(results.length){
+    if(state.config.output.downloadMode === 'zip'){
+      const zip = new JSZip();
+      results.forEach(r=>zip.file(r.name, r.bytes));
+      const blob = await zip.generateAsync({ type:'blob' });
+      triggerDownload(blob, 'StampIt_output.zip');
+    } else {
+      for(const r of results){
+        triggerDownload(new Blob([r.bytes], {type:r.mime}), r.name);
+        await new Promise(res=>setTimeout(res, 250)); // avoid the browser blocking rapid-fire downloads
+      }
+    }
+  }
+
+  summaryBox.className = 'summary-box' + (skipped.length ? ' has-skips':'');
+  summaryBox.style.display = 'block';
+  summaryBox.innerHTML = `<strong>${results.length} processed</strong>` +
+    (state.cancelRequested ? ' · cancelled mid-batch' : '') +
+    (skipped.length ? ` · ${skipped.length} skipped` : '') +
+    (skipped.length ? `<ul>${skipped.map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ul>` : '');
+
+  state.processing = false;
+  processBtn.style.display='block'; cancelBtn.style.display='none';
+  updateProcessButtonState();
+});
+
+function triggerDownload(blob, filename){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------------------------------------------------------------
+   8. INIT
+   --------------------------------------------------------------- */
+refreshPresetSelect();
+updateOutputExample();
+updateProcessButtonState();
+setToggle();
+window.addEventListener('error', e=>{
+  console.error('StampIt error:', e.error||e.message);
+});
+
+</script>
+</body>
+</html>
