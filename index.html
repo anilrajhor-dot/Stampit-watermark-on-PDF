@@ -96,6 +96,9 @@ a{color:inherit;}
 input,select,button,textarea{font-family:inherit;font-size:14px;}
 ::selection{background:var(--amber);color:var(--charcoal);}
 
+:focus-visible{outline:2px solid var(--amber-dark);outline-offset:2px;}
+button:focus-visible, .cell:focus-visible, .chip:focus-visible{outline-offset:1px;}
+
 /* ---------- Top bar ---------- */
 .topbar{
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
@@ -140,9 +143,34 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
   max-width:1680px;
   margin:0 auto;
 }
+/* ---------- Mobile step-by-step workflow ---------- */
+.mobile-steps{display:none;}
+.mobile-sticky-bar{display:none;}
 @media (max-width: 1180px){
   .app{grid-template-columns: 1fr;}
   .preview-stage{min-height:420px;}
+
+  .mobile-steps{
+    display:flex;gap:6px;padding:10px 14px;background:var(--white);border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:40;overflow-x:auto;-webkit-overflow-scrolling:touch;
+  }
+  .mobile-step-btn{
+    flex:1;padding:9px 6px;border-radius:8px;border:1px solid var(--line);background:var(--cream);
+    color:var(--muted);font-weight:700;font-size:11.5px;white-space:nowrap;cursor:pointer;min-height:38px;
+  }
+  .mobile-step-btn.active{background:var(--charcoal);color:var(--amber);border-color:var(--charcoal);}
+
+  #filesPanel, #previewPanel, #settingsPanel{display:none;}
+  #filesPanel.step-active, #previewPanel.step-active, #settingsPanel.step-active{display:block;}
+
+  .mobile-sticky-bar{
+    display:block;position:sticky;bottom:0;left:0;right:0;background:var(--white);
+    border-top:1px solid var(--line);padding:10px 14px;z-index:45;
+    box-shadow:0 -4px 16px rgba(0,0,0,0.10);padding-bottom:calc(10px + env(safe-area-inset-bottom));
+  }
+  /* Hidden via JS (not CSS) when step 3 is active, since the in-panel
+     process button is already visible there — see applyMobileStep(). */
+  .mobile-sticky-bar.hide-on-step{display:none;}
 }
 @media (min-width: 1181px) and (max-width: 1400px){
   .app{grid-template-columns: 260px 1fr 320px;}
@@ -159,6 +187,10 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
   color:var(--muted);margin:0 0 12px 0;font-weight:700;
 }
 .panel + .panel{margin-top:18px;}
+.settings-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.undo-redo{display:flex;gap:4px;}
+.undo-redo .btn{padding:5px 10px;font-size:15px;line-height:1;}
+.undo-redo .btn:disabled{opacity:0.35;cursor:default;}
 
 /* ---------- Dropzone / file list ---------- */
 .dropzone{
@@ -201,6 +233,13 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
   border-radius:9px;background:var(--surface-alt);position:relative;
 }
 .file-card.locked{opacity:0.6;background:var(--rust-soft-bg);border-color:var(--rust-soft-border);}
+.file-card.failed{border-color:var(--rust);}
+.file-select{width:16px;height:16px;flex-shrink:0;accent-color:var(--amber);cursor:pointer;}
+.file-select-spacer{width:16px;flex-shrink:0;}
+.select-row{display:flex;gap:6px;margin-top:8px;}
+.select-row .btn{flex:1;}
+.tag-failed{font-size:10px;background:var(--rust);color:#fff;padding:2px 6px;border-radius:5px;font-weight:700;}
+.tag-done{font-size:10px;background:#3ECF6F;color:#04240F;padding:2px 6px;border-radius:5px;font-weight:700;}
 .file-reorder{display:flex;flex-direction:column;gap:1px;flex-shrink:0;}
 .reorder-btn{
   background:none;border:1px solid var(--line);border-radius:4px;color:var(--muted);
@@ -239,7 +278,8 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 }
 #previewCanvasWrap{position:relative;box-shadow:0 8px 30px rgba(0,0,0,0.18);}
 #pdfCanvas,#overlayCanvas{display:block;}
-#overlayCanvas{position:absolute;top:0;left:0;pointer-events:none;}
+#overlayCanvas{position:absolute;top:0;left:0;touch-action:none;cursor:default;}
+#overlayCanvas.dragging{cursor:grabbing;}
 .zoom-row{display:flex;align-items:center;gap:8px;}
 .zoom-row input[type=range]{width:90px;}
 .toggle-pill{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;}
@@ -279,6 +319,11 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 .slider-row{display:flex;align-items:center;gap:10px;}
 .slider-row input[type=range]{flex:1;accent-color:var(--amber);}
 .slider-val{font-size:12px;font-weight:700;width:44px;text-align:right;color:var(--muted);}
+.slider-num{
+  width:56px;flex-shrink:0;padding:6px 6px;border-radius:7px;border:1px solid var(--line);
+  background:var(--white);color:var(--text);text-align:center;font-weight:600;font-size:12.5px;
+}
+.zoom-row .slider-num{width:48px;}
 
 .color-row{display:flex;gap:8px;align-items:center;}
 .color-row input[type=color]{width:38px;height:34px;padding:2px;border-radius:8px;border:1px solid var(--line);background:var(--white);}
@@ -300,7 +345,7 @@ input,select,button,textarea{font-family:inherit;font-size:14px;}
 }
 .grid9 .cell{
   width:100%;aspect-ratio:1/1;border-radius:6px;border:1px solid var(--line);background:var(--white);cursor:pointer;
-  transition:background .1s ease;
+  transition:background .1s ease;padding:0;margin:0;font:inherit;
 }
 .grid9 .cell.active{background:var(--amber);border-color:var(--amber-dark);}
 .grid9 .cell:hover{background:#FFF3D2;}
@@ -324,6 +369,13 @@ fieldset[disabled] {opacity:0.45;}
 }
 .summary-box.has-skips{background:#FBF3EC;border-color:#F0D8BE;}
 .summary-box ul{margin:6px 0 0 18px;padding:0;font-size:12px;color:var(--muted);}
+.summary-actions{margin-top:10px;}
+
+.preflight-banner{
+  margin-bottom:10px;padding:10px 12px;border-radius:10px;background:var(--rust-soft-bg);
+  border:1px solid var(--rust-soft-border);color:var(--rust-dark);font-size:12.5px;
+}
+.preflight-banner ul{margin:6px 0 0 18px;padding:0;}
 
 /* ---------- Misc ---------- */
 .divider{height:1px;background:var(--line);margin:14px 0;}
@@ -385,7 +437,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v1.0.0</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.0.0</span></div>
   <div class="topbar-right">
     <div class="privacy-badge"><span class="dot"></span> 🔒 Your documents are processed locally in your browser</div>
     <button class="theme-toggle" id="themeToggle" type="button" title="Toggle dark mode (D)" aria-label="Toggle dark mode">
@@ -393,6 +445,13 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <svg id="themeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     </button>
   </div>
+</div>
+
+<!-- Step nav is only visible on narrow/stacked layouts (mobile & tablet) -->
+<div class="mobile-steps" id="mobileSteps" role="tablist" aria-label="Workflow steps">
+  <button class="mobile-step-btn active" data-step="1" role="tab" aria-selected="true">1 · Files</button>
+  <button class="mobile-step-btn" data-step="2" role="tab" aria-selected="false">2 · Configure</button>
+  <button class="mobile-step-btn" data-step="3" role="tab" aria-selected="false">3 · Preview &amp; Process</button>
 </div>
 
 <div class="app">
@@ -413,27 +472,33 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
     <input type="file" id="folderInput" class="hidden-input" multiple webkitdirectory directory>
 
     <div class="file-totals" id="fileTotals">0 files · 0 pages · 0 MB</div>
+    <div class="select-row">
+      <button class="btn btn-ghost btn-sm" id="selectAllBtn" style="display:none;">Select all</button>
+      <button class="btn btn-ghost btn-sm" id="deselectAllBtn" style="display:none;">Deselect all</button>
+    </div>
     <div class="file-list" id="fileList"></div>
     <button class="btn btn-ghost btn-block btn-sm" id="clearAllBtn" style="margin-top:10px;display:none;">Clear all</button>
+    <button class="btn btn-rust btn-block btn-sm" id="retryFailedBtn" style="margin-top:6px;display:none;">Retry failed files</button>
   </div>
 
   <!-- ============ CENTER: LIVE PREVIEW ============ -->
   <div class="panel" id="previewPanel">
     <h2>Live preview</h2>
     <div class="preview-toolbar">
-      <select id="previewFileSelect"><option>No files yet</option></select>
+      <select id="previewFileSelect" aria-label="File to preview"><option>No files yet</option></select>
       <div class="preview-nav">
-        <button class="btn btn-ghost btn-sm" id="prevPageBtn">‹</button>
-        <span class="small-note" id="pageIndicator">– / –</span>
-        <button class="btn btn-ghost btn-sm" id="nextPageBtn">›</button>
+        <button class="btn btn-ghost btn-sm" id="prevPageBtn" aria-label="Previous page">‹</button>
+        <span class="small-note" id="pageIndicator" aria-live="polite">– / –</span>
+        <button class="btn btn-ghost btn-sm" id="nextPageBtn" aria-label="Next page">›</button>
       </div>
       <div class="zoom-row">
-        <span class="small-note">Zoom</span>
-        <input type="range" id="zoomSlider" min="50" max="200" value="100">
+        <span class="small-note" id="zoomLabel">Zoom</span>
+        <input type="range" id="zoomSlider" min="50" max="200" value="100" aria-labelledby="zoomLabel">
+        <input type="number" id="zoomNum" class="slider-num" min="50" max="200" value="100" aria-label="Zoom percentage, numeric">
       </div>
-      <div class="toggle-pill">
-        <button id="beforeBtn">Before</button>
-        <button id="afterBtn" class="active">After</button>
+      <div class="toggle-pill" role="group" aria-label="Preview mode">
+        <button id="beforeBtn" aria-pressed="false">Before</button>
+        <button id="afterBtn" class="active" aria-pressed="true">After</button>
       </div>
     </div>
     <div class="preview-stage" id="previewStage">
@@ -447,21 +512,29 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         <canvas id="overlayCanvas"></canvas>
       </div>
     </div>
+    <p class="hint" id="dragHint" style="text-align:center;margin-top:6px;">🖐 Drag the amber ⊕ handle on the preview to reposition — only while placement isn't tiled.</p>
 
     <div class="process-bar-wrap">
+      <div id="preflightBanner" class="preflight-banner" style="display:none;" role="alert"></div>
       <button class="btn btn-amber btn-block" id="processBtn" style="padding:13px;font-size:15px;" disabled>Process all files</button>
       <button class="btn btn-rust btn-block" id="cancelBtn" style="margin-top:8px;display:none;">Cancel</button>
-      <div id="progressWrap" style="display:none;">
+      <div id="progressWrap" style="display:none;" aria-live="polite">
         <div class="progress-outer"><div class="progress-inner" id="progressInner"></div></div>
         <div class="progress-label" id="progressLabel">—</div>
       </div>
-      <div id="summaryBox" class="summary-box" style="display:none;"></div>
+      <div id="summaryBox" class="summary-box" style="display:none;" aria-live="polite"></div>
     </div>
   </div>
 
   <!-- ============ RIGHT PANEL: SETTINGS ============ -->
   <div class="panel" id="settingsPanel">
-    <h2>Watermark settings</h2>
+    <div class="settings-header">
+      <h2 style="margin:0;">Watermark settings</h2>
+      <div class="undo-redo">
+        <button class="btn btn-ghost btn-sm" id="undoBtn" disabled title="Undo (Ctrl+Z)" aria-label="Undo last settings change">↶</button>
+        <button class="btn btn-ghost btn-sm" id="redoBtn" disabled title="Redo (Ctrl+Shift+Z)" aria-label="Redo settings change">↷</button>
+      </div>
+    </div>
 
     <div class="field">
       <label>Preset</label>
@@ -480,6 +553,17 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <div class="preset-actions" style="margin-top:6px;">
         <button class="btn btn-rust btn-sm" id="resetSettingsBtn">Reset to defaults</button>
       </div>
+    </div>
+
+    <div class="field">
+      <label for="projectSelect">Project <span class="hint" style="font-weight:400;">(settings + files, saved on this device)</span></label>
+      <select id="projectSelect"><option value="">No saved projects</option></select>
+      <div class="preset-actions">
+        <button class="btn btn-ghost btn-sm" id="saveProjectBtn">Save current as project</button>
+        <button class="btn btn-ghost btn-sm" id="loadProjectBtn">Load</button>
+        <button class="btn btn-rust btn-sm" id="deleteProjectBtn">Delete</button>
+      </div>
+      <div id="projectStatus" class="hint" style="margin-top:4px;"></div>
     </div>
 
     <div class="divider"></div>
@@ -528,29 +612,29 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </div>
 
       <div class="field">
-        <label>Font size <span id="fontSizeVal">48</span>pt</label>
-        <div class="slider-row"><input type="range" id="fontSize" min="8" max="200" value="48"></div>
+        <label for="fontSize">Font size <span id="fontSizeVal">48</span>pt</label>
+        <div class="slider-row"><input type="range" id="fontSize" min="8" max="200" value="48"><input type="number" id="fontSizeNum" class="slider-num" min="8" max="200" value="48" aria-label="Font size, points"></div>
         <div class="checkbox-row" style="margin-top:6px;">
           <input type="checkbox" id="autoFit"><label for="autoFit">Auto-fit to page width</label>
         </div>
       </div>
 
       <div class="field">
-        <label>Colour</label>
+        <label for="wmColor">Colour</label>
         <div class="color-row">
-          <input type="color" id="wmColor" value="#E2582B">
-          <input type="text" id="wmColorHex" value="#E2582B">
+          <input type="color" id="wmColor" value="#E2582B" aria-label="Watermark colour">
+          <input type="text" id="wmColorHex" value="#E2582B" aria-label="Watermark colour hex code">
         </div>
       </div>
 
       <div class="field">
-        <label>Opacity <span id="opacityVal">20%</span></label>
-        <div class="slider-row"><input type="range" id="wmOpacity" min="5" max="100" value="20"></div>
+        <label for="wmOpacity">Opacity <span id="opacityVal">20%</span></label>
+        <div class="slider-row"><input type="range" id="wmOpacity" min="5" max="100" value="20"><input type="number" id="wmOpacityNum" class="slider-num" min="5" max="100" value="20" aria-label="Opacity, percent"></div>
       </div>
 
       <div class="field">
-        <label>Rotation <span id="rotationVal">45°</span></label>
-        <div class="slider-row"><input type="range" id="wmRotation" min="-90" max="90" value="45"></div>
+        <label for="wmRotation">Rotation <span id="rotationVal">45°</span></label>
+        <div class="slider-row"><input type="range" id="wmRotation" min="-90" max="90" value="45"><input type="number" id="wmRotationNum" class="slider-num" min="-90" max="90" value="45" aria-label="Rotation, degrees"></div>
       </div>
     </fieldset>
 
@@ -564,23 +648,23 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         <div id="logoError" class="field-error" style="display:none;"></div>
       </div>
       <div class="field">
-        <label>Scale <span id="logoScaleVal">30%</span> of page width</label>
-        <div class="slider-row"><input type="range" id="logoScale" min="5" max="100" value="30"></div>
+        <label for="logoScale">Scale <span id="logoScaleVal">30%</span> of page width</label>
+        <div class="slider-row"><input type="range" id="logoScale" min="5" max="100" value="30"><input type="number" id="logoScaleNum" class="slider-num" min="5" max="100" value="30" aria-label="Logo scale, percent"></div>
       </div>
       <div class="field">
-        <label>Opacity <span id="logoOpacityVal">50%</span></label>
-        <div class="slider-row"><input type="range" id="logoOpacity" min="5" max="100" value="50"></div>
+        <label for="logoOpacity">Opacity <span id="logoOpacityVal">50%</span></label>
+        <div class="slider-row"><input type="range" id="logoOpacity" min="5" max="100" value="50"><input type="number" id="logoOpacityNum" class="slider-num" min="5" max="100" value="50" aria-label="Logo opacity, percent"></div>
       </div>
       <div class="field">
-        <label>Rotation <span id="logoRotationVal">0°</span></label>
-        <div class="slider-row"><input type="range" id="logoRotation" min="-90" max="90" value="0"></div>
+        <label for="logoRotation">Rotation <span id="logoRotationVal">0°</span></label>
+        <div class="slider-row"><input type="range" id="logoRotation" min="-90" max="90" value="0"><input type="number" id="logoRotationNum" class="slider-num" min="-90" max="90" value="0" aria-label="Logo rotation, degrees"></div>
       </div>
       <div class="checkbox-row">
         <input type="checkbox" id="logoAspect" checked><label for="logoAspect">Maintain aspect ratio</label>
       </div>
       <div class="field" id="logoHeightField" style="display:none;">
-        <label>Height <span id="logoHeightVal">30%</span> of page height</label>
-        <div class="slider-row"><input type="range" id="logoHeight" min="5" max="100" value="30"></div>
+        <label for="logoHeight">Height <span id="logoHeightVal">30%</span> of page height</label>
+        <div class="slider-row"><input type="range" id="logoHeight" min="5" max="100" value="30"><input type="number" id="logoHeightNum" class="slider-num" min="5" max="100" value="30" aria-label="Logo height, percent"></div>
         <div class="hint">With aspect ratio off, width and height scale independently — this is where you can stretch or squash the logo.</div>
       </div>
     </fieldset>
@@ -599,10 +683,10 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
     <div class="tab-panel active" data-tabpanel="placement">
       <div class="field">
         <label>Position</label>
-        <div class="grid9" id="grid9">
-          <div class="cell" data-pos="top-left"></div><div class="cell" data-pos="top-center"></div><div class="cell" data-pos="top-right"></div>
-          <div class="cell" data-pos="middle-left"></div><div class="cell active" data-pos="center"></div><div class="cell" data-pos="middle-right"></div>
-          <div class="cell" data-pos="bottom-left"></div><div class="cell" data-pos="bottom-center"></div><div class="cell" data-pos="bottom-right"></div>
+        <div class="grid9" id="grid9" role="group" aria-label="Watermark position, 9-point grid">
+          <button type="button" class="cell" data-pos="top-left" aria-label="Top left (key 7)"></button><button type="button" class="cell" data-pos="top-center" aria-label="Top centre (key 8)"></button><button type="button" class="cell" data-pos="top-right" aria-label="Top right (key 9)"></button>
+          <button type="button" class="cell" data-pos="middle-left" aria-label="Middle left (key 4)"></button><button type="button" class="cell active" data-pos="center" aria-label="Centre (key 5)"></button><button type="button" class="cell" data-pos="middle-right" aria-label="Middle right (key 6)"></button>
+          <button type="button" class="cell" data-pos="bottom-left" aria-label="Bottom left (key 1)"></button><button type="button" class="cell" data-pos="bottom-center" aria-label="Bottom centre (key 2)"></button><button type="button" class="cell" data-pos="bottom-right" aria-label="Bottom right (key 3)"></button>
         </div>
       </div>
       <div class="checkbox-row">
@@ -610,16 +694,16 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </div>
       <div id="tileControls" style="display:none;">
         <div class="row-2">
-          <div class="field"><label>H spacing <span id="tileHVal">150</span>pt</label><input type="range" id="tileH" min="40" max="400" value="150"></div>
-          <div class="field"><label>V spacing <span id="tileVVal">150</span>pt</label><input type="range" id="tileV" min="40" max="400" value="150"></div>
+          <div class="field"><label for="tileH">H spacing <span id="tileHVal">150</span>pt</label><div class="slider-row"><input type="range" id="tileH" min="40" max="400" value="150"><input type="number" id="tileHNum" class="slider-num" min="40" max="400" value="150" aria-label="Horizontal tile spacing, points"></div></div>
+          <div class="field"><label for="tileV">V spacing <span id="tileVVal">150</span>pt</label><div class="slider-row"><input type="range" id="tileV" min="40" max="400" value="150"><input type="number" id="tileVNum" class="slider-num" min="40" max="400" value="150" aria-label="Vertical tile spacing, points"></div></div>
         </div>
         <div class="checkbox-row"><input type="checkbox" id="tileStagger"><label for="tileStagger">Brick-style stagger</label></div>
       </div>
       <div class="row-2">
-        <div class="field"><label>X offset (pt)</label><input type="number" id="offsetX" value="0"></div>
-        <div class="field"><label>Y offset (pt)</label><input type="number" id="offsetY" value="0"></div>
+        <div class="field"><label for="offsetX">X offset (pt)</label><input type="number" id="offsetX" value="0" min="-2000" max="2000"></div>
+        <div class="field"><label for="offsetY">Y offset (pt)</label><input type="number" id="offsetY" value="0" min="-2000" max="2000"></div>
       </div>
-      <div class="field"><label>Margin from edge (pt)</label><input type="number" id="marginEdge" value="36"></div>
+      <div class="field"><label for="marginEdge">Margin from edge (pt)</label><input type="number" id="marginEdge" value="36" min="0" max="500"></div>
       <div class="field">
         <label>Blend mode</label>
         <div class="toggle-btns">
@@ -768,8 +852,8 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         </select>
       </div>
       <div class="field" id="jpgQualityField" style="display:none;">
-        <label>JPG quality <span id="jpgQualityVal">90%</span></label>
-        <input type="range" id="jpgQuality" min="10" max="100" value="90">
+        <label for="jpgQuality">JPG quality <span id="jpgQualityVal">90%</span></label>
+        <div class="slider-row"><input type="range" id="jpgQuality" min="10" max="100" value="90"><input type="number" id="jpgQualityNum" class="slider-num" min="10" max="100" value="90" aria-label="JPG quality, percent"></div>
       </div>
     </div>
 
@@ -787,7 +871,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>Placement &amp; tiling</h4>
-        <p>Click a cell on the 9-point grid for a single placement, or turn on <strong>Tile / repeat</strong> to cover the whole page in a repeating pattern (with an optional brick-style stagger).</p>
+        <p>Click a cell on the 9-point grid for a single placement, or turn on <strong>Tile / repeat</strong> to cover the whole page in a repeating pattern (with an optional brick-style stagger). When placement isn't tiled, drag the amber ⊕ handle directly on the live preview to nudge the X/Y offset — it updates the same numeric fields as typing would, so the two are always in sync. In Combined mode, the handle follows the text; use the offset number fields directly to fine-tune the logo's position. Font size, logo scale, and rotation are set with the sliders or their number fields, not by dragging.</p>
       </div>
 
       <div class="help-section">
@@ -811,6 +895,11 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </div>
 
       <div class="help-section">
+        <h4>Projects</h4>
+        <p>A <strong>preset</strong> is just your watermark settings. A <strong>project</strong> is your settings <em>and</em> your actual files, saved together on this device using your browser's local storage (IndexedDB) — nothing is uploaded. Use it when you want to walk away mid-batch and pick the exact same files back up later, or keep a recurring batch (like a monthly statement run) ready to reload. Loading a project replaces your current file batch, so save first if you want to keep what's currently loaded.</p>
+      </div>
+
+      <div class="help-section">
         <h4>Supported files &amp; limits</h4>
         <p>PDF, JPG, PNG, and WebP, up to 100 MB each. Password-protected PDFs are detected and skipped automatically rather than breaking the batch — you'll see them marked "Locked" in the file list and in the final summary.</p>
       </div>
@@ -823,32 +912,51 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <div class="help-section">
         <h4>Keyboard shortcuts</h4>
         <table class="shortcut-table">
-          <tr><td><kbd>P</kbd></td><td>Process all files</td></tr>
+          <tr><td><kbd>P</kbd></td><td>Process selected files</td></tr>
           <tr><td><kbd>Esc</kbd></td><td>Cancel a running batch</td></tr>
           <tr><td><kbd>T</kbd> / <kbd>L</kbd> / <kbd>M</kbd></td><td>Text / Logo / coMbined mode</td></tr>
           <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>Set placement (numpad layout — 7 8 9 top row, 1 2 3 bottom row)</td></tr>
           <tr><td><kbd>←</kbd> / <kbd>→</kbd></td><td>Previous / next preview page</td></tr>
           <tr><td><kbd>+</kbd> / <kbd>-</kbd></td><td>Zoom preview in / out</td></tr>
           <tr><td><kbd>D</kbd></td><td>Toggle dark mode</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Z</kbd></td><td>Undo last settings change</td></tr>
+          <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Z</kbd></td><td>Redo</td></tr>
           <tr><td><kbd>?</kbd></td><td>Open this Help tab</td></tr>
         </table>
         <p class="hint" style="margin-top:8px;">Shortcuts are ignored while you're typing in a text field, so they won't interfere with your watermark text.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Selecting files &amp; retrying failures</h4>
+        <p>Uncheck a file to exclude it from the batch without removing it — the Process button always shows exactly how many files it will run on. If any file fails during processing, a <strong>Retry failed files</strong> button appears so you can fix your settings and re-run just those, instead of the whole batch. Every run also offers a downloadable text report listing the outcome of each file.</p>
       </div>
 
       <div class="divider"></div>
 
       <div class="help-section">
         <h4>Privacy &amp; offline use</h4>
-        <p>🔒 <strong>Your documents are processed locally in your browser</strong> — files are never uploaded anywhere. That said, StampIt does load its libraries (pdf-lib, pdf.js, JSZip) and Indian-language fonts from public CDNs, so it needs an internet connection the first time a page loads or a non-Latin font is used. It is not yet a fully bundled offline app.</p>
+        <p>🔒 <strong>Your documents are processed locally in your browser</strong> — files are never uploaded anywhere, on any visit, cached or not. StampIt does load its libraries (pdf-lib, pdf.js, JSZip) and Indian-language fonts from public CDNs, so the very first visit needs an internet connection. If <code>sw.js</code> was deployed alongside this file, those libraries and fonts get cached on-device after that, so later visits — even offline — can load and run without internet. This never applies to your documents, only to the app's own code.</p>
+        <p id="offlineStatus" class="hint" style="margin-top:6px;">Offline caching: checking…</p>
+      </div>
+
+      <div class="help-section">
+        <h4>What's new in v2.0.0</h4>
+        <p>Precise numeric fields beside every slider · file selection with Select All/Deselect All and Retry failed files · pre-flight validation before processing · a downloadable processing report · drag-to-reposition on the live preview · undo/redo (<kbd>Ctrl</kbd>+<kbd>Z</kbd>) · full projects (settings + files, not just settings) saved on-device · optional offline caching after first load via <code>sw.js</code> · dark mode · a mobile step-by-step workflow with a sticky Process &amp; Download bar · safer margin/offset handling · and an accessibility pass (keyboard navigation, focus outlines, screen-reader labels). All v1.0 features — PDF/image watermarking, live preview, Indian-language support, presets, Bates numbering, page numbering, headers/footers, date stamps, and tiling — work exactly as before.</p>
       </div>
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v1.0.0</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.0.0</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
       </div>
     </div>
 
   </div>
+</div>
+
+<!-- Always-visible on mobile/tablet, regardless of which step you're on,
+     so processing is never more than one tap away. -->
+<div class="mobile-sticky-bar" id="mobileStickyBar">
+  <button class="btn btn-amber btn-block" id="mobileProcessBtn" style="padding:12px;font-size:14px;" disabled>Process &amp; Download</button>
 </div>
 
 <script id="app-script">
@@ -1153,7 +1261,7 @@ async function ingestFiles(fileArray){
     const rec = {
       id: uid(), file, name: file.name, size: file.size,
       kind: ext === 'pdf' ? 'pdf' : 'image',
-      pages: 1, thumb: null, locked: false, error: null,
+      pages: 1, thumb: null, locked: false, error: null, selected: true,
     };
     state.files.push(rec);
     renderFileList(); // show it immediately, fill details async
@@ -1244,6 +1352,8 @@ clearAllBtn.onclick = ()=>{
     updateProcessButtonState();
   }
 };
+document.getElementById('selectAllBtn').addEventListener('click', ()=>setAllSelected(true));
+document.getElementById('deselectAllBtn').addEventListener('click', ()=>setAllSelected(false));
 
 function renderFileList(){
   const emptyEl = document.getElementById('previewEmpty');
@@ -1251,36 +1361,57 @@ function renderFileList(){
     fileListEl.innerHTML = '';
     fileTotalsEl.textContent = '0 files · 0 pages · 0 MB';
     clearAllBtn.style.display = 'none';
+    document.getElementById('selectAllBtn').style.display = 'none';
+    document.getElementById('deselectAllBtn').style.display = 'none';
     return;
   }
   clearAllBtn.style.display = 'block';
-  let totalPages = 0, totalSize = 0, count = 0;
+  document.getElementById('selectAllBtn').style.display = 'inline-flex';
+  document.getElementById('deselectAllBtn').style.display = 'inline-flex';
+  let totalPages = 0, totalSize = 0, count = 0, selectedCount = 0;
   fileListEl.innerHTML = state.files.map((f,idx)=>{
-    if(f.kind !== 'error'){ totalPages += (f.locked?0:f.pages); totalSize += f.size; count++; }
+    const usable = f.kind!=='error' && !f.locked;
+    if(usable){ totalPages += f.pages; totalSize += f.size; count++; if(f.selected) selectedCount++; }
     const thumb = f.thumb ? `<img class="file-thumb" src="${f.thumb}">` : `<div class="file-thumb"></div>`;
     const sub = f.kind==='error' ? f.error :
       f.locked ? 'Locked — skipped' :
+      f.lastError ? `⚠ ${f.lastError}` :
       f.kind==='pdf' ? `${f.pages} page${f.pages!==1?'s':''} · ${fmtBytes(f.size)}` :
       `Image · ${fmtBytes(f.size)}`;
     const isFirst = idx===0, isLast = idx===state.files.length-1;
-    return `<div class="file-card ${f.locked||f.kind==='error'?'locked':''}">
+    const statusTag = f.locked||f.kind==='error' ? '<span class="tag-locked">SKIPPED</span>'
+      : f.lastError ? '<span class="tag-failed">FAILED</span>'
+      : f.lastProcessed ? '<span class="tag-done">DONE</span>' : '';
+    return `<div class="file-card ${f.locked||f.kind==='error'?'locked':''} ${f.lastError?'failed':''}">
+      ${usable ? `<input type="checkbox" class="file-select" ${f.selected?'checked':''} onchange="toggleFileSelected('${f.id}', this.checked)" aria-label="Include ${escapeHtml(f.name)} in batch">` : `<span class="file-select-spacer"></span>`}
       <div class="file-reorder">
-        <button class="reorder-btn" ${isFirst?'disabled':''} onclick="moveFile('${f.id}',-1)" title="Move up">▲</button>
-        <button class="reorder-btn" ${isLast?'disabled':''} onclick="moveFile('${f.id}',1)" title="Move down">▼</button>
+        <button class="reorder-btn" ${isFirst?'disabled':''} onclick="moveFile('${f.id}',-1)" title="Move up" aria-label="Move ${escapeHtml(f.name)} up">▲</button>
+        <button class="reorder-btn" ${isLast?'disabled':''} onclick="moveFile('${f.id}',1)" title="Move down" aria-label="Move ${escapeHtml(f.name)} down">▼</button>
       </div>
       ${thumb}
       <div class="file-meta">
         <div class="fname">${escapeHtml(f.name)}</div>
         <div class="fsub">${sub}</div>
       </div>
-      ${f.locked||f.kind==='error' ? '<span class="tag-locked">SKIPPED</span>' : ''}
-      <button class="file-remove" onclick="removeFile('${f.id}')" title="Remove">✕</button>
+      ${statusTag}
+      <button class="file-remove" onclick="removeFile('${f.id}')" title="Remove" aria-label="Remove ${escapeHtml(f.name)}">✕</button>
     </div>`;
   }).join('');
-  fileTotalsEl.textContent = `${count} file${count!==1?'s':''} · ${totalPages} page${totalPages!==1?'s':''} · ${fmtBytes(totalSize)}`;
+  fileTotalsEl.textContent = `${selectedCount}/${count} selected · ${totalPages} page${totalPages!==1?'s':''} · ${fmtBytes(totalSize)}`;
   if(count>1){
     fileTotalsEl.textContent += ' · order affects Bates numbering';
   }
+  updateProcessButtonState();
+}
+
+function toggleFileSelected(id, checked){
+  const rec = state.files.find(f=>f.id===id);
+  if(rec) rec.selected = checked;
+  renderFileList();
+}
+function setAllSelected(value){
+  state.files.forEach(f=>{ if(f.kind!=='error' && !f.locked) f.selected = value; });
+  renderFileList();
 }
 
 // Reorders the batch — matters because Bates numbering (and the {n}
@@ -1315,7 +1446,7 @@ function escapeHtml(s){
 // return the {x,y} of the content's bottom-left corner for a given
 // 9-point position, honouring margin and any manual x/y nudge.
 function computeAnchor(pageW, pageH, contentW, contentH, placement){
-  const m = placement.margin;
+  const m = Math.max(0, Number(placement.margin)||0);
   let x, y;
   switch(placement.position){
     case 'top-left':      x = m;                    y = pageH - m - contentH; break;
@@ -1331,6 +1462,17 @@ function computeAnchor(pageW, pageH, contentW, contentH, placement){
   }
   x += Number(placement.offsetX)||0;
   y += Number(placement.offsetY)||0;
+
+  // Safety clamp: keep at least half the watermark's own bounding box
+  // within the page, even if an oversized margin or an extreme manual
+  // offset would otherwise push it entirely off the visible page. This
+  // is what "preview and export always match" depends on — the export
+  // path calls this exact function, so the same guard rail applies there.
+  const minX = -contentW*0.5, maxX = pageW - contentW*0.5;
+  const minY = -contentH*0.5, maxY = pageH - contentH*0.5;
+  x = Math.min(Math.max(x, minX), maxX);
+  y = Math.min(Math.max(y, minY), maxY);
+
   return {x,y};
 }
 
@@ -1363,7 +1505,57 @@ const autosaveConfig = debounce(()=>{
   try{ localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state.config)); }catch(e){ /* storage full or unavailable — safe to skip */ }
 }, 400);
 
-const scheduleRender = debounce(()=>{ renderPreview(); autosaveConfig(); }, 150);
+/* ---------------------------------------------------------------
+   SETTINGS UNDO / REDO
+   A simple linear history of full config snapshots. Pushing is
+   debounced so dragging one slider makes one history entry, not
+   one per pixel moved. A flag guards against undo/redo itself
+   being recorded as a new change.
+   --------------------------------------------------------------- */
+state.history = [];
+state.historyIndex = -1;
+state.applyingHistory = false;
+const HISTORY_LIMIT = 50;
+
+function pushHistorySnapshot(){
+  if(state.applyingHistory) return;
+  const snap = JSON.stringify(state.config);
+  if(state.history[state.historyIndex] === snap) return; // nothing actually changed
+  state.history = state.history.slice(0, state.historyIndex+1);
+  state.history.push(snap);
+  if(state.history.length > HISTORY_LIMIT){
+    state.history.shift();
+  } else {
+    state.historyIndex++;
+  }
+  updateUndoRedoButtons();
+}
+const debouncedPushHistory = debounce(pushHistorySnapshot, 500);
+
+function undoSettings(){
+  if(state.historyIndex <= 0) return;
+  state.historyIndex--;
+  state.applyingHistory = true;
+  applyPresetToUI(JSON.parse(state.history[state.historyIndex]));
+  state.applyingHistory = false;
+  updateUndoRedoButtons();
+}
+function redoSettings(){
+  if(state.historyIndex >= state.history.length-1) return;
+  state.historyIndex++;
+  state.applyingHistory = true;
+  applyPresetToUI(JSON.parse(state.history[state.historyIndex]));
+  state.applyingHistory = false;
+  updateUndoRedoButtons();
+}
+function updateUndoRedoButtons(){
+  document.getElementById('undoBtn').disabled = state.historyIndex<=0;
+  document.getElementById('redoBtn').disabled = state.historyIndex>=state.history.length-1;
+}
+document.getElementById('undoBtn').addEventListener('click', undoSettings);
+document.getElementById('redoBtn').addEventListener('click', redoSettings);
+
+const scheduleRender = debounce(()=>{ renderPreview(); autosaveConfig(); debouncedPushHistory(); }, 150);
 
 // ---- Preset quick-text chips ----
 const QUICK_TEXTS = ['CONFIDENTIAL','DRAFT','COPY','ORIGINAL','PAID','SAMPLE','DO NOT COPY','APPROVED','FOR INTERNAL USE ONLY','URGENT'];
@@ -1505,11 +1697,30 @@ document.getElementById('logoAspect').addEventListener('change', e=>{
 function bindSlider(inputId, labelId, apply){
   const input = document.getElementById(inputId);
   const label = document.getElementById(labelId);
+  const numInput = document.getElementById(inputId+'Num'); // paired precise numeric entry, if present
+
   input.addEventListener('input', ()=>{
-    const display = apply(Number(input.value));
+    const v = Number(input.value);
+    const display = apply(v);
     if(label) label.textContent = display;
+    if(numInput) numInput.value = v;
     scheduleRender();
   });
+
+  if(numInput){
+    numInput.addEventListener('input', ()=>{
+      const min = Number(input.min), max = Number(input.max);
+      let v = Number(numInput.value);
+      if(isNaN(v)) return;
+      v = Math.min(max, Math.max(min, v));
+      input.value = v;
+      const display = apply(v);
+      if(label) label.textContent = display;
+      scheduleRender();
+    });
+    // Snap back to the clamped, valid value if the field is left empty or out of range.
+    numInput.addEventListener('blur', ()=>{ numInput.value = input.value; });
+  }
 }
 
 // ---- Tabs ----
@@ -1542,9 +1753,9 @@ bindSlider('tileV','tileVVal', v=>{ state.config.placement.tileV = v; return v; 
 document.getElementById('tileStagger').addEventListener('change', e=>{ state.config.placement.stagger = e.target.checked; scheduleRender(); });
 
 // ---- Offsets / margin / layer ----
-document.getElementById('offsetX').addEventListener('input', e=>{ state.config.placement.offsetX = Number(e.target.value)||0; scheduleRender(); });
-document.getElementById('offsetY').addEventListener('input', e=>{ state.config.placement.offsetY = Number(e.target.value)||0; scheduleRender(); });
-document.getElementById('marginEdge').addEventListener('input', e=>{ state.config.placement.margin = Number(e.target.value)||0; scheduleRender(); });
+document.getElementById('offsetX').addEventListener('input', e=>{ state.config.placement.offsetX = Math.min(2000, Math.max(-2000, Number(e.target.value)||0)); scheduleRender(); });
+document.getElementById('offsetY').addEventListener('input', e=>{ state.config.placement.offsetY = Math.min(2000, Math.max(-2000, Number(e.target.value)||0)); scheduleRender(); });
+document.getElementById('marginEdge').addEventListener('input', e=>{ state.config.placement.margin = Math.min(500, Math.max(0, Number(e.target.value)||0)); scheduleRender(); });
 document.querySelectorAll('[data-layer]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('[data-layer]').forEach(b=>b.classList.remove('active'));
@@ -1611,10 +1822,16 @@ document.getElementById('imageFormat').addEventListener('change', e=>{
   document.getElementById('jpgQualityField').style.display = e.target.value==='jpeg' ? 'block' : 'none';
   updateOutputExample();
 });
-document.getElementById('jpgQuality').addEventListener('input', e=>{
-  state.config.output.jpgQuality = Number(e.target.value);
-  document.getElementById('jpgQualityVal').textContent = e.target.value+'%';
-});
+function syncJpgQuality(v){
+  v = Math.min(100, Math.max(10, Number(v)||90));
+  state.config.output.jpgQuality = v;
+  document.getElementById('jpgQuality').value = v;
+  document.getElementById('jpgQualityNum').value = v;
+  document.getElementById('jpgQualityVal').textContent = v+'%';
+}
+document.getElementById('jpgQuality').addEventListener('input', e=>syncJpgQuality(e.target.value));
+document.getElementById('jpgQualityNum').addEventListener('input', e=>syncJpgQuality(e.target.value));
+document.getElementById('jpgQualityNum').addEventListener('blur', ()=>{ document.getElementById('jpgQualityNum').value = state.config.output.jpgQuality; });
 
 /* ---------------------------------------------------------------
    5. LIVE PREVIEW
@@ -1662,14 +1879,29 @@ document.getElementById('nextPageBtn').onclick = ()=>{
   state.previewPage = Math.min(total, state.previewPage+1);
   renderPreview();
 };
-document.getElementById('zoomSlider').addEventListener('input', debounce(renderPreview, 80));
+const debouncedRenderPreview = debounce(()=>renderPreview(), 80);
+document.getElementById('zoomSlider').addEventListener('input', e=>{
+  document.getElementById('zoomNum').value = e.target.value;
+  debouncedRenderPreview();
+});
+document.getElementById('zoomNum').addEventListener('input', e=>{
+  let v = Math.min(200, Math.max(50, Number(e.target.value)||100));
+  document.getElementById('zoomSlider').value = v;
+  debouncedRenderPreview();
+});
+document.getElementById('zoomNum').addEventListener('blur', ()=>{
+  document.getElementById('zoomNum').value = document.getElementById('zoomSlider').value;
+});
 window.addEventListener('resize', debounce(renderPreview, 150));
 window.addEventListener('orientationchange', debounce(renderPreview, 150));
 document.getElementById('beforeBtn').onclick = ()=>{ state.previewMode='before'; setToggle(); renderPreview(); };
 document.getElementById('afterBtn').onclick = ()=>{ state.previewMode='after'; setToggle(); renderPreview(); };
 function setToggle(){
-  document.getElementById('beforeBtn').classList.toggle('active', state.previewMode==='before');
-  document.getElementById('afterBtn').classList.toggle('active', state.previewMode==='after');
+  const isBefore = state.previewMode==='before';
+  document.getElementById('beforeBtn').classList.toggle('active', isBefore);
+  document.getElementById('beforeBtn').setAttribute('aria-pressed', String(isBefore));
+  document.getElementById('afterBtn').classList.toggle('active', !isBefore);
+  document.getElementById('afterBtn').setAttribute('aria-pressed', String(!isBefore));
 }
 
 function currentPreviewFile(){
@@ -1728,24 +1960,33 @@ async function renderPreview(){
 
   const octx = overlayCanvas.getContext('2d');
   octx.clearRect(0,0,overlayCanvas.width,overlayCanvas.height);
+  const pxPerPt = overlayCanvas.width / pageW;
+  const batchOffset = computeBatchPageOffset(f.id);
+  const tokenCtx = {
+    filename: f.name, page: state.previewPage, total: f.kind==='pdf'?f.pages:1, n: 1,
+    batchPageIndex0: batchOffset + (state.previewPage - 1),
+  };
+  // Cached so drag-to-reposition can redraw just the overlay, instantly,
+  // without re-rendering the whole PDF page or image on every pointer move.
+  state.previewMeta = { pageW, pageH, pxPerPt, tokenCtx };
   if(state.previewMode === 'after'){
-    const pxPerPt = overlayCanvas.width / pageW;
-    const batchOffset = computeBatchPageOffset(f.id);
-    drawWatermarkOnCanvas(octx, pageW, pageH, pxPerPt, {
-      filename: f.name, page: state.previewPage, total: f.kind==='pdf'?f.pages:1, n: 1,
-      batchPageIndex0: batchOffset + (state.previewPage - 1),
-    });
+    drawWatermarkOnCanvas(octx, pageW, pageH, pxPerPt, tokenCtx);
+  } else {
+    state.dragHandle = null;
   }
+  document.getElementById('dragHint').style.display = state.dragHandle ? 'block' : 'none';
 }
 
-// Sums the page counts (1 per image) of every usable file that comes
-// before `fileId` in the batch, in processing order. Used so the
-// preview can show the exact same Bates number the export will
-// actually produce, instead of always showing the configured start.
+// Sums the page counts (1 per image) of every usable, selected file
+// that comes before `fileId` in the batch, in processing order. Used
+// so both the live preview and a "retry failed files" run can show
+// the exact same Bates number the original full-batch export would
+// have produced for that file — not just the configured start value,
+// and not thrown off by files the person has unchecked.
 function computeBatchPageOffset(fileId){
   let offset = 0;
   for(const rec of state.files){
-    if(rec.kind==='error' || rec.locked) continue;
+    if(rec.kind==='error' || rec.locked || !rec.selected) continue;
     if(rec.id === fileId) break;
     offset += rec.kind==='pdf' ? rec.pages : 1;
   }
@@ -1756,17 +1997,87 @@ function loadImageEl(src){
   return new Promise(res=>{ const img=new Image(); img.onload=()=>res(img); img.src=src; });
 }
 
+// Redraws only the overlay (watermark + handle), reusing the cached
+// page/image metadata from the last full renderPreview() — this is
+// what makes dragging feel instant instead of re-rendering the whole
+// PDF page on every pointer-move event.
+function redrawOverlayOnly(){
+  if(!state.previewMeta) return;
+  const octx = overlayCanvas.getContext('2d');
+  octx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+  if(state.previewMode === 'after'){
+    const { pageW, pageH, pxPerPt, tokenCtx } = state.previewMeta;
+    drawWatermarkOnCanvas(octx, pageW, pageH, pxPerPt, tokenCtx);
+  }
+}
+
+/* ---------------------------------------------------------------
+   DRAG-TO-REPOSITION
+   Grab the amber handle on the live preview and drag to nudge the
+   watermark's X/Y offset directly — updates the same offsetX/offsetY
+   number fields as typing would, so it's just another way to set the
+   exact same values, not a separate code path. Only available for a
+   single (non-tiled) placement — tiling has no one target to grab —
+   and only tracks whichever of text/logo is actually visible (text
+   takes priority in Combined mode).
+   --------------------------------------------------------------- */
+let dragState = null;
+function canvasPointFromEvent(e){
+  const rect = overlayCanvas.getBoundingClientRect();
+  const scaleX = overlayCanvas.width / rect.width, scaleY = overlayCanvas.height / rect.height;
+  return { x: (e.clientX-rect.left)*scaleX, y: (e.clientY-rect.top)*scaleY };
+}
+overlayCanvas.addEventListener('pointerdown', e=>{
+  if(!state.dragHandle || state.config.placement.tile) return;
+  const p = canvasPointFromEvent(e);
+  const dist = Math.hypot(p.x-state.dragHandle.x, p.y-state.dragHandle.y);
+  if(dist > 28) return; // must grab reasonably close to the handle itself
+  dragState = {
+    startX: p.x, startY: p.y,
+    startOffsetX: state.config.placement.offsetX, startOffsetY: state.config.placement.offsetY,
+  };
+  overlayCanvas.setPointerCapture(e.pointerId);
+  overlayCanvas.classList.add('dragging');
+  e.preventDefault();
+});
+overlayCanvas.addEventListener('pointermove', e=>{
+  if(!dragState || !state.previewMeta) return;
+  const p = canvasPointFromEvent(e);
+  const deltaXpt = (p.x - dragState.startX) / state.previewMeta.pxPerPt;
+  const deltaYpt = (p.y - dragState.startY) / state.previewMeta.pxPerPt; // canvas Y grows down
+  const newOffsetX = Math.min(2000, Math.max(-2000, dragState.startOffsetX + deltaXpt));
+  const newOffsetY = Math.min(2000, Math.max(-2000, dragState.startOffsetY - deltaYpt)); // PDF Y grows up, so invert
+  state.config.placement.offsetX = newOffsetX;
+  state.config.placement.offsetY = newOffsetY;
+  document.getElementById('offsetX').value = Math.round(newOffsetX);
+  document.getElementById('offsetY').value = Math.round(newOffsetY);
+  redrawOverlayOnly();
+  e.preventDefault();
+});
+function endDrag(e){
+  if(!dragState) return;
+  dragState = null;
+  overlayCanvas.classList.remove('dragging');
+  scheduleRender(); // runs the full pipeline: autosave, undo history, output example refresh
+}
+overlayCanvas.addEventListener('pointerup', endDrag);
+overlayCanvas.addEventListener('pointercancel', endDrag);
+overlayCanvas.addEventListener('pointerleave', e=>{ if(dragState) endDrag(e); });
+
 // Draws the full watermark stack (text and/or logo, tiled or single,
 // plus header/footer/date/page-number/bates/border extras) onto a 2D
 // canvas context. `pxPerPt` converts PDF points to canvas pixels, and
 // canvas Y grows downward while PDF Y grows upward, so every y is
 // flipped with (canvasHeightPt - y).
-function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, canvasPxH){
+function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, canvasPxH, drawHandle){
+  drawHandle = drawHandle !== false; // defaults to true (preview); export calls pass false explicitly
   canvasPxW = canvasPxW != null ? canvasPxW : pageW*pxPerPt;
   canvasPxH = canvasPxH != null ? canvasPxH : pageH*pxPerPt;
   const cfg = state.config;
   const toPx = v => v*pxPerPt;
   const flip = y => (pageH - y) * pxPerPt;
+  let handleClaimed = false;
+  if(drawHandle) state.dragHandle = null; // recomputed below during preview only; never touched during export
 
   ctx.save();
 
@@ -1804,6 +2115,10 @@ function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, 
         ctx.rotate(-cfg.text.rotation*Math.PI/180);
         ctx.fillText(text, 0, 0);
         ctx.restore();
+        if(drawHandle){
+          state.dragHandle = { x: toPx(anchor.x), y: flip(anchor.y), target:'text' };
+          handleClaimed = true;
+        }
       }
       ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
     }
@@ -1831,6 +2146,10 @@ function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, 
     } else {
       const anchor = computeAnchor(pageW, pageH, logoWpt, logoHpt, cfg.placement);
       drawOne(anchor.x, anchor.y);
+      if(drawHandle && !handleClaimed){
+        state.dragHandle = { x: toPx(anchor.x), y: flip(anchor.y), target:'logo' };
+        handleClaimed = true;
+      }
     }
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   }
@@ -1839,6 +2158,24 @@ function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, 
   drawExtrasOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, canvasPxH);
 
   ctx.restore();
+
+  // ---- Drag handle (interactive, not part of the exported output) ----
+  if(drawHandle && state.dragHandle){
+    const { x, y } = state.dragHandle;
+    ctx.save();
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(245,179,1,0.92)';
+    ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = '#0E0E10';
+    ctx.stroke();
+    ctx.strokeStyle = '#0E0E10'; ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x-5,y); ctx.lineTo(x+5,y);
+    ctx.moveTo(x,y-5); ctx.lineTo(x,y+5);
+    ctx.stroke();
+    ctx.restore();
+  }
 }
 
 function fontFamilyFor(f){
@@ -1949,13 +2286,16 @@ function applyPresetToUI(cfg){
   document.getElementById('boldToggle').classList.toggle('active', state.config.text.bold);
   document.getElementById('italicToggle').classList.toggle('active', state.config.text.italic);
   document.getElementById('fontSize').value = state.config.text.size;
+  document.getElementById('fontSizeNum').value = state.config.text.size;
   document.getElementById('fontSizeVal').textContent = state.config.text.size;
   document.getElementById('autoFit').checked = state.config.text.autoFit;
   document.getElementById('wmColor').value = state.config.text.color;
   document.getElementById('wmColorHex').value = state.config.text.color;
   document.getElementById('wmOpacity').value = state.config.text.opacity;
+  document.getElementById('wmOpacityNum').value = state.config.text.opacity;
   document.getElementById('opacityVal').textContent = state.config.text.opacity+'%';
   document.getElementById('wmRotation').value = state.config.text.rotation;
+  document.getElementById('wmRotationNum').value = state.config.text.rotation;
   document.getElementById('rotationVal').textContent = state.config.text.rotation+'°';
 
   document.querySelectorAll('.mode-switch [data-mode]').forEach(b=>b.classList.toggle('active', b.dataset.mode===state.config.mode));
@@ -1963,13 +2303,17 @@ function applyPresetToUI(cfg){
   document.getElementById('imageFieldset').disabled = state.config.mode==='text';
 
   document.getElementById('logoScale').value = state.config.image.scale;
+  document.getElementById('logoScaleNum').value = state.config.image.scale;
   document.getElementById('logoScaleVal').textContent = state.config.image.scale+'%';
   document.getElementById('logoOpacity').value = state.config.image.opacity;
+  document.getElementById('logoOpacityNum').value = state.config.image.opacity;
   document.getElementById('logoOpacityVal').textContent = state.config.image.opacity+'%';
   document.getElementById('logoRotation').value = state.config.image.rotation;
+  document.getElementById('logoRotationNum').value = state.config.image.rotation;
   document.getElementById('logoRotationVal').textContent = state.config.image.rotation+'°';
   document.getElementById('logoAspect').checked = state.config.image.keepAspect;
   document.getElementById('logoHeight').value = state.config.image.heightScale;
+  document.getElementById('logoHeightNum').value = state.config.image.heightScale;
   document.getElementById('logoHeightVal').textContent = state.config.image.heightScale+'%';
   document.getElementById('logoHeightField').style.display = state.config.image.keepAspect ? 'none' : 'block';
 
@@ -1977,8 +2321,10 @@ function applyPresetToUI(cfg){
   document.getElementById('tileMode').checked = state.config.placement.tile;
   document.getElementById('tileControls').style.display = state.config.placement.tile?'block':'none';
   document.getElementById('tileH').value = state.config.placement.tileH;
+  document.getElementById('tileHNum').value = state.config.placement.tileH;
   document.getElementById('tileHVal').textContent = state.config.placement.tileH;
   document.getElementById('tileV').value = state.config.placement.tileV;
+  document.getElementById('tileVNum').value = state.config.placement.tileV;
   document.getElementById('tileVVal').textContent = state.config.placement.tileV;
   document.getElementById('tileStagger').checked = state.config.placement.stagger;
   document.getElementById('offsetX').value = state.config.placement.offsetX;
@@ -2021,6 +2367,7 @@ function applyPresetToUI(cfg){
   document.getElementById('imageFormat').value = state.config.output.imageFormat;
   document.getElementById('jpgQualityField').style.display = state.config.output.imageFormat==='jpeg'?'block':'none';
   document.getElementById('jpgQuality').value = state.config.output.jpgQuality;
+  document.getElementById('jpgQualityNum').value = state.config.output.jpgQuality;
   document.getElementById('jpgQualityVal').textContent = state.config.output.jpgQuality+'%';
 
   const logoPrevEl = document.getElementById('logoPreview');
@@ -2118,6 +2465,144 @@ document.getElementById('resetSettingsBtn').addEventListener('click', ()=>{
   if(!confirm('Reset all watermark settings back to defaults? Your saved presets and uploaded files are not affected.')) return;
   applyPresetToUI(defaultConfig());
   document.getElementById('presetSelect').value = '';
+});
+
+/* ---------------------------------------------------------------
+   6b. PROJECTS (settings + actual files, unlike presets which are
+   settings-only). Presets live in localStorage as small JSON blobs;
+   projects need to hold real file bytes too, which is exactly what
+   IndexedDB is for — localStorage is both too small and synchronous-
+   only, which would freeze the tab on anything but tiny files.
+   --------------------------------------------------------------- */
+const PROJECT_DB_NAME = 'stampit_projects_db';
+const PROJECT_STORE = 'projects';
+
+function openProjectDB(){
+  return new Promise((resolve, reject)=>{
+    if(!window.indexedDB){ reject(new Error('IndexedDB unavailable')); return; }
+    const req = indexedDB.open(PROJECT_DB_NAME, 1);
+    req.onupgradeneeded = ()=>{ req.result.createObjectStore(PROJECT_STORE, { keyPath:'name' }); };
+    req.onsuccess = ()=>resolve(req.result);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function saveProjectToDB(record){
+  const db = await openProjectDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(PROJECT_STORE, 'readwrite');
+    tx.objectStore(PROJECT_STORE).put(record);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+async function listProjectsFromDB(){
+  const db = await openProjectDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(PROJECT_STORE, 'readonly');
+    const req = tx.objectStore(PROJECT_STORE).getAll();
+    req.onsuccess = ()=>resolve(req.result || []);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function getProjectFromDB(name){
+  const db = await openProjectDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(PROJECT_STORE, 'readonly');
+    const req = tx.objectStore(PROJECT_STORE).get(name);
+    req.onsuccess = ()=>resolve(req.result || null);
+    req.onerror = ()=>reject(req.error);
+  });
+}
+async function deleteProjectFromDB(name){
+  const db = await openProjectDB();
+  return new Promise((resolve, reject)=>{
+    const tx = db.transaction(PROJECT_STORE, 'readwrite');
+    tx.objectStore(PROJECT_STORE).delete(name);
+    tx.oncomplete = ()=>resolve();
+    tx.onerror = ()=>reject(tx.error);
+  });
+}
+
+async function refreshProjectSelect(selectName){
+  const sel = document.getElementById('projectSelect');
+  try{
+    const projects = await listProjectsFromDB();
+    if(!projects.length){
+      sel.innerHTML = '<option value="">No saved projects</option>';
+      return;
+    }
+    sel.innerHTML = projects
+      .sort((a,b)=>b.savedAt-a.savedAt)
+      .map(p=>`<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)} (${p.files.length} file${p.files.length!==1?'s':''})</option>`)
+      .join('');
+    if(selectName) sel.value = selectName;
+  } catch(err){
+    sel.innerHTML = '<option value="">Unavailable in this browser</option>';
+  }
+}
+
+document.getElementById('saveProjectBtn').addEventListener('click', async ()=>{
+  const usableFiles = state.files.filter(f=>f.kind!=='error');
+  if(!usableFiles.length){ alert('Add at least one file before saving a project.'); return; }
+  const name = prompt('Save this project as:');
+  if(!name) return;
+  const statusEl = document.getElementById('projectStatus');
+  statusEl.textContent = 'Saving…';
+  try{
+    const files = usableFiles.map(f=>({
+      name: f.name,
+      type: f.file.type || (f.kind==='pdf' ? 'application/pdf' : 'application/octet-stream'),
+      blob: f.file,
+      selected: f.selected,
+    }));
+    await saveProjectToDB({ name, savedAt: Date.now(), config: state.config, files });
+    await refreshProjectSelect(name);
+    statusEl.textContent = `Saved "${name}" — ${files.length} file(s), just now.`;
+  } catch(err){
+    console.warn('Save project failed', err);
+    statusEl.textContent = 'Could not save — your browser storage may be full or unavailable.';
+  }
+});
+
+document.getElementById('loadProjectBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('projectSelect').value;
+  if(!name) return;
+  if(state.files.length && !confirm('Loading a project replaces your current file batch. Continue?')) return;
+  const statusEl = document.getElementById('projectStatus');
+  statusEl.textContent = 'Loading…';
+  try{
+    const project = await getProjectFromDB(name);
+    if(!project){ statusEl.textContent = 'That project could not be found.'; return; }
+    state.files = [];
+    state.previewFileId = null;
+    renderFileList();
+    applyPresetToUI(mergeConfigWithDefaults(defaultConfig(), project.config));
+    const reconstructed = project.files.map(f=>new File([f.blob], f.name, { type:f.type }));
+    await ingestFiles(reconstructed);
+    // Best-effort restore of per-file selection state, matched by name.
+    project.files.forEach(pf=>{
+      const rec = state.files.find(r=>r.name===pf.name);
+      if(rec) rec.selected = pf.selected !== false;
+    });
+    renderFileList();
+    statusEl.textContent = `Loaded "${name}".`;
+  } catch(err){
+    console.warn('Load project failed', err);
+    statusEl.textContent = 'Could not load that project.';
+  }
+});
+
+document.getElementById('deleteProjectBtn').addEventListener('click', async ()=>{
+  const name = document.getElementById('projectSelect').value;
+  if(!name) return;
+  if(!confirm(`Delete saved project "${name}"? This can't be undone.`)) return;
+  try{
+    await deleteProjectFromDB(name);
+    await refreshProjectSelect();
+    document.getElementById('projectStatus').textContent = `Deleted "${name}".`;
+  } catch(err){
+    document.getElementById('projectStatus').textContent = 'Could not delete that project.';
+  }
 });
 
 /* ---------------------------------------------------------------
@@ -2268,8 +2753,12 @@ async function stampPdfPage(doc, page, pageNum, totalPages, fonts, logoImg, toke
   }
   let batesLabel = null;
   if(ex.bates.enabled){
-    batesLabel = computeBatesLabel(ex.bates, state.batesCounter);
-    state.batesCounter++;
+    // Stateless by design: derived from this exact page's position in
+    // the full batch (tokenCtx.batchPageIndex0), not from a running
+    // counter. That's what makes "Retry failed files" and mixed
+    // PDF+image batches both number correctly — see processPdfFile.
+    const batesNumber = ex.bates.start + (tokenCtx.batchPageIndex0 || 0);
+    batesLabel = computeBatesLabel(ex.bates, batesNumber);
     drawExtraText(batesLabel, 9, 'bottom-right', 20);
   }
   if(ex.border.enabled){
@@ -2292,11 +2781,15 @@ async function processPdfFile(rec, fileIndex, batchN){
     cfg.extras.footer.left, cfg.extras.footer.center, cfg.extras.footer.right, cfg.extras.bates.prefix];
   const fonts = await prepareFonts(doc, allTexts);
   const logoImg = (cfg.mode!=='text') ? await embedLogoForDoc(doc) : null;
+  const fileBatchOffset = computeBatchPageOffset(rec.id); // this file's true starting position in the whole batch
 
   const pages = doc.getPages();
   for(let i=0;i<pages.length;i++){
     const pageNum = i+1;
-    const tokenCtx = { filename: rec.name, page: pageNum, total: totalPages, n: batchN, date: todayStr(), time: nowTimeStr() };
+    const tokenCtx = {
+      filename: rec.name, page: pageNum, total: totalPages, n: batchN, date: todayStr(), time: nowTimeStr(),
+      batchPageIndex0: fileBatchOffset + i,
+    };
     await stampPdfPage(doc, pages[i], pageNum, totalPages, fonts, logoImg, tokenCtx);
   }
   const bytes = await doc.save();
@@ -2312,8 +2805,11 @@ async function processImageFile(rec, fileIndex, batchN){
   const ctx = canvas.getContext('2d');
   ctx.drawImage(img, 0, 0);
   if(cfg.image.dataUrl && !previewLogoImg) await new Promise(r=>{ const li=new Image(); li.onload=()=>{previewLogoImg=li; r();}; li.src=cfg.image.dataUrl; });
-  const tokenCtx = { filename: rec.name, page:1, total:1, n: batchN, date: todayStr(), time: nowTimeStr() };
-  drawWatermarkOnCanvas(ctx, canvas.width, canvas.height, 1, tokenCtx, canvas.width, canvas.height);
+  const tokenCtx = {
+    filename: rec.name, page:1, total:1, n: batchN, date: todayStr(), time: nowTimeStr(),
+    batchPageIndex0: computeBatchPageOffset(rec.id), // fixes: every image used to get the same Bates number
+  };
+  drawWatermarkOnCanvas(ctx, canvas.width, canvas.height, 1, tokenCtx, canvas.width, canvas.height, false);
   const format = cfg.output.imageFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
   const quality = cfg.output.jpgQuality/100;
   const blob = await new Promise(res=>canvas.toBlob(res, format, quality));
@@ -2336,41 +2832,127 @@ const progressLabel = document.getElementById('progressLabel');
 const summaryBox = document.getElementById('summaryBox');
 
 function updateProcessButtonState(){
-  const usable = state.files.filter(f=>f.kind!=='error' && !f.locked);
+  const usable = state.files.filter(f=>f.kind!=='error' && !f.locked && f.selected);
   processBtn.disabled = usable.length===0 || state.processing;
+  processBtn.textContent = usable.length ? `Process ${usable.length} selected file${usable.length!==1?'s':''}` : 'Process all files';
+  const anyFailed = state.files.some(f=>f.lastError);
+  document.getElementById('retryFailedBtn').style.display = (anyFailed && !state.processing) ? 'block' : 'none';
+
+  const mobileBtn = document.getElementById('mobileProcessBtn');
+  mobileBtn.disabled = processBtn.disabled;
+  mobileBtn.textContent = usable.length ? `Process & download (${usable.length})` : 'Process & Download';
 }
 
 cancelBtn.addEventListener('click', ()=>{ state.cancelRequested = true; });
 
-processBtn.addEventListener('click', async ()=>{
-  const usable = state.files.filter(f=>f.kind!=='error' && !f.locked);
-  if(!usable.length) return;
+// ---- Pre-flight validation ----
+// Checked right before a batch starts. Errors block processing outright
+// (nothing useful would be produced); warnings are shown but don't stop
+// the run, since they describe things that are valid but probably not
+// what the person intended.
+function runPreflightChecks(filesToProcess){
+  const errors = [], warnings = [];
+  const cfg = state.config;
 
+  if(!filesToProcess.length){
+    errors.push('No files are selected to process.');
+    return { errors, warnings };
+  }
+
+  const stampsSomething = (cfg.mode!=='image' && cfg.text.value.trim()) ||
+    cfg.extras.pageNumber.enabled || cfg.extras.header.enabled || cfg.extras.footer.enabled ||
+    cfg.extras.dateStamp.enabled || cfg.extras.bates.enabled ||
+    (cfg.mode!=='text' && cfg.image.dataUrl);
+  if(!stampsSomething){
+    errors.push('Nothing is configured to stamp — add watermark text, upload a logo, or enable an extra stamp (page numbers, header/footer, date, or Bates).');
+  }
+  if((cfg.mode==='image' || cfg.mode==='combined') && !cfg.image.dataUrl){
+    warnings.push('Logo/image mode is selected but no logo has been uploaded — only text (if any) and extras will be stamped.');
+  }
+  if(cfg.mode!=='image' && !cfg.text.value.trim() && cfg.mode!=='text'){
+    // combined mode with empty text — fine, just informational
+  }
+  if(cfg.pageTarget.mode==='custom' && !cfg.pageTarget.customRange.trim()){
+    errors.push('Custom page range is enabled but empty — enter a range like "1-3, 7" or switch to "All pages".');
+  }
+  if(cfg.extras.bates.enabled && cfg.extras.bates.digits < 1){
+    errors.push('Bates numbering digit width must be at least 1.');
+  }
+  if(cfg.placement.margin < 0){
+    errors.push('Margin from edge cannot be negative.');
+  }
+  const imageFilesOnly = filesToProcess.every(f=>f.kind==='image');
+  if(imageFilesOnly && (cfg.extras.pageNumber.enabled || cfg.extras.bates.enabled)){
+    warnings.push('Page numbering and Bates numbering still apply to image files (each image counts as one page).');
+  }
+  return { errors, warnings };
+}
+
+function showPreflightErrors(errors){
+  const banner = document.getElementById('preflightBanner');
+  banner.innerHTML = '<strong>Can\'t process yet:</strong><ul>' + errors.map(e=>`<li>${escapeHtml(e)}</li>`).join('') + '</ul>';
+  banner.style.display = 'block';
+  banner.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function hidePreflightErrors(){
+  document.getElementById('preflightBanner').style.display = 'none';
+}
+
+processBtn.addEventListener('click', ()=>{
+  const usable = state.files.filter(f=>f.kind!=='error' && !f.locked && f.selected);
+  const { errors, warnings } = runPreflightChecks(usable);
+  if(errors.length){ showPreflightErrors(errors); return; }
+  hidePreflightErrors();
+  if(warnings.length && !confirm(warnings.join('\n\n') + '\n\nContinue anyway?')) return;
+  runBatch(usable);
+});
+
+document.getElementById('retryFailedBtn').addEventListener('click', ()=>{
+  const failed = state.files.filter(f=>f.lastError);
+  if(!failed.length) return;
+  hidePreflightErrors();
+  runBatch(failed);
+});
+
+// The actual batch loop — used both for a normal "Process" run and for
+// "Retry failed files", which just calls this again with a smaller list.
+async function runBatch(filesToProcess){
   state.processing = true; state.cancelRequested = false;
-  state.batesCounter = state.config.extras.bates.start;
   hideFontWarning();
   processBtn.style.display='none'; cancelBtn.style.display='block';
+  document.getElementById('retryFailedBtn').style.display = 'none';
   progressWrap.style.display='block'; summaryBox.style.display='none';
 
-  const results = []; const skipped = [];
-  // Already-known skips (locked / errored at intake time) go straight into the summary.
-  state.files.filter(f=>f.kind==='error'||f.locked).forEach(f=>skipped.push(f.name+' — '+(f.error||'skipped')));
+  const report = []; // { name, status, detail, outputName }
+  const results = [];
+  filesToProcess.forEach(f=>{ f.lastError = null; f.lastProcessed = false; });
+  // Files that were already known-unusable at intake (locked/corrupt) are
+  // reported too, so the report is a complete account of the whole batch.
+  state.files.filter(f=>(f.kind==='error'||f.locked) && !filesToProcess.includes(f)).forEach(f=>{
+    report.push({ name:f.name, status:'skipped', detail:f.error||'skipped', outputName:'—' });
+  });
 
-  for(let i=0;i<usable.length;i++){
+  for(let i=0;i<filesToProcess.length;i++){
     if(state.cancelRequested) break;
-    const rec = usable[i];
-    progressInner.style.width = Math.round((i/usable.length)*100)+'%';
-    progressLabel.textContent = `Processing file ${i+1} of ${usable.length} · ${rec.name}`;
+    const rec = filesToProcess[i];
+    progressInner.style.width = Math.round((i/filesToProcess.length)*100)+'%';
+    progressLabel.textContent = `Processing file ${i+1} of ${filesToProcess.length} · ${rec.name}`;
     await new Promise(r=>setTimeout(r,0)); // yield to the UI thread
 
     try{
       const out = rec.kind==='pdf' ? await processPdfFile(rec, i, i+1) : await processImageFile(rec, i, i+1);
-      results.push({ name: outputFilename(rec, out.ext), bytes: out.bytes, mime: out.mime });
+      const outName = outputFilename(rec, out.ext);
+      results.push({ name: outName, bytes: out.bytes, mime: out.mime });
+      rec.lastProcessed = true;
+      report.push({ name:rec.name, status:'processed', detail: rec.kind==='pdf' ? `${rec.pages} page(s)` : 'image', outputName: outName });
     } catch(err){
       console.warn('Processing failed for', rec.name, err);
-      skipped.push(rec.name+' — processing failed');
+      const msg = (err && err.message) ? err.message : 'processing failed';
+      rec.lastError = msg;
+      report.push({ name:rec.name, status:'failed', detail: msg, outputName:'—' });
     }
   }
+  renderFileList();
   progressInner.style.width='100%';
   progressLabel.textContent = state.cancelRequested ? 'Cancelled' : 'Done';
 
@@ -2388,23 +2970,69 @@ processBtn.addEventListener('click', async ()=>{
     }
   }
 
-  summaryBox.className = 'summary-box' + (skipped.length ? ' has-skips':'');
+  const failedCount = report.filter(r=>r.status==='failed').length;
+  const skippedCount = report.filter(r=>r.status==='skipped').length;
+  summaryBox.className = 'summary-box' + ((failedCount||skippedCount) ? ' has-skips':'');
   summaryBox.style.display = 'block';
   summaryBox.innerHTML = `<strong>${results.length} processed</strong>` +
     (state.cancelRequested ? ' · cancelled mid-batch' : '') +
-    (skipped.length ? ` · ${skipped.length} skipped` : '') +
-    (skipped.length ? `<ul>${skipped.map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ul>` : '');
+    (failedCount ? ` · ${failedCount} failed` : '') +
+    (skippedCount ? ` · ${skippedCount} skipped` : '') +
+    ((failedCount||skippedCount) ? `<ul>${report.filter(r=>r.status!=='processed').map(r=>`<li>${escapeHtml(r.name)} — ${escapeHtml(r.detail)}</li>`).join('')}</ul>` : '') +
+    `<div class="summary-actions"><button class="btn btn-ghost btn-sm" id="downloadReportBtn" type="button">Download full report (.txt)</button></div>`;
+  document.getElementById('downloadReportBtn').addEventListener('click', ()=>downloadReport(report));
 
   state.processing = false;
   processBtn.style.display='block'; cancelBtn.style.display='none';
   updateProcessButtonState();
-});
+}
+
+function downloadReport(report){
+  const now = new Date().toISOString();
+  const lines = [
+    `StampIt processing report — ${now}`,
+    `${report.filter(r=>r.status==='processed').length} processed, ${report.filter(r=>r.status==='failed').length} failed, ${report.filter(r=>r.status==='skipped').length} skipped`,
+    '',
+    'Status    | Source file                          | Output file                          | Detail',
+    '----------|--------------------------------------|---------------------------------------|--------',
+    ...report.map(r=>`${r.status.padEnd(9)} | ${r.name.padEnd(36).slice(0,36)} | ${(r.outputName||'—').padEnd(37).slice(0,37)} | ${r.detail}`),
+  ];
+  triggerDownload(new Blob([lines.join('\n')], {type:'text/plain'}), 'StampIt_report.txt');
+}
 
 function triggerDownload(blob, filename){
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename;
   document.body.appendChild(a); a.click(); a.remove();
+}
+
+/* ---------------------------------------------------------------
+   8b. OFFLINE CACHING (optional)
+   Registers sw.js if it's present alongside this HTML file. This is
+   entirely optional and self-healing: if sw.js hasn't been uploaded,
+   or the browser doesn't support service workers, or the page is
+   opened as a local file:// (which browsers block service workers
+   on), this just fails quietly and StampIt works exactly as before —
+   it only needs internet on every visit instead of just the first.
+   --------------------------------------------------------------- */
+function initOfflineCaching(){
+  if(!('serviceWorker' in navigator)) return;
+  if(location.protocol === 'file:') return; // service workers require http(s)
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+    document.getElementById('offlineStatus').textContent = 'Offline caching: active for this device.';
+    reg.addEventListener('updatefound', ()=>{
+      const installing = reg.installing;
+      if(installing) installing.addEventListener('statechange', ()=>{
+        if(installing.state === 'activated'){
+          document.getElementById('offlineStatus').textContent = 'Offline caching: active for this device.';
+        }
+      });
+    });
+  }).catch(()=>{
+    // Most likely sw.js wasn't uploaded alongside index.html — not an error, just not enabled.
+    document.getElementById('offlineStatus').textContent = 'Offline caching: not enabled (sw.js not found alongside this file).';
+  });
 }
 
 /* ---------------------------------------------------------------
@@ -2457,7 +3085,16 @@ function adjustZoom(delta){
 }
 document.addEventListener('keydown', e=>{
   if(isTypingContext(document.activeElement)) return;
-  if(e.metaKey || e.ctrlKey || e.altKey) return;
+  // Undo/redo is the one standard exception to "never hijack Ctrl/Cmd" —
+  // there's no conflicting page-level browser action for it, and it's
+  // the convention everyone already expects.
+  if((e.ctrlKey || e.metaKey) && !e.altKey){
+    const k = e.key.toLowerCase();
+    if(k==='z' && !e.shiftKey){ undoSettings(); e.preventDefault(); return; }
+    if((k==='z' && e.shiftKey) || k==='y'){ redoSettings(); e.preventDefault(); return; }
+    return; // any other Ctrl/Cmd combo stays reserved for the browser/OS
+  }
+  if(e.altKey) return;
   const key = e.key;
 
   if(GRID_KEY_MAP[key]){
@@ -2492,12 +3129,60 @@ document.addEventListener('keydown', e=>{
 });
 
 /* ---------------------------------------------------------------
+   MOBILE STEP-BY-STEP WORKFLOW
+   On wide screens all three panels show at once (existing 3-column
+   layout). On narrow/stacked screens (<=1180px, the same breakpoint
+   that already collapses the grid), only one panel shows at a time,
+   driven by a small step nav, so the person isn't scrolling past a
+   huge settings panel just to reach the file list. The sticky
+   Process & Download bar stays visible on every step except the
+   last one (where the full-size process button already is).
+   --------------------------------------------------------------- */
+let mobileStep = 1;
+function isMobileLayout(){
+  return window.matchMedia('(max-width: 1180px)').matches;
+}
+function applyMobileStep(){
+  const files = document.getElementById('filesPanel');
+  const settings = document.getElementById('settingsPanel');
+  const preview = document.getElementById('previewPanel');
+  const stickyBar = document.getElementById('mobileStickyBar');
+
+  if(!isMobileLayout()){
+    // Desktop/laptop: everything shows via the normal 3-column grid.
+    files.classList.remove('step-active'); settings.classList.remove('step-active'); preview.classList.remove('step-active');
+    stickyBar.classList.remove('hide-on-step');
+    return;
+  }
+  const activePanel = { 1: files, 2: settings, 3: preview }[mobileStep];
+  [files, settings, preview].forEach(p=>p.classList.toggle('step-active', p===activePanel));
+  document.querySelectorAll('.mobile-step-btn').forEach(b=>{
+    const isActive = Number(b.dataset.step)===mobileStep;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', String(isActive));
+  });
+  stickyBar.classList.toggle('hide-on-step', mobileStep===3);
+}
+document.querySelectorAll('.mobile-step-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    mobileStep = Number(btn.dataset.step);
+    applyMobileStep();
+    window.scrollTo({ top:0, behavior:'smooth' });
+  });
+});
+document.getElementById('mobileProcessBtn').addEventListener('click', ()=>{
+  document.getElementById('processBtn').click();
+});
+window.addEventListener('resize', debounce(applyMobileStep, 150));
+
+/* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v1.0.0';
+const APP_VERSION = 'v2.0.0';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
+refreshProjectSelect();
 // Recursively fills in any fields missing from a saved config (e.g.
 // added in a later version) using the current defaults, one level of
 // nesting at a time, instead of a shallow Object.assign that would
@@ -2523,9 +3208,12 @@ function mergeConfigWithDefaults(defaults, saved){
     }
   } catch(e){ /* corrupted/unavailable storage — just start from defaults */ }
 })();
+pushHistorySnapshot(); // seed the undo baseline with whatever config we just started from
 updateOutputExample();
 updateProcessButtonState();
 setToggle();
+applyMobileStep();
+initOfflineCaching();
 window.addEventListener('error', e=>{
   console.error('StampIt error:', e.error||e.message);
 });
