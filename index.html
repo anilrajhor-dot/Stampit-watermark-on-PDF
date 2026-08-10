@@ -231,6 +231,12 @@ body.quick-mode .quick-only{display:block;}
   background:none;border:none;color:var(--rust);font-size:14px;cursor:pointer;padding:4px;flex-shrink:0;
 }
 .job-profile-save-row{margin-top:10px;}
+.stamp-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.stamp-chip{
+  padding:6px 11px;border-radius:999px;border:1px solid var(--line);background:var(--white);
+  font-size:11.5px;font-weight:700;cursor:pointer;color:var(--text);
+}
+.stamp-chip:hover{background:var(--cream);border-color:var(--amber-dark);}
 
 .panel{
   background:var(--white);
@@ -351,6 +357,11 @@ body.quick-mode .quick-only{display:block;}
 .toggle-pill{display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;}
 .toggle-pill button{border:none;background:var(--white);padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);}
 .toggle-pill button.active{background:var(--charcoal);color:var(--amber);}
+.guides-toggle{
+  display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--muted);
+  cursor:pointer;white-space:nowrap;
+}
+.guides-toggle input{width:15px;height:15px;accent-color:var(--amber);}
 
 /* ---------- Settings panel ---------- */
 .tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
@@ -454,6 +465,11 @@ fieldset[disabled] {opacity:0.45;}
 .modal-card h3{margin:0 0 14px 0;font-family:'Poppins',sans-serif;font-size:17px;color:var(--text);}
 .modal-actions{display:flex;gap:8px;margin-top:18px;}
 .modal-actions .btn{flex:1;padding:11px;}
+.app-modal-message{font-size:13px;color:var(--text-soft);line-height:1.5;white-space:pre-line;margin:0;}
+.app-modal-input{
+  width:100%;margin-top:12px;padding:9px 11px;border-radius:8px;border:1px solid var(--line);
+  background:var(--white);color:var(--text);font-size:14px;
+}
 .summary-modal-row{font-size:13px;color:var(--text);margin-bottom:8px;}
 .summary-file-list{
   margin:0 0 14px 0;padding:8px 10px;list-style:none;background:var(--cream);border-radius:8px;
@@ -530,7 +546,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.1.0</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.1.2</span></div>
   <div class="topbar-right">
     <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
     <span class="connectivity-pill" id="connectivityStatus" title="Connection status">🟢 Online</span>
@@ -640,6 +656,9 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         <button id="beforeBtn" aria-pressed="false">Before</button>
         <button id="afterBtn" class="active" aria-pressed="true">After</button>
       </div>
+      <label class="guides-toggle">
+        <input type="checkbox" id="showGuidesToggle"> Guides
+      </label>
     </div>
     <div class="preview-stage" id="previewStage">
       <div class="empty-state" id="previewEmpty">
@@ -652,7 +671,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         <canvas id="overlayCanvas"></canvas>
       </div>
     </div>
-    <p class="hint" id="dragHint" style="text-align:center;margin-top:6px;">🖐 Drag a ⊕ handle on the preview to reposition (amber = text, blue = independent logo) — only while placement isn't tiled. Snaps to centre and margin lines.</p>
+    <p class="hint" id="dragHint" style="text-align:center;margin-top:6px;">🖐 Drag a ⊕ handle on the preview to reposition (amber = text, blue = independent logo) — only while placement isn't tiled. Snaps to centre and margin lines. Turn on <strong>Guides</strong> above to see the safe-margin line (blue, dashed) and the watermark's exact footprint (amber/blue box).</p>
 
     <div class="job-profile-save-row quick-only">
       <button class="btn btn-ghost btn-block btn-sm" id="saveJobProfileBtn" type="button">💾 Save this setup as a Job Profile</button>
@@ -714,6 +733,18 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <div class="divider"></div>
     </div>
 
+    <div class="field" id="stampLibraryField">
+      <label>Stamp Library <span class="hint" style="font-weight:400;">— one-click styled stamps (text, logo, colour, position — everything but page/output settings)</span></label>
+      <div class="stamp-chip-row" id="stampBuiltinChips"></div>
+      <select id="stampLibrarySelect"><option value="">My saved stamps…</option></select>
+      <div class="preset-actions">
+        <button class="btn btn-ghost btn-sm" id="applyStampBtn">Apply</button>
+        <button class="btn btn-ghost btn-sm" id="saveStampBtn">Save current as stamp</button>
+        <button class="btn btn-ghost btn-sm" id="renameStampBtn">Rename</button>
+        <button class="btn btn-rust btn-sm" id="deleteStampBtn">Delete</button>
+      </div>
+    </div>
+
     <div class="mode-switch">
       <button class="toggle-btn active" data-mode="text">Text</button>
       <button class="toggle-btn" data-mode="image">Logo</button>
@@ -761,7 +792,10 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         <label for="fontSize">Font size <span id="fontSizeVal">48</span>pt</label>
         <div class="slider-row"><input type="range" id="fontSize" min="8" max="200" value="48"><input type="number" id="fontSizeNum" class="slider-num" min="8" max="200" value="48" aria-label="Font size, points"></div>
         <div class="checkbox-row" style="margin-top:6px;">
-          <input type="checkbox" id="autoFit"><label for="autoFit">Auto-fit to page width</label>
+          <input type="checkbox" id="autoFit" title="Scales the font so the text fills the page width, ignoring rotation"><label for="autoFit" title="Scales the font so the text fills the page width, ignoring rotation">Auto-fit to page width</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="fitWithinMargins"><label for="fitWithinMargins">Fit within safe margins <span class="hint" style="font-weight:400;">(shrinks font so a rotated stamp can't cross the margin line)</span></label>
         </div>
       </div>
 
@@ -781,6 +815,26 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <div class="field">
         <label for="wmRotation">Rotation <span id="rotationVal">45°</span></label>
         <div class="slider-row"><input type="range" id="wmRotation" min="-90" max="90" value="45"><input type="number" id="wmRotationNum" class="slider-num" min="-90" max="90" value="45" aria-label="Rotation, degrees"></div>
+      </div>
+
+      <div class="field">
+        <div class="checkbox-row" style="margin-bottom:8px;">
+          <input type="checkbox" id="boxEnabled"><label for="boxEnabled">Background box behind text</label>
+        </div>
+        <div id="boxControls" style="display:none;">
+          <div class="row-2">
+            <div class="field"><label for="boxColor">Box colour</label><input type="color" id="boxColor" value="#FFFFFF"></div>
+            <div class="field"><label for="boxOpacity">Box opacity <span id="boxOpacityVal">80%</span></label><input type="range" id="boxOpacity" min="5" max="100" value="80"></div>
+          </div>
+          <div class="field"><label for="boxPadding">Padding (pt)</label><input type="number" id="boxPadding" value="10" min="0" max="80"></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="boxBorderEnabled"><label for="boxBorderEnabled">Border around box</label>
+          </div>
+          <div class="row-2" id="boxBorderControls" style="display:none;">
+            <div class="field"><label for="boxBorderColor">Border colour</label><input type="color" id="boxBorderColor" value="#0E0E10"></div>
+            <div class="field"><label for="boxBorderThickness">Thickness (pt)</label><input type="number" id="boxBorderThickness" value="1.5" min="0.5" max="20" step="0.5"></div>
+          </div>
+        </div>
       </div>
     </fieldset>
 
@@ -843,7 +897,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
           <div class="field"><label for="tileH">H spacing <span id="tileHVal">150</span>pt</label><div class="slider-row"><input type="range" id="tileH" min="40" max="400" value="150"><input type="number" id="tileHNum" class="slider-num" min="40" max="400" value="150" aria-label="Horizontal tile spacing, points"></div></div>
           <div class="field"><label for="tileV">V spacing <span id="tileVVal">150</span>pt</label><div class="slider-row"><input type="range" id="tileV" min="40" max="400" value="150"><input type="number" id="tileVNum" class="slider-num" min="40" max="400" value="150" aria-label="Vertical tile spacing, points"></div></div>
         </div>
-        <div class="checkbox-row"><input type="checkbox" id="tileStagger"><label for="tileStagger">Brick-style stagger</label></div>
+        <div class="checkbox-row"><input type="checkbox" id="tileStagger" title="Offsets alternate rows sideways by half the horizontal spacing, like bricks in a wall"><label for="tileStagger" title="Offsets alternate rows sideways by half the horizontal spacing, like bricks in a wall">Brick-style stagger</label></div>
       </div>
       <div class="row-2">
         <div class="field"><label for="offsetX">X offset (pt)</label><input type="number" id="offsetX" value="0" min="-2000" max="2000"></div>
@@ -861,7 +915,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="field" id="independentLogoField" style="display:none;">
         <div class="checkbox-row" style="margin-bottom:8px;">
-          <input type="checkbox" id="independentLogo"><label for="independentLogo">Position logo independently of text</label>
+          <input type="checkbox" id="independentLogo" title="Gives the logo its own position, offsets, and margin instead of following the text watermark"><label for="independentLogo" title="Gives the logo its own position, offsets, and margin instead of following the text watermark">Position logo independently of text</label>
         </div>
         <div id="logoPlacementControls" style="display:none;">
           <div class="field">
@@ -1056,6 +1110,11 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </div>
 
       <div class="help-section">
+        <h4>Background box &amp; fit options</h4>
+        <p>Turn on <strong>Background box behind text</strong> for a stamp-like frame — colour, opacity, padding, and an optional border, all independent of the text's own opacity. Corners are sharp rather than rounded: pdf-lib (the PDF library this app uses) has no built-in rounded-rectangle support, and a hand-built one risks the preview and the exported file disagreeing — sharp corners are guaranteed identical in both. <strong>Auto-fit to page width</strong> scales the font to fill the available width; <strong>Fit within safe margins</strong> is more conservative and also accounts for rotation, shrinking the font so a diagonal stamp can't cross the margin line at any angle.</p>
+      </div>
+
+      <div class="help-section">
         <h4>Blend mode</h4>
         <p><strong>Normal</strong> draws the watermark straight on top of the page. <strong>Multiply</strong> blends it with the content beneath for a softer, more natural look — it doesn't physically move the watermark under the existing text, since a PDF's own content can't be safely reordered without risking corruption.</p>
       </div>
@@ -1068,6 +1127,11 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <div class="help-section">
         <h4>Hindi &amp; other Indian-language text</h4>
         <p>Type Devanagari, Bengali, Tamil, Telugu, Gujarati, Punjabi (Gurmukhi), Kannada, Malayalam, or Odia directly into the watermark or header/footer fields. StampIt detects the script and fetches the matching Noto Sans font automatically. If that download fails (e.g. no internet on first load), you'll see a warning banner instead of blank boxes.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Stamp Library</h4>
+        <p>A <strong>stamp</strong> is narrower than a preset — it's just the mark itself: text or logo, colour, opacity, rotation, and position. Applying a stamp leaves your page targeting, extras, and output settings exactly as they were, so switching from "DRAFT" to "APPROVED" mid-job never resets your Bates numbering. Eleven built-in stamps are always available as one-click chips; save your own from the current text/logo styling with <strong>Save current as stamp</strong>. In short: <strong>Stamp</strong> = the mark, <strong>Preset</strong> = all watermark settings, <strong>Job Profile</strong> = a complete named job for Quick Mode, <strong>Project</strong> = settings plus your actual files.</p>
       </div>
 
       <div class="help-section">
@@ -1126,8 +1190,26 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </div>
 
       <div class="help-section">
+        <h4>Storage on this device</h4>
+        <p>Presets, projects (including your saved files), Job Profiles, the Stamp Library, and the offline cache all live in this browser's local storage — never uploaded, never synced anywhere. Browsers cap how much a site can store; StampIt warns you if a save fails because that cap is close.</p>
+        <p id="storageUsageText" class="hint" style="margin-top:6px;">Checking storage usage…</p>
+        <button class="btn btn-rust btn-sm" id="clearCacheBtn" type="button" style="margin-top:8px;">Clear all cached app data</button>
+        <p class="hint" style="margin-top:6px;">This removes presets, projects, Job Profiles, the Stamp Library, remembered settings, and the offline cache — <strong>not</strong> anything from the file system on your device. It cannot be undone.</p>
+      </div>
+
+      <div class="help-section">
         <h4>Quick Mode</h4>
         <p>Toggle <strong>⚡ Quick Mode</strong> (top-right) for a streamlined Files → Watermark → Position → Pages → Output → Process flow — the same settings and same underlying configuration as Advanced Mode, just shown one step at a time with the less-common controls (Extras, Help, presets/projects, independent logo positioning) tucked away. Switch back to <strong>🛠 Advanced Mode</strong> any time; nothing you've set is lost either way. <strong>Job Profiles</strong> on the Files step are complete, named starting points for recurring jobs (distinct from the Presets dropdown in Advanced Mode) — save your current setup as one from the Process step.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>What's new in v2.1.2</h4>
+        <p>Background box behind text with border, padding, and independent opacity — plus a <strong>Fit within safe margins</strong> option that's rotation-aware, unlike auto-fit. Live preview now has an optional <strong>Guides</strong> toggle showing the safe-margin line and the watermark's exact rotated footprint. Storage usage is now visible in Help, with a warning before a project save that might exceed the browser's quota, and a <strong>Clear all cached app data</strong> option. Added <strong>Copy diagnostic info</strong> for bug reports (never includes document content). While building the fit-within-margins option, found and fixed a real bug: auto-fit had only ever worked in the actual exported PDF, never in the live preview — the two now share one function so they can't drift apart again.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>What's new in v2.1.1</h4>
+        <p>Quick Mode is now the default for first-time visitors (Advanced Mode remains one tap away, and your choice is remembered). Added the <strong>Stamp Library</strong> — eleven built-in one-click stamps (CONFIDENTIAL, DRAFT, APPROVED, REJECTED, and more) plus your own saved stamps, scoped to just the mark itself so applying one never resets your page range or Bates numbering. Replaced every browser alert/confirm/prompt with a consistent in-app dialog. Processing reports now include timestamps, per-file duration, and which stamp was used, with a CSV export alongside the text report. Added duplicate-file detection on upload. Fixed a memory leak where every download left an unreleased blob URL behind, and fixed a gap where an imported preset file could bypass validation entirely. This is a partial step toward the full v2.2 upgrade list — Stamp Library styling extras (background box, shadow, corner radius), the enhanced side-by-side preview, and Web Worker–based processing are still in progress.</p>
       </div>
 
       <div class="help-section">
@@ -1142,7 +1224,9 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.1.0</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.1.2</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <button class="btn btn-ghost btn-sm" id="copyDiagnosticsGeneralBtn" type="button" style="margin-top:6px;">Copy diagnostic info</button>
+        <p class="hint" style="margin-top:4px;">Useful when reporting a bug — copies your app version, browser, and current settings (never your document content or filenames) for support.</p>
       </div>
     </div>
 
@@ -1165,6 +1249,18 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <button class="btn btn-ghost" id="summaryCancelBtn">Cancel</button>
       <button class="btn btn-amber" id="summaryConfirmBtn">Confirm &amp; Process</button>
     </div>
+  </div>
+</div>
+
+<!-- Generic modal dialog — replaces browser alert()/confirm()/prompt()
+     everywhere in the app with a consistent, styled, keyboard-accessible
+     in-app dialog. One shared element, driven entirely by JS. -->
+<div class="modal-backdrop" id="appModalBackdrop" style="display:none;">
+  <div class="modal-card app-modal-card" role="dialog" aria-modal="true" aria-labelledby="appModalTitle">
+    <h3 id="appModalTitle"></h3>
+    <p id="appModalMessage" class="app-modal-message"></p>
+    <input type="text" id="appModalInput" class="app-modal-input" style="display:none;">
+    <div class="modal-actions" id="appModalActions"></div>
   </div>
 </div>
 
@@ -1198,6 +1294,7 @@ const state = {
   dragHandleLogo: null,  // logo's own handle when independently positioned (blue)
   quickMode: false,
   quickStep: 1,
+  showGuides: false,
 };
 
 function defaultConfig(){
@@ -1206,8 +1303,15 @@ function defaultConfig(){
     text: {
       value: 'CONFIDENTIAL',
       font: 'Helvetica', bold:false, italic:false,
-      size: 48, autoFit:false,
+      size: 48, autoFit:false, fitWithinMargins:false,
       color: '#E2582B', opacity: 20, rotation: 45,
+      // Background box + border — a stamp-like frame behind the text.
+      // Deliberately no corner-radius option: pdf-lib has no native
+      // rounded-rectangle primitive, and building one via a raw SVG
+      // path risks a preview/export mismatch I can't verify without a
+      // live browser to test the coordinate flip against. A sharp-
+      // cornered box is simple and 100% reliable in both paths.
+      box: { enabled:false, color:'#FFFFFF', opacity:80, padding:10, borderEnabled:false, borderColor:'#0E0E10', borderThickness:1.5 },
     },
     image: {
       dataUrl: null, name:null, naturalW:0, naturalH:0,
@@ -1492,6 +1596,16 @@ async function ingestFiles(fileArray){
       addFileCardError(file.name, file.size, 'Over 100 MB — skipped');
       continue;
     }
+    // Same name + same size already in the batch — treated as a duplicate
+    // rather than re-reading and re-thumbnailing it. Not a byte-for-byte
+    // hash check (that would mean hashing every file on every drop, which
+    // gets expensive fast on large batches) but name+size is a reliable
+    // enough signal for "you just dropped this again."
+    const isDuplicate = state.files.some(f=>f.kind!=='error' && f.name===file.name && f.size===file.size);
+    if(isDuplicate){
+      addFileCardError(file.name, file.size, 'Duplicate — already in this batch');
+      continue;
+    }
     const rec = {
       id: uid(), file, name: file.name, size: file.size,
       kind: ext === 'pdf' ? 'pdf' : 'image',
@@ -1575,9 +1689,10 @@ function removeFile(id){
   updateProcessButtonState();
 }
 
-clearAllBtn.onclick = ()=>{
+clearAllBtn.onclick = async ()=>{
   if(!state.files.length) return;
-  if(confirm('Remove all '+state.files.length+' files from this batch?')){
+  const ok = await showAppConfirm('Clear all files?', `Remove all ${state.files.length} files from this batch?`, 'Remove all', true);
+  if(ok){
     state.files = [];
     state.previewFileId = null;
     renderFileList();
@@ -1596,10 +1711,11 @@ document.getElementById('fileSortSelect').addEventListener('change', e=>{
   state.fileSortMode = e.target.value;
   renderFileList();
 });
-document.getElementById('removeSelectedBtn').addEventListener('click', ()=>{
+document.getElementById('removeSelectedBtn').addEventListener('click', async ()=>{
   const selected = state.files.filter(f=>f.selected && f.kind!=='error' && !f.locked);
   if(!selected.length) return;
-  if(!confirm(`Remove ${selected.length} selected file${selected.length!==1?'s':''} from the batch?`)) return;
+  const ok = await showAppConfirm('Remove selected files?', `Remove ${selected.length} selected file${selected.length!==1?'s':''} from the batch?`, 'Remove', true);
+  if(!ok) return;
   const removedIds = new Set(selected.map(f=>f.id));
   state.files = state.files.filter(f=>!removedIds.has(f.id));
   if(state.previewFileId && removedIds.has(state.previewFileId)){
@@ -1727,6 +1843,68 @@ function escapeHtml(s){
 }
 
 /* ---------------------------------------------------------------
+   IN-APP MODAL DIALOGS
+   Replaces the browser's native alert()/confirm()/prompt() with a
+   consistent, styled, keyboard-accessible dialog matching the rest of
+   the app — native dialogs look jarring, can't be styled, and block
+   the whole tab rather than just the interaction. All three helpers
+   return a Promise, so call sites use `await` instead of a direct
+   return value.
+   --------------------------------------------------------------- */
+function openAppModal({ title, message, buttons, isPrompt=false, defaultValue='' }){
+  return new Promise(resolve=>{
+    document.getElementById('appModalTitle').textContent = title;
+    document.getElementById('appModalMessage').textContent = message || '';
+    const inputEl = document.getElementById('appModalInput');
+    inputEl.style.display = isPrompt ? 'block' : 'none';
+    inputEl.value = defaultValue;
+
+    const actionsEl = document.getElementById('appModalActions');
+    actionsEl.innerHTML = '';
+    const backdrop = document.getElementById('appModalBackdrop');
+
+    function finish(value){
+      backdrop.style.display = 'none';
+      document.removeEventListener('keydown', onKey, true);
+      resolve(value);
+    }
+    function onKey(e){
+      if(e.key === 'Escape'){ e.stopPropagation(); finish(isPrompt ? null : false); }
+      if(e.key === 'Enter' && isPrompt){ e.stopPropagation(); finish(inputEl.value); }
+    }
+
+    buttons.forEach(btn=>{
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'btn btn-sm ' + (btn.danger ? 'btn-rust' : btn.primary ? 'btn-amber' : 'btn-ghost');
+      b.style.flex = '1';
+      b.textContent = btn.label;
+      b.addEventListener('click', ()=> finish(btn.value === '__INPUT__' ? inputEl.value : btn.value));
+      actionsEl.appendChild(b);
+    });
+
+    backdrop.style.display = 'flex';
+    document.addEventListener('keydown', onKey, true);
+    setTimeout(()=>{ (isPrompt ? inputEl : actionsEl.querySelector('.btn-amber, .btn-rust') || actionsEl.lastElementChild)?.focus(); }, 30);
+  });
+}
+function showAppAlert(title, message){
+  return openAppModal({ title, message, buttons:[{ label:'OK', primary:true, value:true }] });
+}
+function showAppConfirm(title, message, confirmLabel='Confirm', danger=false){
+  return openAppModal({ title, message, buttons:[
+    { label:'Cancel', value:false },
+    { label:confirmLabel, primary:!danger, danger, value:true },
+  ]});
+}
+function showAppPrompt(title, message, defaultValue=''){
+  return openAppModal({ title, message, isPrompt:true, defaultValue, buttons:[
+    { label:'Cancel', value:null },
+    { label:'OK', primary:true, value:'__INPUT__' },
+  ]});
+}
+
+/* ---------------------------------------------------------------
    4. PLACEMENT MATH
    All placement is computed in PDF points, with the origin at the
    bottom-left of the page (the PDF convention). The same function
@@ -1737,6 +1915,43 @@ function escapeHtml(s){
 // Given a page size and the bounding box of the content being placed,
 // return the {x,y} of the content's bottom-left corner for a given
 // 9-point position, honouring margin and any manual x/y nudge.
+// Single source of truth for font-size fitting, used by both the live
+// preview and the real PDF export — this is exactly the kind of thing
+// that drifted apart before (autoFit previously only worked in export,
+// never in preview). widthAtBaseSize must be measured at `baseSize`.
+function computeEffectiveFontSize(baseSize, widthAtBaseSize, pageW, pageH, margin, autoFit, fitWithinMargins){
+  let size = baseSize;
+  if(widthAtBaseSize <= 0) return size;
+  if(autoFit){
+    const targetW = pageW - 2*margin;
+    if(targetW > 0) size = Math.max(6, size * (targetW/widthAtBaseSize));
+  }
+  if(fitWithinMargins){
+    // Conservative approximation: a rotated stamp's true footprint
+    // depends on the exact angle, but bounding it by the SMALLER page
+    // dimension guarantees it can't cross the margin at any rotation,
+    // without needing precise rotated-bounding-box trigonometry.
+    const safeDim = Math.min(pageW, pageH) - 2*margin;
+    const widthNow = widthAtBaseSize * (size/baseSize);
+    if(safeDim > 0 && widthNow > safeDim){
+      size = Math.max(6, size * (safeDim/widthNow));
+    }
+  }
+  return size;
+}
+
+// Background-box geometry, relative to the text baseline, BEFORE
+// rotation. Neither canvas nor pdf-lib expose precise per-glyph
+// ascent/descent here, so this uses a standard-font approximation
+// (Helvetica/Times/Courier — the only fonts in play — are all close
+// to this ratio). Returned as above/below-baseline distances so each
+// renderer can apply its own Y-axis sign convention.
+function computeBoxGeometry(textWidth, fontSize, padding){
+  const above = fontSize*0.85 + padding;
+  const below = fontSize*0.25 + padding;
+  return { x: -padding, above, below, width: textWidth + 2*padding, height: above+below };
+}
+
 function computeAnchor(pageW, pageH, contentW, contentH, placement){
   const m = Math.max(0, Number(placement.margin)||0);
   let x, y;
@@ -1900,6 +2115,27 @@ document.getElementById('italicToggle').addEventListener('click', function(){
 
 bindSlider('fontSize','fontSizeVal', v=>{ state.config.text.size = v; return v; });
 document.getElementById('autoFit').addEventListener('change', e=>{ state.config.text.autoFit = e.target.checked; scheduleRender(); });
+document.getElementById('fitWithinMargins').addEventListener('change', e=>{ state.config.text.fitWithinMargins = e.target.checked; scheduleRender(); });
+
+document.getElementById('boxEnabled').addEventListener('change', e=>{
+  state.config.text.box.enabled = e.target.checked;
+  document.getElementById('boxControls').style.display = e.target.checked ? 'block' : 'none';
+  scheduleRender();
+});
+document.getElementById('boxColor').addEventListener('input', e=>{ state.config.text.box.color = e.target.value; scheduleRender(); });
+document.getElementById('boxOpacity').addEventListener('input', e=>{
+  state.config.text.box.opacity = Number(e.target.value);
+  document.getElementById('boxOpacityVal').textContent = e.target.value+'%';
+  scheduleRender();
+});
+document.getElementById('boxPadding').addEventListener('input', e=>{ state.config.text.box.padding = Math.min(80, Math.max(0, Number(e.target.value)||0)); scheduleRender(); });
+document.getElementById('boxBorderEnabled').addEventListener('change', e=>{
+  state.config.text.box.borderEnabled = e.target.checked;
+  document.getElementById('boxBorderControls').style.display = e.target.checked ? 'grid' : 'none';
+  scheduleRender();
+});
+document.getElementById('boxBorderColor').addEventListener('input', e=>{ state.config.text.box.borderColor = e.target.value; scheduleRender(); });
+document.getElementById('boxBorderThickness').addEventListener('input', e=>{ state.config.text.box.borderThickness = Math.max(0.5, Number(e.target.value)||1.5); scheduleRender(); });
 
 document.getElementById('wmColor').addEventListener('input', e=>{
   state.config.text.color = e.target.value;
@@ -2248,6 +2484,7 @@ window.addEventListener('resize', debounce(renderPreview, 150));
 window.addEventListener('orientationchange', debounce(renderPreview, 150));
 document.getElementById('beforeBtn').onclick = ()=>{ state.previewMode='before'; setToggle(); renderPreview(); };
 document.getElementById('afterBtn').onclick = ()=>{ state.previewMode='after'; setToggle(); renderPreview(); };
+document.getElementById('showGuidesToggle').addEventListener('change', e=>{ state.showGuides = e.target.checked; renderPreview(); });
 function setToggle(){
   const isBefore = state.previewMode==='before';
   document.getElementById('beforeBtn').classList.toggle('active', isBefore);
@@ -2466,14 +2703,36 @@ function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, 
 
   ctx.save();
 
+  // ---- Safe-margin guide (preview only) ----
+  if(drawHandle && state.showGuides){
+    ctx.save();
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = 'rgba(29,93,168,0.55)';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5,4]);
+    const m = cfg.placement.margin;
+    ctx.strokeRect(toPx(m), toPx(m), toPx(pageW-2*m), toPx(pageH-2*m));
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
   // ---- Text watermark ----
   if(cfg.mode === 'text' || cfg.mode === 'combined'){
     const text = replaceTokens(cfg.text.value, tokenCtx);
     if(text){
-      const fontPx = toPx(cfg.text.size);
       const weight = cfg.text.bold ? '700' : '400';
       const style = cfg.text.italic ? 'italic' : 'normal';
-      ctx.font = `${style} ${weight} ${fontPx}px ${fontFamilyFor(cfg.text.font)}`;
+      const fontFam = fontFamilyFor(cfg.text.font);
+
+      // Measure at the base size first, then compute the effective
+      // size — same two-pass approach the PDF export uses, via the
+      // same shared function, so autoFit/fitWithinMargins never drift
+      // between preview and export again.
+      ctx.font = `${style} ${weight} ${toPx(cfg.text.size)}px ${fontFam}`;
+      const widthAtBasePt = ctx.measureText(text).width / pxPerPt;
+      const sizePt = computeEffectiveFontSize(cfg.text.size, widthAtBasePt, pageW, pageH, cfg.placement.margin, cfg.text.autoFit, cfg.text.fitWithinMargins);
+      const fontPx = toPx(sizePt);
+      ctx.font = `${style} ${weight} ${fontPx}px ${fontFam}`;
       const metrics = ctx.measureText(text);
       const tw = metrics.width, th = fontPx;
       ctx.fillStyle = cfg.text.color;
@@ -2495,10 +2754,39 @@ function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, 
         // drawText(x,y) — canvas's default 'alphabetic' baseline matches.
         const anchor = computeAnchor(pageW, pageH, tw/pxPerPt, th/pxPerPt, cfg.placement);
         ctx.save();
-        ctx.textBaseline = 'alphabetic';
         ctx.translate(toPx(anchor.x), flip(anchor.y));
         ctx.rotate(-cfg.text.rotation*Math.PI/180);
+
+        if(cfg.text.box.enabled){
+          const box = computeBoxGeometry(tw, fontPx, toPx(cfg.text.box.padding));
+          const prevAlpha = ctx.globalAlpha;
+          ctx.globalAlpha = cfg.text.box.opacity/100;
+          ctx.fillStyle = cfg.text.box.color;
+          ctx.fillRect(box.x, -box.above, box.width, box.height);
+          if(cfg.text.box.borderEnabled){
+            ctx.strokeStyle = cfg.text.box.borderColor;
+            ctx.lineWidth = toPx(cfg.text.box.borderThickness);
+            ctx.strokeRect(box.x, -box.above, box.width, box.height);
+          }
+          ctx.globalAlpha = prevAlpha;
+          ctx.fillStyle = cfg.text.color;
+        }
+
+        ctx.textBaseline = 'alphabetic';
         ctx.fillText(text, 0, 0);
+
+        if(drawHandle && state.showGuides){
+          const bbox = computeBoxGeometry(tw, fontPx, 0); // zero padding — the text's own footprint
+          const prevAlpha = ctx.globalAlpha;
+          ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+          ctx.strokeStyle = 'rgba(245,179,1,0.85)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4,3]);
+          ctx.strokeRect(bbox.x, -bbox.above, bbox.width, bbox.height);
+          ctx.setLineDash([]);
+          ctx.globalAlpha = prevAlpha;
+        }
+
         ctx.restore();
         if(drawHandle){
           state.dragHandle = { x: toPx(anchor.x), y: flip(anchor.y), target:'text' };
@@ -2528,11 +2816,26 @@ function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, 
       ctx.drawImage(previewLogoImg, 0, -toPx(logoHpt), toPx(logoWpt), toPx(logoHpt));
       ctx.restore();
     };
+    const drawOneWithGuide = (x,yBottom) => {
+      drawOne(x,yBottom);
+      if(drawHandle && state.showGuides){
+        ctx.save();
+        ctx.translate(toPx(x), flip(yBottom));
+        ctx.rotate(-cfg.image.rotation*Math.PI/180);
+        ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = 'rgba(29,93,168,0.85)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4,3]);
+        ctx.strokeRect(0, -toPx(logoHpt), toPx(logoWpt), toPx(logoHpt));
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+    };
     if(cfg.placement.tile){
       computeTileOrigins(pageW, pageH, cfg.placement.tileH, cfg.placement.tileV, cfg.placement.stagger).forEach(o=>drawOne(o.x, o.y));
     } else {
       const anchor = computeAnchor(pageW, pageH, logoWpt, logoHpt, logoPlacementCfg);
-      drawOne(anchor.x, anchor.y);
+      drawOneWithGuide(anchor.x, anchor.y);
       if(drawHandle){
         if(logoIndependent){
           // Independent positioning: logo always gets its own handle,
@@ -2685,6 +2988,7 @@ function applyPresetToUI(cfg){
   document.getElementById('fontSizeNum').value = state.config.text.size;
   document.getElementById('fontSizeVal').textContent = state.config.text.size;
   document.getElementById('autoFit').checked = state.config.text.autoFit;
+  document.getElementById('fitWithinMargins').checked = state.config.text.fitWithinMargins;
   document.getElementById('wmColor').value = state.config.text.color;
   document.getElementById('wmColorHex').value = state.config.text.color;
   document.getElementById('wmOpacity').value = state.config.text.opacity;
@@ -2693,6 +2997,18 @@ function applyPresetToUI(cfg){
   document.getElementById('wmRotation').value = state.config.text.rotation;
   document.getElementById('wmRotationNum').value = state.config.text.rotation;
   document.getElementById('rotationVal').textContent = state.config.text.rotation+'°';
+
+  const box = state.config.text.box;
+  document.getElementById('boxEnabled').checked = box.enabled;
+  document.getElementById('boxControls').style.display = box.enabled ? 'block' : 'none';
+  document.getElementById('boxColor').value = box.color;
+  document.getElementById('boxOpacity').value = box.opacity;
+  document.getElementById('boxOpacityVal').textContent = box.opacity+'%';
+  document.getElementById('boxPadding').value = box.padding;
+  document.getElementById('boxBorderEnabled').checked = box.borderEnabled;
+  document.getElementById('boxBorderControls').style.display = box.borderEnabled ? 'grid' : 'none';
+  document.getElementById('boxBorderColor').value = box.borderColor;
+  document.getElementById('boxBorderThickness').value = box.borderThickness;
 
   document.querySelectorAll('.mode-switch [data-mode]').forEach(b=>b.classList.toggle('active', b.dataset.mode===state.config.mode));
   document.getElementById('textFieldset').disabled = state.config.mode==='image';
@@ -2792,8 +3108,8 @@ document.getElementById('presetSelect').addEventListener('change', e=>{
   if(cfg) applyPresetToUI(cfg);
 });
 
-document.getElementById('savePresetBtn').addEventListener('click', ()=>{
-  const name = prompt('Save current settings as a preset named:');
+document.getElementById('savePresetBtn').addEventListener('click', async ()=>{
+  const name = await showAppPrompt('Save preset', 'Name this preset:');
   if(!name) return;
   const store = loadStoredPresets();
   store[name] = state.config;
@@ -2801,13 +3117,13 @@ document.getElementById('savePresetBtn').addEventListener('click', ()=>{
   refreshPresetSelect(name);
 });
 
-document.getElementById('renamePresetBtn').addEventListener('click', ()=>{
+document.getElementById('renamePresetBtn').addEventListener('click', async ()=>{
   const sel = document.getElementById('presetSelect');
   const name = sel.value;
-  if(BUILTIN_PRESETS[name]){ alert('Built-in presets can\'t be renamed. Save as a new preset instead.'); return; }
+  if(BUILTIN_PRESETS[name]){ showAppAlert('Can\'t rename', 'Built-in presets can\'t be renamed. Use "Save as new" instead.'); return; }
   const store = loadStoredPresets();
   if(!store[name]) return;
-  const newName = prompt('Rename preset to:', name);
+  const newName = await showAppPrompt('Rename preset', 'New name:', name);
   if(!newName || newName===name) return;
   store[newName] = store[name];
   delete store[name];
@@ -2815,29 +3131,31 @@ document.getElementById('renamePresetBtn').addEventListener('click', ()=>{
   refreshPresetSelect(newName);
 });
 
-document.getElementById('duplicatePresetBtn').addEventListener('click', ()=>{
+document.getElementById('duplicatePresetBtn').addEventListener('click', async ()=>{
   const sel = document.getElementById('presetSelect');
   const name = sel.value;
   const cfg = BUILTIN_PRESETS[name] || loadStoredPresets()[name];
-  if(!cfg){ alert('Select a preset first.'); return; }
-  const newName = prompt('Duplicate this preset as:', name+' copy');
+  if(!cfg){ showAppAlert('Nothing selected', 'Select a preset first.'); return; }
+  const newName = await showAppPrompt('Duplicate preset', 'Name for the copy:', name+' copy');
   if(!newName) return;
   const store = loadStoredPresets();
   if(BUILTIN_PRESETS[newName] || store[newName]){
-    if(!confirm(`"${newName}" already exists. Overwrite it?`)) return;
+    const overwrite = await showAppConfirm('Already exists', `"${newName}" already exists. Overwrite it?`, 'Overwrite', true);
+    if(!overwrite) return;
   }
   store[newName] = JSON.parse(JSON.stringify(cfg));
   saveStoredPresets(store);
   refreshPresetSelect(newName);
 });
 
-document.getElementById('deletePresetBtn').addEventListener('click', ()=>{
+document.getElementById('deletePresetBtn').addEventListener('click', async ()=>{
   const sel = document.getElementById('presetSelect');
   const name = sel.value;
-  if(BUILTIN_PRESETS[name]){ alert('Built-in presets can\'t be deleted.'); return; }
+  if(BUILTIN_PRESETS[name]){ showAppAlert('Can\'t delete', 'Built-in presets can\'t be deleted.'); return; }
   const store = loadStoredPresets();
   if(!store[name]) return;
-  if(!confirm(`Delete preset "${name}"?`)) return;
+  const ok = await showAppConfirm('Delete preset?', `Delete preset "${name}"? This can't be undone.`, 'Delete', true);
+  if(!ok) return;
   delete store[name];
   saveStoredPresets(store);
   refreshPresetSelect();
@@ -2846,9 +3164,11 @@ document.getElementById('deletePresetBtn').addEventListener('click', ()=>{
 document.getElementById('exportPresetBtn').addEventListener('click', ()=>{
   const blob = new Blob([JSON.stringify(state.config, null, 2)], { type:'application/json' });
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  a.href = url;
   a.download = 'stampit-preset.json';
   a.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
 });
 document.getElementById('importPresetBtn').addEventListener('click', ()=>document.getElementById('importPresetInput').click());
 document.getElementById('importPresetInput').addEventListener('change', e=>{
@@ -2856,17 +3176,28 @@ document.getElementById('importPresetInput').addEventListener('change', e=>{
   const reader = new FileReader();
   reader.onload = ()=>{
     try{
-      const cfg = JSON.parse(reader.result);
-      applyPresetToUI(cfg);
-      alert('Preset imported. Use "Save as new" to keep it for later.');
-    }catch(err){ alert('That file is not a valid StampIt preset (invalid JSON).'); }
+      const parsed = JSON.parse(reader.result);
+      if(!parsed || typeof parsed !== 'object' || Array.isArray(parsed) || !('mode' in parsed || 'text' in parsed || 'placement' in parsed)){
+        throw new Error('not a recognizable StampIt preset');
+      }
+      // Route through the same defensive merge used for restored/older
+      // configs everywhere else, instead of trusting the imported shape
+      // directly — a malformed or hand-edited file could otherwise crash
+      // applyPresetToUI or silently leave settings half-updated.
+      applyPresetToUI(mergeConfigWithDefaults(defaultConfig(), parsed));
+      showAppAlert('Preset imported', 'Use "Save as new" to keep it for later.');
+    }catch(err){
+      console.warn('Preset import failed', err);
+      showAppAlert('Import failed', 'That file is not a valid StampIt preset.');
+    }
   };
   reader.readAsText(file);
   e.target.value = '';
 });
 
-document.getElementById('resetSettingsBtn').addEventListener('click', ()=>{
-  if(!confirm('Reset all watermark settings back to defaults? Your saved presets and uploaded files are not affected.')) return;
+document.getElementById('resetSettingsBtn').addEventListener('click', async ()=>{
+  const ok = await showAppConfirm('Reset settings?', 'Reset all watermark settings back to defaults? Your saved presets and uploaded files are not affected.', 'Reset', true);
+  if(!ok) return;
   applyPresetToUI(defaultConfig());
   document.getElementById('presetSelect').value = '';
 });
@@ -2947,8 +3278,9 @@ async function refreshProjectSelect(selectName){
 
 document.getElementById('saveProjectBtn').addEventListener('click', async ()=>{
   const usableFiles = state.files.filter(f=>f.kind!=='error');
-  if(!usableFiles.length){ alert('Add at least one file before saving a project.'); return; }
-  const name = prompt('Save this project as:');
+  if(!usableFiles.length){ showAppAlert('No files yet', 'Add at least one file before saving a project.'); return; }
+  await warnIfStorageNearlyFull();
+  const name = await showAppPrompt('Save project', 'Name this project:');
   if(!name) return;
   const statusEl = document.getElementById('projectStatus');
   statusEl.textContent = 'Saving…';
@@ -2962,6 +3294,7 @@ document.getElementById('saveProjectBtn').addEventListener('click', async ()=>{
     await saveProjectToDB({ name, savedAt: Date.now(), config: state.config, files });
     await refreshProjectSelect(name);
     statusEl.textContent = `Saved "${name}" — ${files.length} file(s), just now.`;
+    refreshStorageUsageDisplay();
   } catch(err){
     console.warn('Save project failed', err);
     statusEl.textContent = 'Could not save — your browser storage may be full or unavailable.';
@@ -2971,7 +3304,10 @@ document.getElementById('saveProjectBtn').addEventListener('click', async ()=>{
 document.getElementById('loadProjectBtn').addEventListener('click', async ()=>{
   const name = document.getElementById('projectSelect').value;
   if(!name) return;
-  if(state.files.length && !confirm('Loading a project replaces your current file batch. Continue?')) return;
+  if(state.files.length){
+    const ok = await showAppConfirm('Replace current files?', 'Loading a project replaces your current file batch. Continue?', 'Load project', true);
+    if(!ok) return;
+  }
   const statusEl = document.getElementById('projectStatus');
   statusEl.textContent = 'Loading…';
   try{
@@ -2999,7 +3335,8 @@ document.getElementById('loadProjectBtn').addEventListener('click', async ()=>{
 document.getElementById('deleteProjectBtn').addEventListener('click', async ()=>{
   const name = document.getElementById('projectSelect').value;
   if(!name) return;
-  if(!confirm(`Delete saved project "${name}"? This can't be undone.`)) return;
+  const ok = await showAppConfirm('Delete project?', `Delete saved project "${name}"? This can't be undone.`, 'Delete', true);
+  if(!ok) return;
   try{
     await deleteProjectFromDB(name);
     await refreshProjectSelect();
@@ -3075,23 +3412,153 @@ function loadJobProfile(index){
   if(!profile) return;
   applyPresetToUI(mergeConfigWithDefaults(defaultConfig(), profile.config));
 }
-function deleteJobProfile(userIndex){
+async function deleteJobProfile(userIndex){
   const list = loadJobProfiles();
   if(userIndex<0 || userIndex>=list.length) return;
-  if(!confirm(`Delete job profile "${list[userIndex].name}"?`)) return;
+  const ok = await showAppConfirm('Delete job profile?', `Delete job profile "${list[userIndex].name}"?`, 'Delete', true);
+  if(!ok) return;
   list.splice(userIndex,1);
   saveJobProfiles(list);
   renderJobProfileCards();
 }
-document.getElementById('saveJobProfileBtn').addEventListener('click', ()=>{
-  const name = prompt('Name this Job Profile (e.g. "Monthly NBFC Statement Stamp"):');
+document.getElementById('saveJobProfileBtn').addEventListener('click', async ()=>{
+  const name = await showAppPrompt('Save Job Profile', 'Name this job (e.g. "Monthly NBFC Statement Stamp"):');
   if(!name) return;
-  const description = prompt('Short description (optional):') || '';
+  const description = await showAppPrompt('Description', 'Short description (optional):') || '';
   const list = loadJobProfiles();
   list.push({ name, description, builtin:false, config: state.config });
   saveJobProfiles(list);
   renderJobProfileCards();
-  alert(`Saved "${name}" as a Job Profile — it'll appear on the Files step next time you're in Quick Mode.`);
+  showAppAlert('Saved', `"${name}" saved as a Job Profile — it'll appear on the Files step next time you're in Quick Mode.`);
+});
+
+/* ---------------------------------------------------------------
+   6d. STAMP LIBRARY
+   A Stamp is deliberately narrower than a Preset or Job Profile: it
+   captures only what defines the mark itself (text/logo, styling,
+   and how it's positioned) and explicitly leaves page targeting,
+   extras, and output settings untouched when applied — so picking a
+   different stamp mid-job doesn't quietly reset your Bates numbering
+   or page range. Built-ins are read-only; custom stamps get full
+   create/rename/delete, all stored locally.
+   --------------------------------------------------------------- */
+const STAMP_LIBRARY_KEY = 'stampit_stamp_library';
+const BUILTIN_STAMP_DEFS = [
+  { name:'CONFIDENTIAL',      color:'#E2582B' },
+  { name:'DRAFT',             color:'#7A7568' },
+  { name:'COPY',              color:'#3D7BC9' },
+  { name:'ORIGINAL',          color:'#1F7A3D' },
+  { name:'APPROVED',          color:'#1F7A3D' },
+  { name:'REJECTED',          color:'#C4491F' },
+  { name:'PAID',              color:'#1F7A3D' },
+  { name:'CANCELLED',         color:'#C4491F' },
+  { name:'RECEIVED',          color:'#1D5DA8' },
+  { name:'FOR INTERNAL USE',  color:'#7A7568' },
+  { name:'BANK CONFIDENTIAL', color:'#0E0E10' },
+];
+const BUILTIN_STAMPS = BUILTIN_STAMP_DEFS.map(def=>{
+  const d = defaultConfig();
+  return {
+    name: def.name,
+    builtin: true,
+    stamp: {
+      mode: 'text',
+      text: { ...d.text, value: def.name, color: def.color },
+      image: d.image,
+      placement: d.placement,
+      logoPlacement: d.logoPlacement,
+    },
+  };
+});
+
+function loadStampLibrary(){
+  try{ return JSON.parse(localStorage.getItem(STAMP_LIBRARY_KEY)||'[]'); }catch(e){ return []; }
+}
+function saveStampLibrary(list){
+  try{ localStorage.setItem(STAMP_LIBRARY_KEY, JSON.stringify(list)); return true; }
+  catch(e){ console.warn('Stamp library save failed (storage full?)', e); return false; }
+}
+function renderStampBuiltinChips(){
+  document.getElementById('stampBuiltinChips').innerHTML = BUILTIN_STAMPS.map((s,i)=>
+    `<button type="button" class="stamp-chip" onclick="applyBuiltinStamp(${i})">${escapeHtml(s.name)}</button>`
+  ).join('');
+}
+function refreshStampLibrarySelect(selectName){
+  const sel = document.getElementById('stampLibrarySelect');
+  const list = loadStampLibrary();
+  sel.innerHTML = '<option value="">My saved stamps…</option>' +
+    list.map(s=>`<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
+  if(selectName) sel.value = selectName;
+}
+
+// Captures just the stamp-defining slice of the current config — not
+// page targeting, extras, or output settings.
+function captureStampSnapshot(){
+  return {
+    mode: state.config.mode,
+    text: JSON.parse(JSON.stringify(state.config.text)),
+    image: JSON.parse(JSON.stringify(state.config.image)),
+    placement: JSON.parse(JSON.stringify(state.config.placement)),
+    logoPlacement: JSON.parse(JSON.stringify(state.config.logoPlacement)),
+  };
+}
+// Applies a stamp snapshot onto the CURRENT config, leaving page
+// targeting/extras/output exactly as they were.
+function applyStampToConfig(snap){
+  const merged = JSON.parse(JSON.stringify(state.config));
+  merged.mode = snap.mode;
+  merged.text = mergeConfigWithDefaults(defaultConfig().text, snap.text);
+  merged.image = mergeConfigWithDefaults(defaultConfig().image, snap.image);
+  merged.placement = mergeConfigWithDefaults(defaultConfig().placement, snap.placement);
+  merged.logoPlacement = mergeConfigWithDefaults(defaultConfig().logoPlacement, snap.logoPlacement);
+  applyPresetToUI(merged);
+  refreshPreviewLogoImg();
+}
+function applyBuiltinStamp(i){
+  const s = BUILTIN_STAMPS[i];
+  if(s) applyStampToConfig(s.stamp);
+}
+document.getElementById('applyStampBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('stampLibrarySelect').value;
+  if(!name) return;
+  const found = loadStampLibrary().find(s=>s.name===name);
+  if(found) applyStampToConfig(found.stamp);
+});
+document.getElementById('saveStampBtn').addEventListener('click', async ()=>{
+  const name = await showAppPrompt('Save stamp', 'Name this stamp:');
+  if(!name) return;
+  const list = loadStampLibrary();
+  const idx = list.findIndex(s=>s.name===name);
+  const record = { name, stamp: captureStampSnapshot() };
+  if(idx>=0) list[idx] = record; else list.push(record);
+  if(!saveStampLibrary(list)){
+    showAppAlert('Could not save', 'Browser storage may be full — try removing an unused stamp (especially ones with a logo image) first.');
+    return;
+  }
+  refreshStampLibrarySelect(name);
+  showAppAlert('Saved', `Stamp "${name}" saved to your library.`);
+});
+document.getElementById('renameStampBtn').addEventListener('click', async ()=>{
+  const sel = document.getElementById('stampLibrarySelect');
+  const name = sel.value;
+  if(!name) return;
+  const list = loadStampLibrary();
+  const idx = list.findIndex(s=>s.name===name);
+  if(idx<0) return;
+  const newName = await showAppPrompt('Rename stamp', 'New name:', name);
+  if(!newName || newName===name) return;
+  list[idx].name = newName;
+  saveStampLibrary(list);
+  refreshStampLibrarySelect(newName);
+});
+document.getElementById('deleteStampBtn').addEventListener('click', async ()=>{
+  const sel = document.getElementById('stampLibrarySelect');
+  const name = sel.value;
+  if(!name) return;
+  const ok = await showAppConfirm('Delete stamp?', `Delete stamp "${name}"?`, 'Delete', true);
+  if(!ok) return;
+  saveStampLibrary(loadStampLibrary().filter(s=>s.name!==name));
+  refreshStampLibrarySelect();
 });
 
 /* ---------------------------------------------------------------
@@ -3175,12 +3642,9 @@ async function stampPdfPage(doc, page, pageNum, totalPages, fonts, logoImg, toke
     const text = replaceTokens(cfg.text.value, tokenCtx);
     if(text){
       const font = pickFont(fonts, text);
-      let size = cfg.text.size;
-      if(cfg.text.autoFit){
-        const targetW = pageW - 2*cfg.placement.margin;
-        const w = font.widthOfTextAtSize(text, size);
-        if(w>0) size = Math.max(6, size * (targetW/w));
-      }
+      const baseSize = cfg.text.size;
+      const widthAtBase = font.widthOfTextAtSize(text, baseSize);
+      const size = computeEffectiveFontSize(baseSize, widthAtBase, pageW, pageH, cfg.placement.margin, cfg.text.autoFit, cfg.text.fitWithinMargins);
       const tw = font.widthOfTextAtSize(text, size);
       const th = font.heightAtSize(size);
       const rgbColor = hexToRgb01(cfg.text.color);
@@ -3193,6 +3657,21 @@ async function stampPdfPage(doc, page, pageNum, totalPages, fonts, logoImg, toke
           .forEach(o=> page.drawText(text, { x:o.x, y:o.y, ...drawOpts }));
       } else {
         const anchor = computeAnchor(pageW, pageH, tw, th, cfg.placement);
+        if(cfg.text.box.enabled){
+          const box = computeBoxGeometry(tw, size, cfg.text.box.padding);
+          const boxRgb = hexToRgb01(cfg.text.box.color);
+          const boxOpts = {
+            x: anchor.x + box.x, y: anchor.y - box.below, width: box.width, height: box.height,
+            rotate: degrees(cfg.text.rotation), color: rgb(boxRgb.r, boxRgb.g, boxRgb.b), opacity: cfg.text.box.opacity/100,
+          };
+          if(cfg.text.box.borderEnabled){
+            const borderRgb = hexToRgb01(cfg.text.box.borderColor);
+            boxOpts.borderColor = rgb(borderRgb.r, borderRgb.g, borderRgb.b);
+            boxOpts.borderWidth = cfg.text.box.borderThickness;
+            boxOpts.borderOpacity = cfg.text.box.opacity/100;
+          }
+          page.drawRectangle(boxOpts);
+        }
         page.drawText(text, { x:anchor.x, y:anchor.y, ...drawOpts });
       }
     }
@@ -3479,7 +3958,7 @@ async function runBatch(filesToProcess){
   // Files that were already known-unusable at intake (locked/corrupt) are
   // reported too, so the report is a complete account of the whole batch.
   state.files.filter(f=>(f.kind==='error'||f.locked) && !filesToProcess.includes(f)).forEach(f=>{
-    report.push({ name:f.name, status:'skipped', detail:f.error||'skipped', outputName:'—' });
+    report.push({ name:f.name, status:'skipped', detail:f.error||'skipped', outputName:'—', pages:0, timestamp: new Date().toISOString(), durationMs:0, stampUsed:'—' });
   });
 
   // Progress and ETA are weighted by page count, not just file count —
@@ -3489,6 +3968,7 @@ async function runBatch(filesToProcess){
   let pagesDone = 0;
   const batchStartTime = Date.now();
 
+  const presetNameForReport = document.getElementById('presetSelect').value || 'Custom';
   for(let i=0;i<filesToProcess.length;i++){
     if(state.cancelRequested) break;
     const rec = filesToProcess[i];
@@ -3500,17 +3980,25 @@ async function runBatch(filesToProcess){
       (etaMs != null ? ` · ETA ${formatDuration(etaMs)}` : '');
     await new Promise(r=>setTimeout(r,0)); // yield to the UI thread
 
+    const fileStart = Date.now();
+    const pageCount = rec.kind==='pdf' ? rec.pages : 1;
     try{
       const out = rec.kind==='pdf' ? await processPdfFile(rec, i, i+1) : await processImageFile(rec, i, i+1);
       const outName = outputFilename(rec, out.ext, i+1);
       results.push({ name: outName, bytes: out.bytes, mime: out.mime });
       rec.lastProcessed = true;
-      report.push({ name:rec.name, status:'processed', detail: rec.kind==='pdf' ? `${rec.pages} page(s)` : 'image', outputName: outName });
+      report.push({
+        name:rec.name, status:'processed', detail: rec.kind==='pdf' ? `${rec.pages} page(s)` : 'image', outputName: outName,
+        pages: pageCount, timestamp: new Date().toISOString(), durationMs: Date.now()-fileStart, stampUsed: presetNameForReport,
+      });
     } catch(err){
       console.warn('Processing failed for', rec.name, err);
       const msg = (err && err.message) ? err.message : 'processing failed';
       rec.lastError = msg;
-      report.push({ name:rec.name, status:'failed', detail: msg, outputName:'—' });
+      report.push({
+        name:rec.name, status:'failed', detail: msg, outputName:'—',
+        pages: pageCount, timestamp: new Date().toISOString(), durationMs: Date.now()-fileStart, stampUsed: presetNameForReport,
+      });
     }
     pagesDone += rec.kind==='pdf' ? rec.pages : 1;
   }
@@ -3552,9 +4040,17 @@ async function runBatch(filesToProcess){
     `<div class="summary-actions">` +
       (lastOutputFiles.length ? `<button class="btn btn-ghost btn-sm" id="saveAgainBtn" type="button">Save again</button>` : '') +
       (canShareFiles ? `<button class="btn btn-amber btn-sm" id="shareOutputBtn" type="button">Share…</button>` : '') +
-      `<button class="btn btn-ghost btn-sm" id="downloadReportBtn" type="button">Download full report (.txt)</button>` +
+      `<button class="btn btn-ghost btn-sm" id="downloadReportBtn" type="button">Report (.txt)</button>` +
+      `<button class="btn btn-ghost btn-sm" id="downloadReportCsvBtn" type="button">Report (.csv)</button>` +
+      (failedCount ? `<button class="btn btn-ghost btn-sm" id="copyDiagnosticsBtn" type="button">Copy diagnostic info</button>` : '') +
     `</div>`;
-  document.getElementById('downloadReportBtn').addEventListener('click', ()=>downloadReport(report));
+  document.getElementById('downloadReportBtn').addEventListener('click', ()=>downloadReport(report, 'txt'));
+  document.getElementById('downloadReportCsvBtn').addEventListener('click', ()=>downloadReport(report, 'csv'));
+  if(failedCount){
+    document.getElementById('copyDiagnosticsBtn').addEventListener('click', ()=>{
+      copyDiagnostics({ failedFiles: report.filter(r=>r.status==='failed').map(r=>({ detail:r.detail })) });
+    });
+  }
   if(lastOutputFiles.length){
     document.getElementById('saveAgainBtn').addEventListener('click', ()=>{
       lastOutputFiles.forEach(f=>triggerDownload(f, f.name));
@@ -3579,24 +4075,70 @@ async function runBatch(filesToProcess){
   updateProcessButtonState();
 }
 
-function downloadReport(report){
-  const now = new Date().toISOString();
+// Bundles enough context to actually be useful in a bug report,
+// without including anything from the person's documents — no file
+// content, no filenames beyond a count, and the logo image (if any)
+// is a data URL that could be large/identifying, so it's omitted too.
+async function copyDiagnostics(extraContext){
+  const diag = {
+    version: APP_VERSION,
+    timestamp: new Date().toISOString(),
+    userAgent: navigator.userAgent,
+    online: navigator.onLine,
+    theme: document.documentElement.getAttribute('data-theme') || 'light',
+    quickMode: state.quickMode,
+    filesInBatch: state.files.length,
+    config: { ...state.config, image: { ...state.config.image, dataUrl: state.config.image.dataUrl ? '[omitted]' : null } },
+    context: extraContext || undefined,
+  };
+  const text = JSON.stringify(diag, null, 2);
+  try{
+    await navigator.clipboard.writeText(text);
+    showAppAlert('Copied', 'Diagnostic information copied to clipboard — paste it into a bug report or support message.');
+  } catch(e){
+    console.log('StampIt diagnostics:\n' + text);
+    showAppAlert('Could not copy automatically', 'Your browser blocked clipboard access. The same information has been printed to the browser console (F12 → Console) instead.');
+  }
+}
+
+function downloadReport(report, format){
+  const now = new Date();
+  if(format === 'csv'){
+    const header = ['Status','Source file','Output file','Pages','Stamp used','Duration (s)','Timestamp','Detail'];
+    const rows = report.map(r=>[
+      r.status, r.name, r.outputName||'—', r.pages||0, r.stampUsed||'—',
+      ((r.durationMs||0)/1000).toFixed(2), r.timestamp||'', r.detail,
+    ]);
+    const csvEscape = v => {
+      const s = String(v ?? '');
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g,'""') + '"' : s;
+    };
+    const csv = [header, ...rows].map(row=>row.map(csvEscape).join(',')).join('\n');
+    triggerDownload(new Blob([csv], {type:'text/csv'}), 'StampIt_report.csv');
+    return;
+  }
+  const totalDuration = report.reduce((s,r)=>s+(r.durationMs||0), 0);
   const lines = [
-    `StampIt processing report — ${now}`,
-    `${report.filter(r=>r.status==='processed').length} processed, ${report.filter(r=>r.status==='failed').length} failed, ${report.filter(r=>r.status==='skipped').length} skipped`,
+    `StampIt processing report — ${now.toString()}`,
+    `${report.filter(r=>r.status==='processed').length} processed, ${report.filter(r=>r.status==='failed').length} failed, ${report.filter(r=>r.status==='skipped').length} skipped · total processing time ${formatDuration(totalDuration)}`,
     '',
-    'Status    | Source file                          | Output file                          | Detail',
-    '----------|--------------------------------------|---------------------------------------|--------',
-    ...report.map(r=>`${r.status.padEnd(9)} | ${r.name.padEnd(36).slice(0,36)} | ${(r.outputName||'—').padEnd(37).slice(0,37)} | ${r.detail}`),
+    'Status    | Source file                          | Output file                          | Pages | Stamp            | Detail',
+    '----------|--------------------------------------|---------------------------------------|-------|------------------|--------',
+    ...report.map(r=>`${r.status.padEnd(9)} | ${r.name.padEnd(36).slice(0,36)} | ${(r.outputName||'—').padEnd(37).slice(0,37)} | ${String(r.pages||0).padEnd(5)} | ${(r.stampUsed||'—').padEnd(16).slice(0,16)} | ${r.detail}`),
   ];
   triggerDownload(new Blob([lines.join('\n')], {type:'text/plain'}), 'StampIt_report.txt');
 }
 
 function triggerDownload(blob, filename){
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  a.href = url;
   a.download = filename;
   document.body.appendChild(a); a.click(); a.remove();
+  // Revoke once the browser has had time to actually start the download —
+  // revoking immediately can cancel it in some browsers, but leaving it
+  // forever leaks memory over a long session with many batches.
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
 }
 
 /* ---------------------------------------------------------------
@@ -3680,6 +4222,79 @@ document.getElementById('dismissUpdateBtn').addEventListener('click', ()=>{
 });
 
 /* ---------------------------------------------------------------
+   STORAGE QUOTA & CLEAR CACHED DATA
+   navigator.storage.estimate() covers localStorage, IndexedDB, and
+   the service worker's Cache Storage together — there's no reliable
+   way to break the number down by which one, so this reports the
+   combined total, which is what actually matters for "am I close to
+   the limit" purposes.
+   --------------------------------------------------------------- */
+async function refreshStorageUsageDisplay(){
+  const el = document.getElementById('storageUsageText');
+  if(!(navigator.storage && navigator.storage.estimate)){
+    el.textContent = 'Storage usage reporting isn\'t available in this browser.';
+    return;
+  }
+  try{
+    const { usage, quota } = await navigator.storage.estimate();
+    if(!quota){ el.textContent = 'Storage usage reporting returned no data.'; return; }
+    const pct = Math.round((usage/quota)*100);
+    el.textContent = `Using ${fmtBytes(usage)} of ${fmtBytes(quota)} available (${pct}%).`;
+    if(pct >= 80) el.textContent += ' Getting close to the limit — consider deleting unused projects or presets.';
+  } catch(e){
+    el.textContent = 'Could not read storage usage.';
+  }
+}
+// Call before any save that could plausibly fail from quota exhaustion
+// (projects hold full file bytes, so they're the most likely culprit),
+// so the warning appears BEFORE the save attempt, not just after.
+async function warnIfStorageNearlyFull(){
+  if(!(navigator.storage && navigator.storage.estimate)) return false;
+  try{
+    const { usage, quota } = await navigator.storage.estimate();
+    if(quota && (usage/quota) >= 0.9){
+      await showAppAlert('Storage almost full', `This browser has used ${fmtBytes(usage)} of ${fmtBytes(quota)} available. Saving may fail — consider deleting an old project first.`);
+      return true;
+    }
+  } catch(e){ /* ignore — non-critical */ }
+  return false;
+}
+
+document.getElementById('copyDiagnosticsGeneralBtn').addEventListener('click', ()=>copyDiagnostics());
+document.getElementById('clearCacheBtn').addEventListener('click', async ()=>{
+  const ok = await showAppConfirm(
+    'Clear all cached app data?',
+    'This removes every preset, project, Job Profile, and Stamp Library entry, your remembered settings, and the offline cache from this device. It cannot be undone. Files currently loaded in this session are not affected until you reload.',
+    'Clear everything', true
+  );
+  if(!ok) return;
+  try{
+    localStorage.removeItem(AUTOSAVE_KEY);
+    localStorage.removeItem('stampit_presets');
+    localStorage.removeItem(THEME_KEY);
+    localStorage.removeItem(QUICK_MODE_KEY);
+    localStorage.removeItem(JOB_PROFILES_KEY);
+    localStorage.removeItem(STAMP_LIBRARY_KEY);
+  } catch(e){ console.warn('localStorage clear failed', e); }
+  try{
+    const db = await openProjectDB();
+    await new Promise((resolve,reject)=>{
+      const tx = db.transaction(PROJECT_STORE, 'readwrite');
+      tx.objectStore(PROJECT_STORE).clear();
+      tx.oncomplete = resolve; tx.onerror = reject;
+    });
+  } catch(e){ console.warn('IndexedDB clear failed', e); }
+  try{
+    if('caches' in window){
+      const names = await caches.keys();
+      await Promise.all(names.map(n=>caches.delete(n)));
+    }
+  } catch(e){ console.warn('Cache Storage clear failed', e); }
+  await showAppAlert('Cleared', 'Cached app data has been removed. Reloading now.');
+  location.reload();
+});
+
+/* ---------------------------------------------------------------
    9. DARK MODE
    Preference is stored separately from watermark settings (it's a
    UI preference, not part of what gets exported into a preset).
@@ -3722,6 +4337,10 @@ function isTypingContext(el){
   const tag = el.tagName;
   return tag==='INPUT' || tag==='TEXTAREA' || tag==='SELECT' || el.isContentEditable;
 }
+function anyModalOpen(){
+  return document.getElementById('appModalBackdrop').style.display === 'flex' ||
+    document.getElementById('processSummaryBackdrop').style.display === 'flex';
+}
 function adjustZoom(delta){
   const el = document.getElementById('zoomSlider');
   el.value = Math.min(200, Math.max(50, Number(el.value)+delta));
@@ -3729,6 +4348,15 @@ function adjustZoom(delta){
 }
 document.addEventListener('keydown', e=>{
   if(isTypingContext(document.activeElement)) return;
+  if(e.key === 'Escape'){
+    // appModalBackdrop closes itself via its own capture-phase listener
+    // (registered in openAppModal) and calls stopPropagation, so this
+    // only ever actually runs for the process-summary modal or cancel.
+    if(document.getElementById('processSummaryBackdrop').style.display === 'flex'){ closeProcessSummary(); return; }
+    if(state.processing){ document.getElementById('cancelBtn').click(); return; }
+    return;
+  }
+  if(anyModalOpen()) return; // block every other shortcut while a dialog has focus
   // Undo/redo is the one standard exception to "never hijack Ctrl/Cmd" —
   // there's no conflicting page-level browser action for it, and it's
   // the convention everyone already expects.
@@ -3748,10 +4376,6 @@ document.addEventListener('keydown', e=>{
   switch(key){
     case 'p': case 'P':
       document.getElementById('processBtn').click(); e.preventDefault(); break;
-    case 'Escape':
-      if(document.getElementById('processSummaryBackdrop').style.display === 'flex'){ closeProcessSummary(); }
-      else if(state.processing) document.getElementById('cancelBtn').click();
-      break;
     case 't': case 'T':
       document.querySelector('.mode-switch [data-mode="text"]').click(); break;
     case 'l': case 'L':
@@ -3866,6 +4490,7 @@ function applyQuickStep(){
   document.querySelector('.mode-switch').classList.toggle('qhidden', !isWatermarkStep);
   document.getElementById('textFieldset').classList.toggle('qhidden', !isWatermarkStep);
   document.getElementById('imageFieldset').classList.toggle('qhidden', !isWatermarkStep);
+  document.getElementById('stampLibraryField').classList.toggle('qhidden', !isWatermarkStep);
 
   // Position/Pages/Output steps: show exactly one tab-panel, matching
   // what that tab already contains in Advanced Mode — no duplicated markup.
@@ -3888,8 +4513,10 @@ function applyQuickStep(){
   window.scrollTo({ top:0, behavior:'smooth' });
 }
 
+const QUICK_MODE_KEY = 'stampit_quick_mode';
 function setQuickMode(on){
   state.quickMode = on;
+  try{ localStorage.setItem(QUICK_MODE_KEY, String(on)); }catch(e){ /* storage unavailable — just won't be remembered */ }
   document.body.classList.toggle('quick-mode', on);
   document.getElementById('quickStepsNav').style.display = on ? 'flex' : 'none';
   const toggleBtn = document.getElementById('quickModeToggle');
@@ -3917,12 +4544,14 @@ document.querySelectorAll('.quick-step-btn').forEach(btn=>{
 /* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v2.1.0';
+const APP_VERSION = 'v2.1.2';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
 refreshProjectSelect();
 renderJobProfileCards();
+renderStampBuiltinChips();
+refreshStampLibrarySelect();
 // Recursively fills in any fields missing from a saved config (e.g.
 // added in a later version) using the current defaults, one level of
 // nesting at a time, instead of a shallow Object.assign that would
@@ -3954,6 +4583,15 @@ updateProcessButtonState();
 setToggle();
 applyMobileStep();
 initOfflineCaching();
+refreshStorageUsageDisplay();
+(function initQuickModeDefault(){
+  let stored = null;
+  try{ stored = localStorage.getItem(QUICK_MODE_KEY); }catch(e){ /* ignore */ }
+  // No stored preference yet = first-ever visit on this device — Quick
+  // Mode is the recommended default. A returning visitor's explicit
+  // choice (either way) is always respected over this default.
+  setQuickMode(stored === null ? true : stored === 'true');
+})();
 window.addEventListener('error', e=>{
   console.error('StampIt error:', e.error||e.message);
 });
