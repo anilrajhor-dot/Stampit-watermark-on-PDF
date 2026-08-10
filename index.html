@@ -1548,8 +1548,8 @@ const clearAllBtn = document.getElementById('clearAllBtn');
 const ACCEPTED_EXT = ['pdf','jpg','jpeg','png','webp'];
 const MAX_SIZE = 100*1024*1024; // 100 MB
 
-document.getElementById('browseBtn').onclick = ()=>fileInput.click();
-document.getElementById('browseFolderBtn').onclick = ()=>folderInput.click();
+document.getElementById('browseBtn').onclick = e => { e.stopPropagation(); fileInput.click(); };
+document.getElementById('browseFolderBtn').onclick = e => { e.stopPropagation(); folderInput.click(); };
 fileInput.onchange = e => ingestFiles(Array.from(e.target.files)).then(()=>{fileInput.value='';});
 folderInput.onchange = e => ingestFiles(Array.from(e.target.files)).then(()=>{folderInput.value='';});
 
