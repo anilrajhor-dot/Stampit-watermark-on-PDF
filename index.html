@@ -133,6 +133,22 @@ button:focus-visible, .cell:focus-visible, .chip:focus-visible{outline-offset:1p
 }
 .theme-toggle:hover{background:var(--cream);}
 .theme-toggle svg{width:18px;height:18px;}
+
+.connectivity-pill{
+  font-size:11.5px;font-weight:700;padding:5px 10px;border-radius:999px;background:var(--cream);
+  border:1px solid var(--line);color:var(--muted);white-space:nowrap;
+}
+.connectivity-pill.online{background:#EAF7EE;color:#1F7A3D;border-color:#CDEAD3;}
+.connectivity-pill.offline{background:var(--rust-soft-bg);color:var(--rust-dark);border-color:var(--rust-soft-border);}
+.connectivity-pill.ready{background:#E7F3FF;color:#1D5DA8;border-color:#C6E1FA;}
+html[data-theme="dark"] .connectivity-pill.online{background:#16241A;color:#7FE3A0;border-color:#2B4A34;}
+html[data-theme="dark"] .connectivity-pill.ready{background:#122334;color:#8FC4FA;border-color:#254361;}
+
+.update-banner{
+  display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap;
+  background:var(--charcoal);color:var(--cream);padding:8px 14px;font-size:12.5px;
+}
+.update-banner .btn{padding:5px 12px;font-size:11.5px;}
 /* ---------- Layout ---------- */
 .app{
   display:grid;
@@ -175,6 +191,46 @@ button:focus-visible, .cell:focus-visible, .chip:focus-visible{outline-offset:1p
 @media (min-width: 1181px) and (max-width: 1400px){
   .app{grid-template-columns: 260px 1fr 320px;}
 }
+
+/* ---------- Quick Mode ---------- */
+.quick-mode-toggle{
+  padding:6px 13px;border-radius:999px;border:1px solid var(--amber-dark);background:var(--amber);
+  color:var(--charcoal);font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;
+}
+.quick-mode-toggle.advanced-active{background:var(--white);border-color:var(--line);color:var(--text);}
+.quick-steps{
+  display:flex;gap:6px;padding:10px 14px;background:var(--white);border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:40;overflow-x:auto;-webkit-overflow-scrolling:touch;
+}
+.quick-step-btn{
+  flex:1;padding:9px 4px;border-radius:8px;border:1px solid var(--line);background:var(--cream);
+  color:var(--muted);font-weight:700;font-size:11px;white-space:nowrap;cursor:pointer;min-height:38px;
+}
+.quick-step-btn.active{background:var(--charcoal);color:var(--amber);border-color:var(--charcoal);}
+/* Applies at ANY screen width, unlike the mobile-only step system above
+   — Quick Mode always shows exactly one step, full width, everywhere. */
+body.quick-mode #filesPanel, body.quick-mode #previewPanel, body.quick-mode #settingsPanel{display:none;}
+body.quick-mode #filesPanel.step-active, body.quick-mode #previewPanel.step-active, body.quick-mode #settingsPanel.step-active{display:block;}
+body.quick-mode .app{grid-template-columns:1fr;max-width:720px;}
+body.quick-mode .qhidden{display:none !important;}
+body.quick-mode .mobile-steps, body.quick-mode .mobile-sticky-bar{display:none !important;}
+.quick-only{display:none;}
+body.quick-mode .quick-only{display:block;}
+
+.job-profiles-header{margin-bottom:8px;}
+.job-profile-cards{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.job-profile-card{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--white);
+  cursor:pointer;text-align:left;
+}
+.job-profile-card:hover{background:var(--cream);border-color:var(--amber-dark);}
+.job-profile-card .jp-name{font-size:12.5px;font-weight:700;color:var(--text);}
+.job-profile-card .jp-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.job-profile-card .jp-delete{
+  background:none;border:none;color:var(--rust);font-size:14px;cursor:pointer;padding:4px;flex-shrink:0;
+}
+.job-profile-save-row{margin-top:10px;}
 
 .panel{
   background:var(--white);
@@ -237,6 +293,16 @@ button:focus-visible, .cell:focus-visible, .chip:focus-visible{outline-offset:1p
 .file-select{width:16px;height:16px;flex-shrink:0;accent-color:var(--amber);cursor:pointer;}
 .file-select-spacer{width:16px;flex-shrink:0;}
 .select-row{display:flex;gap:6px;margin-top:8px;}
+.file-search-row{display:flex;gap:6px;margin-top:10px;}
+.file-search-row input[type=search]{
+  flex:1.4;padding:7px 9px;border-radius:8px;border:1px solid var(--line);background:var(--white);
+  color:var(--text);min-width:0;
+}
+.file-search-row select{
+  flex:1;padding:7px 6px;border-radius:8px;border:1px solid var(--line);background:var(--white);
+  color:var(--text);font-size:12px;min-width:0;
+}
+.no-results{padding:16px;text-align:center;color:var(--muted);font-size:12.5px;}
 .select-row .btn{flex:1;}
 .tag-failed{font-size:10px;background:var(--rust);color:#fff;padding:2px 6px;border-radius:5px;font-weight:700;}
 .tag-done{font-size:10px;background:#3ECF6F;color:#04240F;padding:2px 6px;border-radius:5px;font-weight:700;}
@@ -377,6 +443,33 @@ fieldset[disabled] {opacity:0.45;}
 }
 .preflight-banner ul{margin:6px 0 0 18px;padding:0;}
 
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(14,14,16,0.55);z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+.modal-card{
+  background:var(--white);border-radius:var(--radius);box-shadow:0 20px 60px rgba(0,0,0,0.3);
+  max-width:480px;width:100%;max-height:85vh;overflow-y:auto;padding:22px;
+}
+.modal-card h3{margin:0 0 14px 0;font-family:'Poppins',sans-serif;font-size:17px;color:var(--text);}
+.modal-actions{display:flex;gap:8px;margin-top:18px;}
+.modal-actions .btn{flex:1;padding:11px;}
+.summary-modal-row{font-size:13px;color:var(--text);margin-bottom:8px;}
+.summary-file-list{
+  margin:0 0 14px 0;padding:8px 10px;list-style:none;background:var(--cream);border-radius:8px;
+  font-size:11.5px;color:var(--muted);max-height:110px;overflow-y:auto;
+}
+.summary-file-list li{padding:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.summary-modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;font-size:12.5px;color:var(--text);}
+.summary-label{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--muted);margin-bottom:2px;}
+.summary-modal-warnings{
+  margin-top:12px;padding:9px 11px;border-radius:8px;background:#FFF3D2;color:#6b5205;font-size:12px;
+}
+html[data-theme="dark"] .summary-modal-warnings{background:#332711;color:#F0D27A;}
+@media (max-width:480px){
+  .summary-modal-grid{grid-template-columns:1fr;}
+}
+
 /* ---------- Misc ---------- */
 .divider{height:1px;background:var(--line);margin:14px 0;}
 .token-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;}
@@ -437,14 +530,25 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.0.0</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.1.0</span></div>
   <div class="topbar-right">
+    <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
+    <span class="connectivity-pill" id="connectivityStatus" title="Connection status">🟢 Online</span>
     <div class="privacy-badge"><span class="dot"></span> 🔒 Your documents are processed locally in your browser</div>
     <button class="theme-toggle" id="themeToggle" type="button" title="Toggle dark mode (D)" aria-label="Toggle dark mode">
       <svg id="themeIconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round"/></svg>
       <svg id="themeIconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
     </button>
   </div>
+</div>
+
+<!-- Shown only when the offline cache has actually been updated after
+     this page was already loaded (not on the very first activation),
+     so a refresh picks up the newest cached library versions. -->
+<div class="update-banner" id="updateBanner" style="display:none;">
+  <span>✨ StampIt's offline files were updated.</span>
+  <button class="btn btn-amber btn-sm" id="reloadForUpdateBtn">Reload now</button>
+  <button class="btn btn-ghost btn-sm" id="dismissUpdateBtn">Later</button>
 </div>
 
 <!-- Step nav is only visible on narrow/stacked layouts (mobile & tablet) -->
@@ -454,11 +558,35 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
   <button class="mobile-step-btn" data-step="3" role="tab" aria-selected="false">3 · Preview &amp; Process</button>
 </div>
 
+<!-- Quick Mode's own step nav — visible at any screen size while Quick
+     Mode is on, replacing the tabbed Advanced interface with a linear
+     Select Files → Watermark → Position → Pages → Output → Process flow. -->
+<div class="quick-steps" id="quickStepsNav" role="tablist" aria-label="Quick Mode steps" style="display:none;">
+  <button class="quick-step-btn active" data-qstep="1" role="tab" aria-selected="true">1 Files</button>
+  <button class="quick-step-btn" data-qstep="2" role="tab" aria-selected="false">2 Watermark</button>
+  <button class="quick-step-btn" data-qstep="3" role="tab" aria-selected="false">3 Position</button>
+  <button class="quick-step-btn" data-qstep="4" role="tab" aria-selected="false">4 Pages</button>
+  <button class="quick-step-btn" data-qstep="5" role="tab" aria-selected="false">5 Output</button>
+  <button class="quick-step-btn" data-qstep="6" role="tab" aria-selected="false">6 Process</button>
+</div>
+
 <div class="app">
 
   <!-- ============ LEFT PANEL: FILE INTAKE ============ -->
   <div class="panel" id="filesPanel">
     <h2>Files</h2>
+
+    <!-- Job Profiles: complete, named/described recurring-job configs
+         for Quick Mode — distinct from the lightweight Presets dropdown
+         in Advanced Mode. Same underlying config shape, own storage,
+         own card-based picker so a common job is one tap to start. -->
+    <div class="quick-only" id="jobProfilesSection">
+      <div class="job-profiles-header">
+        <label>Job Profile <span class="hint" style="font-weight:400;">(optional starting point)</span></label>
+      </div>
+      <div class="job-profile-cards" id="jobProfileCards"></div>
+    </div>
+
     <div class="dropzone" id="dropzone">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 16V4m0 0L7 9m5-5l5 5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <p><strong>Drag &amp; drop</strong> PDFs or images here</p>
@@ -472,10 +600,22 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
     <input type="file" id="folderInput" class="hidden-input" multiple webkitdirectory directory>
 
     <div class="file-totals" id="fileTotals">0 files · 0 pages · 0 MB</div>
+    <div class="file-search-row" id="fileSearchRow" style="display:none;">
+      <input type="search" id="fileSearchInput" placeholder="Search files…" aria-label="Search files">
+      <select id="fileSortSelect" aria-label="Sort files">
+        <option value="manual">Manual order</option>
+        <option value="name-asc">Name A–Z</option>
+        <option value="name-desc">Name Z–A</option>
+        <option value="size-desc">Largest first</option>
+        <option value="size-asc">Smallest first</option>
+        <option value="pages-desc">Most pages first</option>
+      </select>
+    </div>
     <div class="select-row">
       <button class="btn btn-ghost btn-sm" id="selectAllBtn" style="display:none;">Select all</button>
       <button class="btn btn-ghost btn-sm" id="deselectAllBtn" style="display:none;">Deselect all</button>
     </div>
+    <button class="btn btn-rust btn-block btn-sm" id="removeSelectedBtn" style="margin-bottom:8px;display:none;">Remove selected</button>
     <div class="file-list" id="fileList"></div>
     <button class="btn btn-ghost btn-block btn-sm" id="clearAllBtn" style="margin-top:10px;display:none;">Clear all</button>
     <button class="btn btn-rust btn-block btn-sm" id="retryFailedBtn" style="margin-top:6px;display:none;">Retry failed files</button>
@@ -512,7 +652,11 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         <canvas id="overlayCanvas"></canvas>
       </div>
     </div>
-    <p class="hint" id="dragHint" style="text-align:center;margin-top:6px;">🖐 Drag the amber ⊕ handle on the preview to reposition — only while placement isn't tiled.</p>
+    <p class="hint" id="dragHint" style="text-align:center;margin-top:6px;">🖐 Drag a ⊕ handle on the preview to reposition (amber = text, blue = independent logo) — only while placement isn't tiled. Snaps to centre and margin lines.</p>
+
+    <div class="job-profile-save-row quick-only">
+      <button class="btn btn-ghost btn-block btn-sm" id="saveJobProfileBtn" type="button">💾 Save this setup as a Job Profile</button>
+    </div>
 
     <div class="process-bar-wrap">
       <div id="preflightBanner" class="preflight-banner" style="display:none;" role="alert"></div>
@@ -528,45 +672,47 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
   <!-- ============ RIGHT PANEL: SETTINGS ============ -->
   <div class="panel" id="settingsPanel">
-    <div class="settings-header">
-      <h2 style="margin:0;">Watermark settings</h2>
-      <div class="undo-redo">
-        <button class="btn btn-ghost btn-sm" id="undoBtn" disabled title="Undo (Ctrl+Z)" aria-label="Undo last settings change">↶</button>
-        <button class="btn btn-ghost btn-sm" id="redoBtn" disabled title="Redo (Ctrl+Shift+Z)" aria-label="Redo settings change">↷</button>
+    <div id="advancedSettingsHeader">
+      <div class="settings-header">
+        <h2 style="margin:0;">Watermark settings</h2>
+        <div class="undo-redo">
+          <button class="btn btn-ghost btn-sm" id="undoBtn" disabled title="Undo (Ctrl+Z)" aria-label="Undo last settings change">↶</button>
+          <button class="btn btn-ghost btn-sm" id="redoBtn" disabled title="Redo (Ctrl+Shift+Z)" aria-label="Redo settings change">↷</button>
+        </div>
       </div>
-    </div>
 
-    <div class="field">
-      <label>Preset</label>
-      <select id="presetSelect"></select>
-      <div class="preset-actions">
-        <button class="btn btn-ghost btn-sm" id="savePresetBtn">Save as new</button>
-        <button class="btn btn-ghost btn-sm" id="renamePresetBtn">Rename</button>
-        <button class="btn btn-ghost btn-sm" id="duplicatePresetBtn">Duplicate</button>
-        <button class="btn btn-rust btn-sm" id="deletePresetBtn">Delete</button>
+      <div class="field">
+        <label>Preset</label>
+        <select id="presetSelect"></select>
+        <div class="preset-actions">
+          <button class="btn btn-ghost btn-sm" id="savePresetBtn">Save as new</button>
+          <button class="btn btn-ghost btn-sm" id="renamePresetBtn">Rename</button>
+          <button class="btn btn-ghost btn-sm" id="duplicatePresetBtn">Duplicate</button>
+          <button class="btn btn-rust btn-sm" id="deletePresetBtn">Delete</button>
+        </div>
+        <div class="preset-actions" style="margin-top:6px;">
+          <button class="btn btn-ghost btn-sm" id="exportPresetBtn">Export JSON</button>
+          <button class="btn btn-ghost btn-sm" id="importPresetBtn">Import JSON</button>
+          <input type="file" id="importPresetInput" class="hidden-input" accept=".json">
+        </div>
+        <div class="preset-actions" style="margin-top:6px;">
+          <button class="btn btn-rust btn-sm" id="resetSettingsBtn">Reset to defaults</button>
+        </div>
       </div>
-      <div class="preset-actions" style="margin-top:6px;">
-        <button class="btn btn-ghost btn-sm" id="exportPresetBtn">Export JSON</button>
-        <button class="btn btn-ghost btn-sm" id="importPresetBtn">Import JSON</button>
-        <input type="file" id="importPresetInput" class="hidden-input" accept=".json">
-      </div>
-      <div class="preset-actions" style="margin-top:6px;">
-        <button class="btn btn-rust btn-sm" id="resetSettingsBtn">Reset to defaults</button>
-      </div>
-    </div>
 
-    <div class="field">
-      <label for="projectSelect">Project <span class="hint" style="font-weight:400;">(settings + files, saved on this device)</span></label>
-      <select id="projectSelect"><option value="">No saved projects</option></select>
-      <div class="preset-actions">
-        <button class="btn btn-ghost btn-sm" id="saveProjectBtn">Save current as project</button>
-        <button class="btn btn-ghost btn-sm" id="loadProjectBtn">Load</button>
-        <button class="btn btn-rust btn-sm" id="deleteProjectBtn">Delete</button>
+      <div class="field">
+        <label for="projectSelect">Project <span class="hint" style="font-weight:400;">(settings + files, saved on this device)</span></label>
+        <select id="projectSelect"><option value="">No saved projects</option></select>
+        <div class="preset-actions">
+          <button class="btn btn-ghost btn-sm" id="saveProjectBtn">Save current as project</button>
+          <button class="btn btn-ghost btn-sm" id="loadProjectBtn">Load</button>
+          <button class="btn btn-rust btn-sm" id="deleteProjectBtn">Delete</button>
+        </div>
+        <div id="projectStatus" class="hint" style="margin-top:4px;"></div>
       </div>
-      <div id="projectStatus" class="hint" style="margin-top:4px;"></div>
-    </div>
 
-    <div class="divider"></div>
+      <div class="divider"></div>
+    </div>
 
     <div class="mode-switch">
       <button class="toggle-btn active" data-mode="text">Text</button>
@@ -712,6 +858,34 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         </div>
         <div class="hint">Multiply blends the watermark into the page content beneath it for a more natural look. It does not physically move the watermark under the text — true under-content placement isn't possible without rewriting the PDF's existing content.</div>
       </div>
+
+      <div class="field" id="independentLogoField" style="display:none;">
+        <div class="checkbox-row" style="margin-bottom:8px;">
+          <input type="checkbox" id="independentLogo"><label for="independentLogo">Position logo independently of text</label>
+        </div>
+        <div id="logoPlacementControls" style="display:none;">
+          <div class="field">
+            <label for="logoPosition">Logo position</label>
+            <select id="logoPosition">
+              <option value="top-left">Top left</option>
+              <option value="top-center">Top centre</option>
+              <option value="top-right">Top right</option>
+              <option value="middle-left">Middle left</option>
+              <option value="center">Centre</option>
+              <option value="middle-right">Middle right</option>
+              <option value="bottom-left">Bottom left</option>
+              <option value="bottom-center">Bottom centre</option>
+              <option value="bottom-right" selected>Bottom right</option>
+            </select>
+          </div>
+          <div class="row-2">
+            <div class="field"><label for="logoOffsetX">Logo X offset (pt)</label><input type="number" id="logoOffsetX" value="0" min="-2000" max="2000"></div>
+            <div class="field"><label for="logoOffsetY">Logo Y offset (pt)</label><input type="number" id="logoOffsetY" value="0" min="-2000" max="2000"></div>
+          </div>
+          <div class="field"><label for="logoMarginEdge">Logo margin from edge (pt)</label><input type="number" id="logoMarginEdge" value="36" min="0" max="500"></div>
+          <div class="hint">Drag either handle directly on the live preview — amber for text, blue for logo. Both snap to centre and to the margin line while dragging.</div>
+        </div>
+      </div>
     </div>
 
     <!-- PAGES TAB -->
@@ -825,12 +999,19 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
     <!-- OUTPUT TAB -->
     <div class="tab-panel" data-tabpanel="output">
       <div class="field">
-        <label>Filename prefix</label>
+        <label for="outPrefix">Filename prefix</label>
         <input type="text" id="outPrefix" value="WM_">
       </div>
       <div class="field">
-        <label>Filename suffix</label>
+        <label for="outSuffix">Filename suffix</label>
         <input type="text" id="outSuffix" value="">
+      </div>
+      <div class="token-row">
+        <span class="token-chip" data-fntoken="{filename}">{filename}</span>
+        <span class="token-chip" data-fntoken="{date}">{date}</span>
+        <span class="token-chip" data-fntoken="{time}">{time}</span>
+        <span class="token-chip" data-fntoken="{n}">{n}</span>
+        <span class="token-chip" data-fntoken="{preset}">{preset}</span>
       </div>
       <div class="output-example" id="outExample">WM_report.pdf</div>
 
@@ -871,7 +1052,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>Placement &amp; tiling</h4>
-        <p>Click a cell on the 9-point grid for a single placement, or turn on <strong>Tile / repeat</strong> to cover the whole page in a repeating pattern (with an optional brick-style stagger). When placement isn't tiled, drag the amber ⊕ handle directly on the live preview to nudge the X/Y offset — it updates the same numeric fields as typing would, so the two are always in sync. In Combined mode, the handle follows the text; use the offset number fields directly to fine-tune the logo's position. Font size, logo scale, and rotation are set with the sliders or their number fields, not by dragging.</p>
+        <p>Click a cell on the 9-point grid for a single placement, or turn on <strong>Tile / repeat</strong> to cover the whole page in a repeating pattern (with an optional brick-style stagger). When placement isn't tiled, drag the amber ⊕ handle directly on the live preview to nudge the X/Y offset — it updates the same numeric fields as typing would, so the two are always in sync, and it snaps to page-centre and the margin line as you get close. In Combined mode, text and logo share the same placement by default; tick <strong>Position logo independently</strong> (Placement tab) to give the logo its own position, offsets, and margin, and its own blue handle on the preview — both handles can be dragged at once. Font size, logo scale, and rotation are set with the sliders or their number fields, not by dragging.</p>
       </div>
 
       <div class="help-section">
@@ -931,12 +1112,27 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         <p>Uncheck a file to exclude it from the batch without removing it — the Process button always shows exactly how many files it will run on. If any file fails during processing, a <strong>Retry failed files</strong> button appears so you can fix your settings and re-run just those, instead of the whole batch. Every run also offers a downloadable text report listing the outcome of each file.</p>
       </div>
 
+      <div class="help-section">
+        <h4>Save again &amp; Share</h4>
+        <p>Output downloads automatically once processing finishes. If you need it again — a download got blocked, or you closed it by mistake — <strong>Save again</strong> re-triggers the same download. On a phone or any browser that supports it, a <strong>Share…</strong> button also appears, handing the actual output file(s) straight to your device's native share sheet (Mail, WhatsApp, Files, AirDrop, and so on) instead of only saving to Downloads.</p>
+      </div>
+
       <div class="divider"></div>
 
       <div class="help-section">
         <h4>Privacy &amp; offline use</h4>
-        <p>🔒 <strong>Your documents are processed locally in your browser</strong> — files are never uploaded anywhere, on any visit, cached or not. StampIt does load its libraries (pdf-lib, pdf.js, JSZip) and Indian-language fonts from public CDNs, so the very first visit needs an internet connection. If <code>sw.js</code> was deployed alongside this file, those libraries and fonts get cached on-device after that, so later visits — even offline — can load and run without internet. This never applies to your documents, only to the app's own code.</p>
+        <p>🔒 <strong>Your documents are processed locally in your browser</strong> — files are never uploaded anywhere, on any visit, cached or not. StampIt does load its libraries (pdf-lib, pdf.js, JSZip) and Indian-language fonts from public CDNs, so the very first visit needs an internet connection. If <code>sw.js</code> was deployed alongside this file, those libraries and fonts get cached on-device after that, so later visits — even offline — can load and run without internet. This never applies to your documents, only to the app's own code. The pill in the top-right corner shows your current state: <strong>🟢 Online</strong>, <strong>✅ Offline Ready</strong> (cached and good to go without internet), or <strong>🔴 Offline</strong> (no connection right now).</p>
         <p id="offlineStatus" class="hint" style="margin-top:6px;">Offline caching: checking…</p>
+      </div>
+
+      <div class="help-section">
+        <h4>Quick Mode</h4>
+        <p>Toggle <strong>⚡ Quick Mode</strong> (top-right) for a streamlined Files → Watermark → Position → Pages → Output → Process flow — the same settings and same underlying configuration as Advanced Mode, just shown one step at a time with the less-common controls (Extras, Help, presets/projects, independent logo positioning) tucked away. Switch back to <strong>🛠 Advanced Mode</strong> any time; nothing you've set is lost either way. <strong>Job Profiles</strong> on the Files step are complete, named starting points for recurring jobs (distinct from the Presets dropdown in Advanced Mode) — save your current setup as one from the Process step.</p>
+      </div>
+
+      <div class="help-section">
+        <h4>What's new in v2.1.0</h4>
+        <p>Quick Mode with Job Profiles · independent drag-and-drop positioning for text and logo in Combined mode, with snap-to-centre/margin · filename tokens ({filename}, {date}, {time}, {n}, {preset}) · file search, sort, and Remove Selected · a pre-processing summary with explicit confirmation before anything runs · a real Online/Offline/Offline Ready indicator with update detection · elapsed time and ETA during processing · Save again and Share buttons for output. All v2.0 and v1.0 features continue to work exactly as before.</p>
       </div>
 
       <div class="help-section">
@@ -946,7 +1142,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.0.0</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.1.0</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
       </div>
     </div>
 
@@ -957,6 +1153,19 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
      so processing is never more than one tap away. -->
 <div class="mobile-sticky-bar" id="mobileStickyBar">
   <button class="btn btn-amber btn-block" id="mobileProcessBtn" style="padding:12px;font-size:14px;" disabled>Process &amp; Download</button>
+</div>
+
+<!-- Pre-processing summary — shown after pre-flight validation passes,
+     before anything actually runs, so nothing is processed by surprise. -->
+<div class="modal-backdrop" id="processSummaryBackdrop" style="display:none;">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="summaryModalTitle">
+    <h3 id="summaryModalTitle">Ready to process</h3>
+    <div id="processSummaryBody"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="summaryCancelBtn">Cancel</button>
+      <button class="btn btn-amber" id="summaryConfirmBtn">Confirm &amp; Process</button>
+    </div>
+  </div>
 </div>
 
 <script id="app-script">
@@ -983,6 +1192,12 @@ const state = {
   previewMode: 'after', // 'before' | 'after'
   processing: false,
   cancelRequested: false,
+  fileSearchQuery: '',
+  fileSortMode: 'manual', // display-only — never reorders the real batch/Bates order
+  dragHandle: null,      // text/logo's shared handle (amber)
+  dragHandleLogo: null,  // logo's own handle when independently positioned (blue)
+  quickMode: false,
+  quickStep: 1,
 };
 
 function defaultConfig(){
@@ -1003,6 +1218,15 @@ function defaultConfig(){
       tile: false, tileH: 150, tileV: 150, stagger: false,
       offsetX: 0, offsetY: 0, margin: 36,
       layer: 'above',
+      independentLogo: false, // Combined mode only — see logoPlacement below
+    },
+    // Only used when placement.independentLogo is true (Combined mode).
+    // Kept as a fully separate object — rather than repurposing
+    // `placement` — specifically so older saved presets/projects that
+    // predate this feature simply never populate it and fall back to
+    // the original shared-placement behaviour untouched.
+    logoPlacement: {
+      position: 'bottom-right', offsetX: 0, offsetY: 0, margin: 36,
     },
     pageTarget: { mode: 'all', customRange: '' },
     extras: {
@@ -1024,6 +1248,16 @@ function fmtBytes(bytes){
   if(bytes < 1024) return bytes+' B';
   if(bytes < 1024*1024) return (bytes/1024).toFixed(1)+' KB';
   return (bytes/(1024*1024)).toFixed(1)+' MB';
+}
+
+// Formats a millisecond duration as "0:45" or "1:20" (m:ss), or "2:05:10"
+// (h:mm:ss) for anything over an hour — used for elapsed time and ETA.
+function formatDuration(ms){
+  if(ms == null || isNaN(ms) || ms < 0) return '—';
+  const totalSec = Math.round(ms/1000);
+  const h = Math.floor(totalSec/3600), m = Math.floor((totalSec%3600)/60), s = totalSec%60;
+  if(h>0) return `${h}:${pad(m,2)}:${pad(s,2)}`;
+  return `${m}:${pad(s,2)}`;
 }
 
 function pad(n,w){ return String(n).padStart(w,'0'); }
@@ -1354,6 +1588,27 @@ clearAllBtn.onclick = ()=>{
 };
 document.getElementById('selectAllBtn').addEventListener('click', ()=>setAllSelected(true));
 document.getElementById('deselectAllBtn').addEventListener('click', ()=>setAllSelected(false));
+document.getElementById('fileSearchInput').addEventListener('input', debounce(e=>{
+  state.fileSearchQuery = e.target.value;
+  renderFileList();
+}, 150));
+document.getElementById('fileSortSelect').addEventListener('change', e=>{
+  state.fileSortMode = e.target.value;
+  renderFileList();
+});
+document.getElementById('removeSelectedBtn').addEventListener('click', ()=>{
+  const selected = state.files.filter(f=>f.selected && f.kind!=='error' && !f.locked);
+  if(!selected.length) return;
+  if(!confirm(`Remove ${selected.length} selected file${selected.length!==1?'s':''} from the batch?`)) return;
+  const removedIds = new Set(selected.map(f=>f.id));
+  state.files = state.files.filter(f=>!removedIds.has(f.id));
+  if(state.previewFileId && removedIds.has(state.previewFileId)){
+    state.previewFileId = state.files.length ? state.files[0].id : null;
+  }
+  renderFileList();
+  updatePreviewFileOptions();
+  renderPreview();
+});
 
 function renderFileList(){
   const emptyEl = document.getElementById('previewEmpty');
@@ -1363,40 +1618,77 @@ function renderFileList(){
     clearAllBtn.style.display = 'none';
     document.getElementById('selectAllBtn').style.display = 'none';
     document.getElementById('deselectAllBtn').style.display = 'none';
+    document.getElementById('removeSelectedBtn').style.display = 'none';
+    document.getElementById('fileSearchRow').style.display = 'none';
     return;
   }
   clearAllBtn.style.display = 'block';
   document.getElementById('selectAllBtn').style.display = 'inline-flex';
   document.getElementById('deselectAllBtn').style.display = 'inline-flex';
+  document.getElementById('fileSearchRow').style.display = state.files.length>3 ? 'flex' : 'none';
+
   let totalPages = 0, totalSize = 0, count = 0, selectedCount = 0;
-  fileListEl.innerHTML = state.files.map((f,idx)=>{
-    const usable = f.kind!=='error' && !f.locked;
-    if(usable){ totalPages += f.pages; totalSize += f.size; count++; if(f.selected) selectedCount++; }
-    const thumb = f.thumb ? `<img class="file-thumb" src="${f.thumb}">` : `<div class="file-thumb"></div>`;
-    const sub = f.kind==='error' ? f.error :
-      f.locked ? 'Locked — skipped' :
-      f.lastError ? `⚠ ${f.lastError}` :
-      f.kind==='pdf' ? `${f.pages} page${f.pages!==1?'s':''} · ${fmtBytes(f.size)}` :
-      `Image · ${fmtBytes(f.size)}`;
-    const isFirst = idx===0, isLast = idx===state.files.length-1;
-    const statusTag = f.locked||f.kind==='error' ? '<span class="tag-locked">SKIPPED</span>'
-      : f.lastError ? '<span class="tag-failed">FAILED</span>'
-      : f.lastProcessed ? '<span class="tag-done">DONE</span>' : '';
-    return `<div class="file-card ${f.locked||f.kind==='error'?'locked':''} ${f.lastError?'failed':''}">
-      ${usable ? `<input type="checkbox" class="file-select" ${f.selected?'checked':''} onchange="toggleFileSelected('${f.id}', this.checked)" aria-label="Include ${escapeHtml(f.name)} in batch">` : `<span class="file-select-spacer"></span>`}
-      <div class="file-reorder">
-        <button class="reorder-btn" ${isFirst?'disabled':''} onclick="moveFile('${f.id}',-1)" title="Move up" aria-label="Move ${escapeHtml(f.name)} up">▲</button>
-        <button class="reorder-btn" ${isLast?'disabled':''} onclick="moveFile('${f.id}',1)" title="Move down" aria-label="Move ${escapeHtml(f.name)} down">▼</button>
-      </div>
-      ${thumb}
-      <div class="file-meta">
-        <div class="fname">${escapeHtml(f.name)}</div>
-        <div class="fsub">${sub}</div>
-      </div>
-      ${statusTag}
-      <button class="file-remove" onclick="removeFile('${f.id}')" title="Remove" aria-label="Remove ${escapeHtml(f.name)}">✕</button>
-    </div>`;
-  }).join('');
+  state.files.forEach(f=>{
+    if(f.kind!=='error' && !f.locked){ totalPages += f.pages; totalSize += f.size; count++; if(f.selected) selectedCount++; }
+  });
+  document.getElementById('removeSelectedBtn').style.display = selectedCount>0 ? 'block' : 'none';
+  document.getElementById('removeSelectedBtn').textContent = `Remove selected (${selectedCount})`;
+
+  // Search + sort are purely a DISPLAY concern — state.files itself is
+  // never reordered by this, since file order is what Bates numbering
+  // depends on. Only the ▲▼ arrows change the real processing order;
+  // they're hidden here whenever a non-manual sort is active, since
+  // dragging position in a sorted view wouldn't mean what it looks like.
+  const query = (state.fileSearchQuery||'').trim().toLowerCase();
+  const sortMode = state.fileSortMode || 'manual';
+  let displayList = state.files.map((f,idx)=>({ f, trueIdx: idx }));
+  if(query) displayList = displayList.filter(({f})=>f.name.toLowerCase().includes(query));
+  if(sortMode !== 'manual'){
+    const cmp = {
+      'name-asc': (a,b)=>a.f.name.localeCompare(b.f.name),
+      'name-desc': (a,b)=>b.f.name.localeCompare(a.f.name),
+      'size-desc': (a,b)=>b.f.size-a.f.size,
+      'size-asc': (a,b)=>a.f.size-b.f.size,
+      'pages-desc': (a,b)=>(b.f.pages||0)-(a.f.pages||0),
+    }[sortMode];
+    if(cmp) displayList.sort(cmp);
+  }
+
+  if(!displayList.length){
+    fileListEl.innerHTML = `<div class="no-results">No files match “${escapeHtml(state.fileSearchQuery)}”.</div>`;
+  } else {
+    fileListEl.innerHTML = displayList.map(({f, trueIdx})=>{
+      const usable = f.kind!=='error' && !f.locked;
+      const thumb = f.thumb ? `<img class="file-thumb" src="${f.thumb}">` : `<div class="file-thumb"></div>`;
+      const sub = f.kind==='error' ? f.error :
+        f.locked ? 'Locked — skipped' :
+        f.lastError ? `⚠ ${f.lastError}` :
+        f.kind==='pdf' ? `${f.pages} page${f.pages!==1?'s':''} · ${fmtBytes(f.size)}` :
+        `Image · ${fmtBytes(f.size)}`;
+      const isFirst = trueIdx===0, isLast = trueIdx===state.files.length-1;
+      const statusTag = f.locked||f.kind==='error' ? '<span class="tag-locked">SKIPPED</span>'
+        : f.lastError ? '<span class="tag-failed">FAILED</span>'
+        : f.lastProcessed ? '<span class="tag-done">DONE</span>' : '';
+      const reorderHtml = sortMode==='manual'
+        ? `<div class="file-reorder">
+            <button class="reorder-btn" ${isFirst?'disabled':''} onclick="moveFile('${f.id}',-1)" title="Move up" aria-label="Move ${escapeHtml(f.name)} up">▲</button>
+            <button class="reorder-btn" ${isLast?'disabled':''} onclick="moveFile('${f.id}',1)" title="Move down" aria-label="Move ${escapeHtml(f.name)} down">▼</button>
+          </div>`
+        : `<span class="file-select-spacer"></span>`;
+      return `<div class="file-card ${f.locked||f.kind==='error'?'locked':''} ${f.lastError?'failed':''}">
+        ${usable ? `<input type="checkbox" class="file-select" ${f.selected?'checked':''} onchange="toggleFileSelected('${f.id}', this.checked)" aria-label="Include ${escapeHtml(f.name)} in batch">` : `<span class="file-select-spacer"></span>`}
+        ${reorderHtml}
+        ${thumb}
+        <div class="file-meta">
+          <div class="fname">${escapeHtml(f.name)}</div>
+          <div class="fsub">${sub}</div>
+        </div>
+        ${statusTag}
+        <button class="file-remove" onclick="removeFile('${f.id}')" title="Remove" aria-label="Remove ${escapeHtml(f.name)}">✕</button>
+      </div>`;
+    }).join('');
+  }
+
   fileTotalsEl.textContent = `${selectedCount}/${count} selected · ${totalPages} page${totalPages!==1?'s':''} · ${fmtBytes(totalSize)}`;
   if(count>1){
     fileTotalsEl.textContent += ' · order affects Bates numbering';
@@ -1588,6 +1880,7 @@ document.querySelectorAll('.mode-switch [data-mode]').forEach(btn=>{
     state.config.mode = btn.dataset.mode;
     document.getElementById('textFieldset').disabled = (state.config.mode === 'image');
     document.getElementById('imageFieldset').disabled = (state.config.mode === 'text');
+    document.getElementById('independentLogoField').style.display = (state.config.mode === 'combined') ? 'block' : 'none';
     scheduleRender();
   });
 });
@@ -1756,6 +2049,16 @@ document.getElementById('tileStagger').addEventListener('change', e=>{ state.con
 document.getElementById('offsetX').addEventListener('input', e=>{ state.config.placement.offsetX = Math.min(2000, Math.max(-2000, Number(e.target.value)||0)); scheduleRender(); });
 document.getElementById('offsetY').addEventListener('input', e=>{ state.config.placement.offsetY = Math.min(2000, Math.max(-2000, Number(e.target.value)||0)); scheduleRender(); });
 document.getElementById('marginEdge').addEventListener('input', e=>{ state.config.placement.margin = Math.min(500, Math.max(0, Number(e.target.value)||0)); scheduleRender(); });
+
+document.getElementById('independentLogo').addEventListener('change', e=>{
+  state.config.placement.independentLogo = e.target.checked;
+  document.getElementById('logoPlacementControls').style.display = e.target.checked ? 'block' : 'none';
+  scheduleRender();
+});
+document.getElementById('logoPosition').addEventListener('change', e=>{ state.config.logoPlacement.position = e.target.value; scheduleRender(); });
+document.getElementById('logoOffsetX').addEventListener('input', e=>{ state.config.logoPlacement.offsetX = Math.min(2000, Math.max(-2000, Number(e.target.value)||0)); scheduleRender(); });
+document.getElementById('logoOffsetY').addEventListener('input', e=>{ state.config.logoPlacement.offsetY = Math.min(2000, Math.max(-2000, Number(e.target.value)||0)); scheduleRender(); });
+document.getElementById('logoMarginEdge').addEventListener('input', e=>{ state.config.logoPlacement.margin = Math.min(500, Math.max(0, Number(e.target.value)||0)); scheduleRender(); });
 document.querySelectorAll('[data-layer]').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('[data-layer]').forEach(b=>b.classList.remove('active'));
@@ -1807,15 +2110,64 @@ document.getElementById('borderColor').addEventListener('input', e=>{ state.conf
 document.getElementById('borderThickness').addEventListener('input', e=>{ state.config.extras.border.thickness = Number(e.target.value)||1; scheduleRender(); });
 
 // ---- Output ----
+// Shared by both the live "example" preview and the real export, so
+// they can never show something different from what actually gets
+// written to disk. {filename} is optional — if neither prefix nor
+// suffix reference it, the original base name is inserted between
+// them automatically (this preserves exact v1/v2 behaviour for
+// anyone who never touches the new tokens).
+function buildOutputFilename(baseName, ext, batchN){
+  const cfg = state.config.output;
+  const presetName = (document.getElementById('presetSelect').value || 'custom')
+    .replace(/[^a-z0-9_\- ]/gi, '').trim() || 'custom';
+  const ctx = {
+    filename: baseName,
+    date: todayStr().replace(/\//g, '-'),
+    time: nowTimeStr().replace(/:/g, ''),
+    n: pad(batchN || 1, 3),
+    preset: presetName,
+  };
+  const replaceFilenameTokens = str => (str || '')
+    .replace(/\{filename\}/gi, ctx.filename)
+    .replace(/\{date\}/gi, ctx.date)
+    .replace(/\{time\}/gi, ctx.time)
+    .replace(/\{n\}/gi, ctx.n)
+    .replace(/\{preset\}/gi, ctx.preset);
+
+  const prefix = replaceFilenameTokens(cfg.prefix);
+  const suffix = replaceFilenameTokens(cfg.suffix);
+  const usesFilenameToken = /\{filename\}/i.test((cfg.prefix||'') + (cfg.suffix||''));
+  const middle = usesFilenameToken ? '' : baseName;
+  // Strip characters that are unsafe in filenames on Windows/macOS/iOS,
+  // since this file may get shared or synced across platforms.
+  const safeName = `${prefix}${middle}${suffix}`.replace(/[\\/:*?"<>|]/g, '_').trim() || 'output';
+  return `${safeName}.${ext}`;
+}
+
 function updateOutputExample(){
   const cfg = state.config.output;
-  const sample = state.files.find(f=>f.kind!=='error') ;
+  const sample = state.files.find(f=>f.kind!=='error');
   const base = sample ? sample.name.replace(/\.[^.]+$/,'') : 'report';
   const ext = sample && sample.kind==='image' ? (cfg.imageFormat==='png'?'png':'jpg') : 'pdf';
-  document.getElementById('outExample').textContent = `${cfg.prefix}${base}${cfg.suffix}.${ext}`;
+  document.getElementById('outExample').textContent = buildOutputFilename(base, ext, 1);
 }
 document.getElementById('outPrefix').addEventListener('input', e=>{ state.config.output.prefix = e.target.value; updateOutputExample(); });
 document.getElementById('outSuffix').addEventListener('input', e=>{ state.config.output.suffix = e.target.value; updateOutputExample(); });
+let lastFocusedOutputField = 'outSuffix';
+document.getElementById('outPrefix').addEventListener('focus', ()=>{ lastFocusedOutputField = 'outPrefix'; });
+document.getElementById('outSuffix').addEventListener('focus', ()=>{ lastFocusedOutputField = 'outSuffix'; });
+document.querySelectorAll('[data-fntoken]').forEach(chip=>{
+  chip.addEventListener('click', ()=>{
+    const field = document.getElementById(lastFocusedOutputField);
+    const start = field.selectionStart ?? field.value.length;
+    const end = field.selectionEnd ?? field.value.length;
+    field.value = field.value.slice(0,start) + chip.dataset.fntoken + field.value.slice(end);
+    field.focus();
+    state.config.output[lastFocusedOutputField==='outPrefix' ? 'prefix' : 'suffix'] = field.value;
+    updateOutputExample();
+    scheduleRender();
+  });
+});
 document.getElementById('downloadMode').addEventListener('change', e=>{ state.config.output.downloadMode = e.target.value; });
 document.getElementById('imageFormat').addEventListener('change', e=>{
   state.config.output.imageFormat = e.target.value;
@@ -1974,7 +2326,7 @@ async function renderPreview(){
   } else {
     state.dragHandle = null;
   }
-  document.getElementById('dragHint').style.display = state.dragHandle ? 'block' : 'none';
+  document.getElementById('dragHint').style.display = (state.dragHandle || state.dragHandleLogo) ? 'block' : 'none';
 }
 
 // Sums the page counts (1 per image) of every usable, selected file
@@ -2013,28 +2365,51 @@ function redrawOverlayOnly(){
 
 /* ---------------------------------------------------------------
    DRAG-TO-REPOSITION
-   Grab the amber handle on the live preview and drag to nudge the
-   watermark's X/Y offset directly — updates the same offsetX/offsetY
-   number fields as typing would, so it's just another way to set the
-   exact same values, not a separate code path. Only available for a
-   single (non-tiled) placement — tiling has no one target to grab —
-   and only tracks whichever of text/logo is actually visible (text
-   takes priority in Combined mode).
+   Grab a handle on the live preview and drag to nudge X/Y offset
+   directly — updates the same offsetX/offsetY number fields as
+   typing would, so it's just another way to set the exact same
+   values, not a separate code path. Only available for a single
+   (non-tiled) placement. Normally there's one amber handle (text
+   takes priority in Combined mode); turning on "Position logo
+   independently" adds a second blue handle for the logo, and each
+   can be dragged on its own. Both snap to page-centre and to the
+   configured margin line while dragging.
    --------------------------------------------------------------- */
+const SNAP_PX = 10; // canvas-pixel distance within which a drag snaps to a guide
 let dragState = null;
 function canvasPointFromEvent(e){
   const rect = overlayCanvas.getBoundingClientRect();
   const scaleX = overlayCanvas.width / rect.width, scaleY = overlayCanvas.height / rect.height;
   return { x: (e.clientX-rect.left)*scaleX, y: (e.clientY-rect.top)*scaleY };
 }
+// Snaps a tentative offset so the anchor point lands exactly on page-
+// centre or the margin line when the drag comes within SNAP_PX of it.
+function snapOffset(offsetXpt, offsetYpt, placementCfg, pageW, pageH, pxPerPt){
+  const base = computeAnchor(pageW, pageH, 0, 0, { ...placementCfg, offsetX:0, offsetY:0 });
+  let x = base.x + offsetXpt, y = base.y + offsetYpt;
+  const thresholdPt = SNAP_PX / pxPerPt;
+  const targetsX = [pageW/2, placementCfg.margin, pageW-placementCfg.margin];
+  const targetsY = [pageH/2, placementCfg.margin, pageH-placementCfg.margin];
+  for(const t of targetsX){ if(Math.abs(x-t) < thresholdPt){ x = t; break; } }
+  for(const t of targetsY){ if(Math.abs(y-t) < thresholdPt){ y = t; break; } }
+  return { offsetX: x-base.x, offsetY: y-base.y };
+}
 overlayCanvas.addEventListener('pointerdown', e=>{
-  if(!state.dragHandle || state.config.placement.tile) return;
+  if(state.config.placement.tile) return;
   const p = canvasPointFromEvent(e);
-  const dist = Math.hypot(p.x-state.dragHandle.x, p.y-state.dragHandle.y);
-  if(dist > 28) return; // must grab reasonably close to the handle itself
+  // Grab whichever handle is closer, if both are present and in range.
+  const candidates = [];
+  if(state.dragHandle) candidates.push({ target:'text', dist: Math.hypot(p.x-state.dragHandle.x, p.y-state.dragHandle.y) });
+  if(state.dragHandleLogo) candidates.push({ target:'logo', dist: Math.hypot(p.x-state.dragHandleLogo.x, p.y-state.dragHandleLogo.y) });
+  candidates.sort((a,b)=>a.dist-b.dist);
+  const pick = candidates[0];
+  if(!pick || pick.dist > 28) return; // must grab reasonably close to a handle
+
+  const placementCfg = pick.target==='logo' ? state.config.logoPlacement : state.config.placement;
   dragState = {
+    target: pick.target,
     startX: p.x, startY: p.y,
-    startOffsetX: state.config.placement.offsetX, startOffsetY: state.config.placement.offsetY,
+    startOffsetX: placementCfg.offsetX, startOffsetY: placementCfg.offsetY,
   };
   overlayCanvas.setPointerCapture(e.pointerId);
   overlayCanvas.classList.add('dragging');
@@ -2043,14 +2418,24 @@ overlayCanvas.addEventListener('pointerdown', e=>{
 overlayCanvas.addEventListener('pointermove', e=>{
   if(!dragState || !state.previewMeta) return;
   const p = canvasPointFromEvent(e);
-  const deltaXpt = (p.x - dragState.startX) / state.previewMeta.pxPerPt;
-  const deltaYpt = (p.y - dragState.startY) / state.previewMeta.pxPerPt; // canvas Y grows down
-  const newOffsetX = Math.min(2000, Math.max(-2000, dragState.startOffsetX + deltaXpt));
-  const newOffsetY = Math.min(2000, Math.max(-2000, dragState.startOffsetY - deltaYpt)); // PDF Y grows up, so invert
-  state.config.placement.offsetX = newOffsetX;
-  state.config.placement.offsetY = newOffsetY;
-  document.getElementById('offsetX').value = Math.round(newOffsetX);
-  document.getElementById('offsetY').value = Math.round(newOffsetY);
+  const { pageW, pageH, pxPerPt } = state.previewMeta;
+  const deltaXpt = (p.x - dragState.startX) / pxPerPt;
+  const deltaYpt = (p.y - dragState.startY) / pxPerPt; // canvas Y grows down
+  let newOffsetX = Math.min(2000, Math.max(-2000, dragState.startOffsetX + deltaXpt));
+  let newOffsetY = Math.min(2000, Math.max(-2000, dragState.startOffsetY - deltaYpt)); // PDF Y grows up, so invert
+
+  const placementCfg = dragState.target==='logo' ? state.config.logoPlacement : state.config.placement;
+  const snapped = snapOffset(newOffsetX, newOffsetY, placementCfg, pageW, pageH, pxPerPt);
+  placementCfg.offsetX = snapped.offsetX;
+  placementCfg.offsetY = snapped.offsetY;
+
+  if(dragState.target==='logo'){
+    document.getElementById('logoOffsetX').value = Math.round(snapped.offsetX);
+    document.getElementById('logoOffsetY').value = Math.round(snapped.offsetY);
+  } else {
+    document.getElementById('offsetX').value = Math.round(snapped.offsetX);
+    document.getElementById('offsetY').value = Math.round(snapped.offsetY);
+  }
   redrawOverlayOnly();
   e.preventDefault();
 });
@@ -2077,7 +2462,7 @@ function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, 
   const toPx = v => v*pxPerPt;
   const flip = y => (pageH - y) * pxPerPt;
   let handleClaimed = false;
-  if(drawHandle) state.dragHandle = null; // recomputed below during preview only; never touched during export
+  if(drawHandle){ state.dragHandle = null; state.dragHandleLogo = null; } // recomputed below during preview only; never touched during export
 
   ctx.save();
 
@@ -2126,6 +2511,8 @@ function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, 
 
   // ---- Logo watermark ----
   if((cfg.mode === 'image' || cfg.mode === 'combined') && cfg.image.dataUrl && previewLogoImg){
+    const logoIndependent = cfg.placement.independentLogo && cfg.mode === 'combined';
+    const logoPlacementCfg = logoIndependent ? cfg.logoPlacement : cfg.placement;
     const logoWpt = pageW * (cfg.image.scale/100);
     const logoHpt = cfg.image.keepAspect
       ? logoWpt * (cfg.image.naturalH/cfg.image.naturalW)   // locked — derive height from the image's own ratio
@@ -2144,11 +2531,17 @@ function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, 
     if(cfg.placement.tile){
       computeTileOrigins(pageW, pageH, cfg.placement.tileH, cfg.placement.tileV, cfg.placement.stagger).forEach(o=>drawOne(o.x, o.y));
     } else {
-      const anchor = computeAnchor(pageW, pageH, logoWpt, logoHpt, cfg.placement);
+      const anchor = computeAnchor(pageW, pageH, logoWpt, logoHpt, logoPlacementCfg);
       drawOne(anchor.x, anchor.y);
-      if(drawHandle && !handleClaimed){
-        state.dragHandle = { x: toPx(anchor.x), y: flip(anchor.y), target:'logo' };
-        handleClaimed = true;
+      if(drawHandle){
+        if(logoIndependent){
+          // Independent positioning: logo always gets its own handle,
+          // shown alongside text's — they no longer compete for one.
+          state.dragHandleLogo = { x: toPx(anchor.x), y: flip(anchor.y), target:'logo' };
+        } else if(!handleClaimed){
+          state.dragHandle = { x: toPx(anchor.x), y: flip(anchor.y), target:'logo' };
+          handleClaimed = true;
+        }
       }
     }
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
@@ -2159,23 +2552,26 @@ function drawWatermarkOnCanvas(ctx, pageW, pageH, pxPerPt, tokenCtx, canvasPxW, 
 
   ctx.restore();
 
-  // ---- Drag handle (interactive, not part of the exported output) ----
-  if(drawHandle && state.dragHandle){
-    const { x, y } = state.dragHandle;
-    ctx.save();
-    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-    ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI*2);
-    ctx.fillStyle = 'rgba(245,179,1,0.92)';
-    ctx.fill();
-    ctx.lineWidth = 2; ctx.strokeStyle = '#0E0E10';
-    ctx.stroke();
-    ctx.strokeStyle = '#0E0E10'; ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(x-5,y); ctx.lineTo(x+5,y);
-    ctx.moveTo(x,y-5); ctx.lineTo(x,y+5);
-    ctx.stroke();
-    ctx.restore();
-  }
+  // ---- Drag handle(s) — interactive, never part of the exported output ----
+  if(drawHandle && state.dragHandle) drawDragHandleDot(ctx, state.dragHandle, 'rgba(245,179,1,0.92)');
+  if(drawHandle && state.dragHandleLogo) drawDragHandleDot(ctx, state.dragHandleLogo, 'rgba(29,93,168,0.92)');
+}
+
+function drawDragHandleDot(ctx, handle, fillColor){
+  const { x, y } = handle;
+  ctx.save();
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI*2);
+  ctx.fillStyle = fillColor;
+  ctx.fill();
+  ctx.lineWidth = 2; ctx.strokeStyle = '#0E0E10';
+  ctx.stroke();
+  ctx.strokeStyle = '#0E0E10'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x-5,y); ctx.lineTo(x+5,y);
+  ctx.moveTo(x,y-5); ctx.lineTo(x,y+5);
+  ctx.stroke();
+  ctx.restore();
 }
 
 function fontFamilyFor(f){
@@ -2331,6 +2727,14 @@ function applyPresetToUI(cfg){
   document.getElementById('offsetY').value = state.config.placement.offsetY;
   document.getElementById('marginEdge').value = state.config.placement.margin;
   document.querySelectorAll('[data-layer]').forEach(b=>b.classList.toggle('active', b.dataset.layer===state.config.placement.layer));
+
+  document.getElementById('independentLogoField').style.display = state.config.mode==='combined' ? 'block' : 'none';
+  document.getElementById('independentLogo').checked = state.config.placement.independentLogo;
+  document.getElementById('logoPlacementControls').style.display = state.config.placement.independentLogo ? 'block' : 'none';
+  document.getElementById('logoPosition').value = state.config.logoPlacement.position;
+  document.getElementById('logoOffsetX').value = state.config.logoPlacement.offsetX;
+  document.getElementById('logoOffsetY').value = state.config.logoPlacement.offsetY;
+  document.getElementById('logoMarginEdge').value = state.config.logoPlacement.margin;
 
   document.getElementById('pageTargetMode').value = state.config.pageTarget.mode;
   document.getElementById('customRangeField').style.display = state.config.pageTarget.mode==='custom'?'block':'none';
@@ -2606,6 +3010,91 @@ document.getElementById('deleteProjectBtn').addEventListener('click', async ()=>
 });
 
 /* ---------------------------------------------------------------
+   6c. JOB PROFILES (Quick Mode)
+   A Job Profile is a complete, named-and-described configuration for
+   a recurring job — e.g. "NBFC Statement Bates Stamp". It's the same
+   underlying shape as a Preset (state.config), but stored separately
+   under its own key with a description, and presented as tappable
+   cards rather than a dropdown, since Quick Mode is meant to be a
+   one-tap starting point rather than something you configure from
+   scratch each time. Ships with a few starter profiles.
+   --------------------------------------------------------------- */
+const JOB_PROFILES_KEY = 'stampit_job_profiles';
+const BUILTIN_JOB_PROFILES = [
+  {
+    name: 'Confidential — Diagonal',
+    description: 'Classic diagonal CONFIDENTIAL stamp for internal documents.',
+    builtin: true,
+    config: (()=>{ const c = defaultConfig();
+      c.text.value='CONFIDENTIAL'; c.text.rotation=45; c.text.opacity=20; c.text.size=54;
+      return c; })(),
+  },
+  {
+    name: 'Draft Copy — Tiled',
+    description: 'Repeating DRAFT pattern with today\'s date, for circulation copies.',
+    builtin: true,
+    config: (()=>{ const c = defaultConfig();
+      c.text.value='DRAFT — {date}'; c.text.rotation=45; c.text.opacity=15; c.text.size=64;
+      c.placement.tile=true; c.placement.tileH=220; c.placement.tileV=220; c.placement.stagger=true;
+      return c; })(),
+  },
+  {
+    name: 'Bates-Numbered Audit Set',
+    description: 'Bottom-right Bates numbering (ABC-000001…) for legal/audit batches.',
+    builtin: true,
+    config: (()=>{ const c = defaultConfig();
+      c.text.value=''; c.text.opacity=0;
+      c.extras.bates.enabled=true; c.extras.bates.prefix='ABC-'; c.extras.bates.digits=6;
+      return c; })(),
+  },
+];
+
+function loadJobProfiles(){
+  try{ return JSON.parse(localStorage.getItem(JOB_PROFILES_KEY)||'[]'); }catch(e){ return []; }
+}
+function saveJobProfiles(list){
+  localStorage.setItem(JOB_PROFILES_KEY, JSON.stringify(list));
+}
+function renderJobProfileCards(){
+  const container = document.getElementById('jobProfileCards');
+  const all = [...BUILTIN_JOB_PROFILES, ...loadJobProfiles()];
+  if(!all.length){ container.innerHTML = '<p class="hint">No job profiles yet — configure a job, then save it from the Process step.</p>'; return; }
+  container.innerHTML = all.map((p,i)=>`
+    <div class="job-profile-card" onclick="loadJobProfile(${i})">
+      <div>
+        <div class="jp-name">${escapeHtml(p.name)}</div>
+        ${p.description ? `<div class="jp-desc">${escapeHtml(p.description)}</div>` : ''}
+      </div>
+      ${p.builtin ? '' : `<button class="jp-delete" onclick="event.stopPropagation(); deleteJobProfile(${i-BUILTIN_JOB_PROFILES.length})" title="Delete" aria-label="Delete ${escapeHtml(p.name)}">✕</button>`}
+    </div>
+  `).join('');
+}
+function loadJobProfile(index){
+  const all = [...BUILTIN_JOB_PROFILES, ...loadJobProfiles()];
+  const profile = all[index];
+  if(!profile) return;
+  applyPresetToUI(mergeConfigWithDefaults(defaultConfig(), profile.config));
+}
+function deleteJobProfile(userIndex){
+  const list = loadJobProfiles();
+  if(userIndex<0 || userIndex>=list.length) return;
+  if(!confirm(`Delete job profile "${list[userIndex].name}"?`)) return;
+  list.splice(userIndex,1);
+  saveJobProfiles(list);
+  renderJobProfileCards();
+}
+document.getElementById('saveJobProfileBtn').addEventListener('click', ()=>{
+  const name = prompt('Name this Job Profile (e.g. "Monthly NBFC Statement Stamp"):');
+  if(!name) return;
+  const description = prompt('Short description (optional):') || '';
+  const list = loadJobProfiles();
+  list.push({ name, description, builtin:false, config: state.config });
+  saveJobProfiles(list);
+  renderJobProfileCards();
+  alert(`Saved "${name}" as a Job Profile — it'll appear on the Files step next time you're in Quick Mode.`);
+});
+
+/* ---------------------------------------------------------------
    7. PROCESSING ENGINE
    Runs the whole batch sequentially, yielding to the UI thread
    between files so the tab never freezes. Text/logo placement in
@@ -2710,6 +3199,8 @@ async function stampPdfPage(doc, page, pageNum, totalPages, fonts, logoImg, toke
   }
 
   if(onTarget && (cfg.mode==='image' || cfg.mode==='combined') && logoImg){
+    const logoIndependent = cfg.placement.independentLogo && cfg.mode === 'combined';
+    const logoPlacementCfg = logoIndependent ? cfg.logoPlacement : cfg.placement;
     const logoW = pageW*(cfg.image.scale/100);
     const logoH = cfg.image.keepAspect
       ? logoW * (logoImg.height/logoImg.width)
@@ -2719,7 +3210,7 @@ async function stampPdfPage(doc, page, pageNum, totalPages, fonts, logoImg, toke
       computeTileOrigins(pageW, pageH, cfg.placement.tileH, cfg.placement.tileV, cfg.placement.stagger)
         .forEach(o=> page.drawImage(logoImg, { x:o.x, y:o.y, ...drawOpts }));
     } else {
-      const anchor = computeAnchor(pageW, pageH, logoW, logoH, cfg.placement);
+      const anchor = computeAnchor(pageW, pageH, logoW, logoH, logoPlacementCfg);
       page.drawImage(logoImg, { x:anchor.x, y:anchor.y, ...drawOpts });
     }
   }
@@ -2817,10 +3308,9 @@ async function processImageFile(rec, fileIndex, batchN){
   return { bytes, mime: format, ext: format==='image/jpeg' ? 'jpg' : 'png' };
 }
 
-function outputFilename(rec, ext){
-  const cfg = state.config.output;
+function outputFilename(rec, ext, batchN){
   const base = rec.name.replace(/\.[^.]+$/,'');
-  return `${cfg.prefix}${base}${cfg.suffix}.${ext}`;
+  return buildOutputFilename(base, ext, batchN);
 }
 
 /* ---- Process button / progress / cancel ---- */
@@ -2898,13 +3388,73 @@ function hidePreflightErrors(){
   document.getElementById('preflightBanner').style.display = 'none';
 }
 
+// Builds the human-readable "here's what's about to happen" summary
+// shown in the confirmation modal — files, pages, key settings, and
+// output format, so nothing gets processed as a surprise.
+function buildProcessSummaryHTML(usable){
+  const cfg = state.config;
+  const totalPages = usable.reduce((sum,f)=>sum+(f.kind==='pdf'?f.pages:1), 0);
+  const pdfCount = usable.filter(f=>f.kind==='pdf').length;
+  const imgCount = usable.filter(f=>f.kind==='image').length;
+  const modeLabel = { text:'Text watermark', image:'Logo watermark', combined:'Text + Logo' }[cfg.mode] || cfg.mode;
+  const extrasOn = [];
+  if(cfg.extras.pageNumber.enabled) extrasOn.push('Page numbers');
+  if(cfg.extras.header.enabled) extrasOn.push('Header');
+  if(cfg.extras.footer.enabled) extrasOn.push('Footer');
+  if(cfg.extras.dateStamp.enabled) extrasOn.push('Date stamp');
+  if(cfg.extras.bates.enabled) extrasOn.push('Bates numbering');
+  if(cfg.extras.border.enabled) extrasOn.push('Border box');
+  const pageTargetLabels = {
+    all:'All pages', first:'First page only', last:'Last page only', odd:'Odd pages',
+    even:'Even pages', exceptFirst:'All except first', custom:`Custom (${cfg.pageTarget.customRange||'—'})`,
+  };
+  const outputMode = cfg.output.downloadMode==='zip' ? 'Single .zip file' : 'Individual downloads';
+  const shown = usable.slice(0,6).map(f=>`<li>${escapeHtml(f.name)}</li>`).join('');
+  const more = usable.length>6 ? `<li>…and ${usable.length-6} more</li>` : '';
+  let watermarkDetail = modeLabel;
+  if(cfg.mode!=='image' && cfg.text.value.trim()){
+    const snippet = cfg.text.value.slice(0,30) + (cfg.text.value.length>30 ? '…' : '');
+    watermarkDetail += ` — "${escapeHtml(snippet)}"`;
+  }
+
+  return `
+    <div class="summary-modal-row"><strong>${usable.length}</strong> file${usable.length!==1?'s':''} selected (${pdfCount} PDF, ${imgCount} image) · <strong>${totalPages}</strong> total page${totalPages!==1?'s':''}</div>
+    <ul class="summary-file-list">${shown}${more}</ul>
+    <div class="summary-modal-grid">
+      <div><span class="summary-label">Watermark</span>${watermarkDetail}</div>
+      <div><span class="summary-label">Pages targeted</span>${pageTargetLabels[cfg.pageTarget.mode] || 'All pages'}</div>
+      <div><span class="summary-label">Opacity / Rotation</span>${cfg.text.opacity}% / ${cfg.text.rotation}°</div>
+      <div><span class="summary-label">Extras</span>${extrasOn.length ? extrasOn.join(', ') : 'None'}</div>
+      <div><span class="summary-label">Output</span>${outputMode}</div>
+      <div><span class="summary-label">Image format</span>${cfg.output.imageFormat.toUpperCase()}</div>
+    </div>
+  `;
+}
+
+let pendingBatch = null;
+function closeProcessSummary(){
+  document.getElementById('processSummaryBackdrop').style.display = 'none';
+  pendingBatch = null;
+}
+
 processBtn.addEventListener('click', ()=>{
   const usable = state.files.filter(f=>f.kind!=='error' && !f.locked && f.selected);
   const { errors, warnings } = runPreflightChecks(usable);
   if(errors.length){ showPreflightErrors(errors); return; }
   hidePreflightErrors();
-  if(warnings.length && !confirm(warnings.join('\n\n') + '\n\nContinue anyway?')) return;
-  runBatch(usable);
+  pendingBatch = usable;
+  document.getElementById('processSummaryBody').innerHTML = buildProcessSummaryHTML(usable) +
+    (warnings.length ? `<div class="summary-modal-warnings">${warnings.map(w=>'⚠ '+escapeHtml(w)).join('<br>')}</div>` : '');
+  document.getElementById('processSummaryBackdrop').style.display = 'flex';
+});
+document.getElementById('summaryCancelBtn').addEventListener('click', closeProcessSummary);
+document.getElementById('processSummaryBackdrop').addEventListener('click', e=>{
+  if(e.target.id === 'processSummaryBackdrop') closeProcessSummary();
+});
+document.getElementById('summaryConfirmBtn').addEventListener('click', ()=>{
+  const batch = pendingBatch;
+  closeProcessSummary();
+  if(batch) runBatch(batch);
 });
 
 document.getElementById('retryFailedBtn').addEventListener('click', ()=>{
@@ -2932,16 +3482,27 @@ async function runBatch(filesToProcess){
     report.push({ name:f.name, status:'skipped', detail:f.error||'skipped', outputName:'—' });
   });
 
+  // Progress and ETA are weighted by page count, not just file count —
+  // a 40-page PDF and a 1-page image shouldn't count as equal-sized
+  // "steps" when estimating how much longer the batch will take.
+  const totalPages = filesToProcess.reduce((s,f)=>s+(f.kind==='pdf'?f.pages:1), 0) || 1;
+  let pagesDone = 0;
+  const batchStartTime = Date.now();
+
   for(let i=0;i<filesToProcess.length;i++){
     if(state.cancelRequested) break;
     const rec = filesToProcess[i];
-    progressInner.style.width = Math.round((i/filesToProcess.length)*100)+'%';
-    progressLabel.textContent = `Processing file ${i+1} of ${filesToProcess.length} · ${rec.name}`;
+    const elapsedMs = Date.now() - batchStartTime;
+    const pctDone = pagesDone / totalPages;
+    const etaMs = pctDone > 0.02 ? (elapsedMs / pctDone) - elapsedMs : null;
+    progressInner.style.width = Math.round(pctDone*100)+'%';
+    progressLabel.textContent = `File ${i+1} of ${filesToProcess.length} · ${rec.name} · Elapsed ${formatDuration(elapsedMs)}` +
+      (etaMs != null ? ` · ETA ${formatDuration(etaMs)}` : '');
     await new Promise(r=>setTimeout(r,0)); // yield to the UI thread
 
     try{
       const out = rec.kind==='pdf' ? await processPdfFile(rec, i, i+1) : await processImageFile(rec, i, i+1);
-      const outName = outputFilename(rec, out.ext);
+      const outName = outputFilename(rec, out.ext, i+1);
       results.push({ name: outName, bytes: out.bytes, mime: out.mime });
       rec.lastProcessed = true;
       report.push({ name:rec.name, status:'processed', detail: rec.kind==='pdf' ? `${rec.pages} page(s)` : 'image', outputName: outName });
@@ -2951,18 +3512,26 @@ async function runBatch(filesToProcess){
       rec.lastError = msg;
       report.push({ name:rec.name, status:'failed', detail: msg, outputName:'—' });
     }
+    pagesDone += rec.kind==='pdf' ? rec.pages : 1;
   }
   renderFileList();
+  const totalElapsed = formatDuration(Date.now() - batchStartTime);
   progressInner.style.width='100%';
-  progressLabel.textContent = state.cancelRequested ? 'Cancelled' : 'Done';
+  progressLabel.textContent = (state.cancelRequested ? 'Cancelled' : 'Done') + ` · ${totalElapsed} total`;
 
+  let lastOutputFiles = []; // File[] — used by the Save-again and Share buttons below
   if(results.length){
     if(state.config.output.downloadMode === 'zip'){
+      progressLabel.textContent = 'Compressing into .zip…';
       const zip = new JSZip();
       results.forEach(r=>zip.file(r.name, r.bytes));
-      const blob = await zip.generateAsync({ type:'blob' });
+      const blob = await zip.generateAsync({ type:'blob' }, metadata=>{
+        progressLabel.textContent = `Compressing into .zip… ${Math.round(metadata.percent)}%`;
+      });
+      lastOutputFiles = [new File([blob], 'StampIt_output.zip', { type:'application/zip' })];
       triggerDownload(blob, 'StampIt_output.zip');
     } else {
+      lastOutputFiles = results.map(r=>new File([r.bytes], r.name, { type:r.mime }));
       for(const r of results){
         triggerDownload(new Blob([r.bytes], {type:r.mime}), r.name);
         await new Promise(res=>setTimeout(res, 250)); // avoid the browser blocking rapid-fire downloads
@@ -2970,6 +3539,7 @@ async function runBatch(filesToProcess){
     }
   }
 
+  const canShareFiles = !!(navigator.canShare && lastOutputFiles.length && navigator.canShare({ files: lastOutputFiles }));
   const failedCount = report.filter(r=>r.status==='failed').length;
   const skippedCount = report.filter(r=>r.status==='skipped').length;
   summaryBox.className = 'summary-box' + ((failedCount||skippedCount) ? ' has-skips':'');
@@ -2979,8 +3549,30 @@ async function runBatch(filesToProcess){
     (failedCount ? ` · ${failedCount} failed` : '') +
     (skippedCount ? ` · ${skippedCount} skipped` : '') +
     ((failedCount||skippedCount) ? `<ul>${report.filter(r=>r.status!=='processed').map(r=>`<li>${escapeHtml(r.name)} — ${escapeHtml(r.detail)}</li>`).join('')}</ul>` : '') +
-    `<div class="summary-actions"><button class="btn btn-ghost btn-sm" id="downloadReportBtn" type="button">Download full report (.txt)</button></div>`;
+    `<div class="summary-actions">` +
+      (lastOutputFiles.length ? `<button class="btn btn-ghost btn-sm" id="saveAgainBtn" type="button">Save again</button>` : '') +
+      (canShareFiles ? `<button class="btn btn-amber btn-sm" id="shareOutputBtn" type="button">Share…</button>` : '') +
+      `<button class="btn btn-ghost btn-sm" id="downloadReportBtn" type="button">Download full report (.txt)</button>` +
+    `</div>`;
   document.getElementById('downloadReportBtn').addEventListener('click', ()=>downloadReport(report));
+  if(lastOutputFiles.length){
+    document.getElementById('saveAgainBtn').addEventListener('click', ()=>{
+      lastOutputFiles.forEach(f=>triggerDownload(f, f.name));
+    });
+  }
+  if(canShareFiles){
+    document.getElementById('shareOutputBtn').addEventListener('click', async ()=>{
+      try{
+        await navigator.share({
+          files: lastOutputFiles,
+          title: 'StampIt output',
+          text: `${lastOutputFiles.length} watermarked file${lastOutputFiles.length!==1?'s':''} from StampIt`,
+        });
+      } catch(err){
+        if(err && err.name !== 'AbortError') console.warn('Share failed', err);
+      }
+    });
+  }
 
   state.processing = false;
   processBtn.style.display='block'; cancelBtn.style.display='none';
@@ -3008,17 +3600,52 @@ function triggerDownload(blob, filename){
 }
 
 /* ---------------------------------------------------------------
-   8b. OFFLINE CACHING (optional)
+   8b. OFFLINE CACHING & CONNECTIVITY STATUS
    Registers sw.js if it's present alongside this HTML file. This is
    entirely optional and self-healing: if sw.js hasn't been uploaded,
    or the browser doesn't support service workers, or the page is
    opened as a local file:// (which browsers block service workers
    on), this just fails quietly and StampIt works exactly as before —
    it only needs internet on every visit instead of just the first.
+
+   The topbar pill reflects three real states:
+   - 🟢 Online       — connected, but this device hasn't cached the
+                        app for offline use yet (or sw.js isn't present)
+   - ✅ Offline Ready — connected AND the service worker is actively
+                        controlling this page, so a future offline
+                        visit will still work
+   - 🔴 Offline      — no connection right now
    --------------------------------------------------------------- */
+let offlineReady = false;
+function updateConnectivityPill(){
+  const pill = document.getElementById('connectivityStatus');
+  if(!navigator.onLine){
+    pill.textContent = '🔴 Offline';
+    pill.className = 'connectivity-pill offline';
+    pill.title = 'No internet connection right now.';
+  } else if(offlineReady){
+    pill.textContent = '✅ Offline Ready';
+    pill.className = 'connectivity-pill ready';
+    pill.title = 'This device has StampIt cached — it will keep working even without internet.';
+  } else {
+    pill.textContent = '🟢 Online';
+    pill.className = 'connectivity-pill online';
+    pill.title = 'Connected. Offline caching is not yet active on this device.';
+  }
+}
+window.addEventListener('online', updateConnectivityPill);
+window.addEventListener('offline', updateConnectivityPill);
+
 function initOfflineCaching(){
+  updateConnectivityPill();
   if(!('serviceWorker' in navigator)) return;
   if(location.protocol === 'file:') return; // service workers require http(s)
+
+  // Was this page already being controlled by a service worker when it
+  // loaded? If so, any LATER controllerchange means a genuine update —
+  // not just first-time activation — and is worth telling the person about.
+  const hadControllerAtLoad = !!navigator.serviceWorker.controller;
+
   navigator.serviceWorker.register('sw.js').then(reg=>{
     document.getElementById('offlineStatus').textContent = 'Offline caching: active for this device.';
     reg.addEventListener('updatefound', ()=>{
@@ -3033,7 +3660,24 @@ function initOfflineCaching(){
     // Most likely sw.js wasn't uploaded alongside index.html — not an error, just not enabled.
     document.getElementById('offlineStatus').textContent = 'Offline caching: not enabled (sw.js not found alongside this file).';
   });
+
+  navigator.serviceWorker.ready.then(()=>{
+    offlineReady = !!navigator.serviceWorker.controller;
+    updateConnectivityPill();
+  }).catch(()=>{});
+
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    offlineReady = true;
+    updateConnectivityPill();
+    if(hadControllerAtLoad){
+      document.getElementById('updateBanner').style.display = 'flex';
+    }
+  });
 }
+document.getElementById('reloadForUpdateBtn').addEventListener('click', ()=>location.reload());
+document.getElementById('dismissUpdateBtn').addEventListener('click', ()=>{
+  document.getElementById('updateBanner').style.display = 'none';
+});
 
 /* ---------------------------------------------------------------
    9. DARK MODE
@@ -3105,7 +3749,8 @@ document.addEventListener('keydown', e=>{
     case 'p': case 'P':
       document.getElementById('processBtn').click(); e.preventDefault(); break;
     case 'Escape':
-      if(state.processing) document.getElementById('cancelBtn').click();
+      if(document.getElementById('processSummaryBackdrop').style.display === 'flex'){ closeProcessSummary(); }
+      else if(state.processing) document.getElementById('cancelBtn').click();
       break;
     case 't': case 'T':
       document.querySelector('.mode-switch [data-mode="text"]').click(); break;
@@ -3143,6 +3788,7 @@ function isMobileLayout(){
   return window.matchMedia('(max-width: 1180px)').matches;
 }
 function applyMobileStep(){
+  if(state.quickMode) return; // Quick Mode drives its own panel visibility instead
   const files = document.getElementById('filesPanel');
   const settings = document.getElementById('settingsPanel');
   const preview = document.getElementById('previewPanel');
@@ -3176,13 +3822,107 @@ document.getElementById('mobileProcessBtn').addEventListener('click', ()=>{
 window.addEventListener('resize', debounce(applyMobileStep, 150));
 
 /* ---------------------------------------------------------------
+   QUICK MODE
+   A linear Select Files → Watermark → Position → Pages → Output →
+   Process flow for common jobs, built by re-sequencing the SAME
+   underlying controls Advanced Mode uses (same element IDs, same
+   state.config) rather than a parallel UI — so nothing can drift out
+   of sync between the two, and every setting made in one mode is
+   still exactly there if you switch to the other. Advanced-only
+   surfaces (presets, projects, undo/redo, the Extras and Help tabs,
+   independent logo positioning) are hidden, not removed.
+   --------------------------------------------------------------- */
+const QUICK_STEPS = [
+  { key:'files',     label:'Files' },
+  { key:'watermark', label:'Watermark' },
+  { key:'position',  label:'Position',  tab:'placement' },
+  { key:'pages',     label:'Pages',     tab:'pages' },
+  { key:'output',    label:'Output',    tab:'output' },
+  { key:'process',   label:'Process' },
+];
+
+function applyQuickStep(){
+  if(!state.quickMode) return;
+  const step = QUICK_STEPS[state.quickStep-1];
+  const files = document.getElementById('filesPanel');
+  const settings = document.getElementById('settingsPanel');
+  const preview = document.getElementById('previewPanel');
+
+  const settingsSteps = ['watermark','position','pages','output'];
+  files.classList.toggle('step-active', step.key==='files');
+  settings.classList.toggle('step-active', settingsSteps.includes(step.key));
+  preview.classList.toggle('step-active', step.key==='process');
+
+  // Advanced-only chrome inside the settings panel — always hidden in Quick Mode.
+  document.getElementById('advancedSettingsHeader').classList.add('qhidden');
+  document.querySelector('.tabs').classList.add('qhidden');
+  document.querySelector('.tab-panel[data-tabpanel="extras"]').classList.add('qhidden');
+  document.querySelector('.tab-panel[data-tabpanel="help"]').classList.add('qhidden');
+  document.getElementById('independentLogoField').classList.add('qhidden');
+
+  // Watermark step: mode switch + text/logo fieldsets (opacity & rotation
+  // already live inside these, so they travel with this step naturally).
+  const isWatermarkStep = step.key==='watermark';
+  document.querySelector('.mode-switch').classList.toggle('qhidden', !isWatermarkStep);
+  document.getElementById('textFieldset').classList.toggle('qhidden', !isWatermarkStep);
+  document.getElementById('imageFieldset').classList.toggle('qhidden', !isWatermarkStep);
+
+  // Position/Pages/Output steps: show exactly one tab-panel, matching
+  // what that tab already contains in Advanced Mode — no duplicated markup.
+  document.querySelectorAll('.tab-panel').forEach(p=>{
+    if(p.dataset.tabpanel==='extras' || p.dataset.tabpanel==='help') return; // stays hidden regardless
+    p.classList.toggle('active', step.tab && p.dataset.tabpanel===step.tab);
+  });
+  // Keep Advanced Mode's own tab buttons in sync, so switching back to
+  // Advanced Mode never shows a tab button highlighted that doesn't
+  // match the panel actually on screen.
+  if(step.tab){
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===step.tab));
+  }
+
+  document.querySelectorAll('.quick-step-btn').forEach(b=>{
+    const isActive = Number(b.dataset.qstep)===state.quickStep;
+    b.classList.toggle('active', isActive);
+    b.setAttribute('aria-selected', String(isActive));
+  });
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function setQuickMode(on){
+  state.quickMode = on;
+  document.body.classList.toggle('quick-mode', on);
+  document.getElementById('quickStepsNav').style.display = on ? 'flex' : 'none';
+  const toggleBtn = document.getElementById('quickModeToggle');
+  toggleBtn.textContent = on ? '🛠 Advanced Mode' : '⚡ Quick Mode';
+  toggleBtn.classList.toggle('advanced-active', on);
+  if(on){
+    state.quickStep = 1;
+    applyQuickStep();
+  } else {
+    // Leaving Quick Mode: nothing to manually undo — the qhidden class
+    // only has any effect while body.quick-mode is present (see CSS),
+    // and step-active panel visibility is superseded by applyMobileStep()
+    // (desktop) or the mobile step system, both called below.
+    applyMobileStep();
+  }
+}
+document.getElementById('quickModeToggle').addEventListener('click', ()=>setQuickMode(!state.quickMode));
+document.querySelectorAll('.quick-step-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    state.quickStep = Number(btn.dataset.qstep);
+    applyQuickStep();
+  });
+});
+
+/* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v2.0.0';
+const APP_VERSION = 'v2.1.0';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
 refreshProjectSelect();
+renderJobProfileCards();
 // Recursively fills in any fields missing from a saved config (e.g.
 // added in a later version) using the current defaults, one level of
 // nesting at a time, instead of a shallow Object.assign that would
