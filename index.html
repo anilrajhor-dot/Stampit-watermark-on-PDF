@@ -562,7 +562,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.2.2</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.2.3</span></div>
   <div class="topbar-right">
     <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
     <span class="connectivity-pill" id="connectivityStatus" title="Connection status" role="status" aria-live="polite">🟢 Online</span>
@@ -752,6 +752,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
     <div class="field" id="stampLibraryField">
       <label>Stamp Library <span class="hint" style="font-weight:400;">— one-click styled stamps (text, logo, colour, position — everything but page/output settings)</span></label>
       <div class="stamp-chip-row" id="stampBuiltinChips"></div>
+      <div id="stampBuiltinCount" class="hint" style="margin-top:6px;font-weight:600;"></div>
       <select id="stampLibrarySelect"><option value="">My saved stamps…</option></select>
       <div class="hint" id="stampLibraryCount" style="margin-top:5px;">My saved stamps: 0 / 100</div>
       <div class="preset-actions">
@@ -1050,19 +1051,20 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
             </select>
           </div>
         </div>
-        <div class="row-2" style="margin-top:8px;">
-          <div class="field"><label>When</label>
-            <select id="dateSource">
-              <option value="current">Current date &amp; time</option>
-              <option value="picked">Pick date &amp; time</option>
-            </select>
+        <div class="row-3" style="margin-top:8px;">
+          <div class="field">
+            <label for="datePicker">📅 Date</label>
+            <input type="date" id="datePicker" aria-label="Pick stamp date">
           </div>
-          <div class="field" id="dateValueField" style="display:none;">
-            <label for="dateValue">Select date &amp; time</label>
-            <input type="datetime-local" id="dateValue" step="60" aria-label="Select date and time">
+          <div class="field">
+            <label for="timePicker">🕒 Time</label>
+            <input type="time" id="timePicker" step="60" aria-label="Pick stamp time">
+          </div>
+          <div class="field" style="display:flex;align-items:end;">
+            <button type="button" class="btn btn-ghost btn-sm" id="useCurrentDateTimeBtn" style="width:100%;">Now</button>
           </div>
         </div>
-        <div class="hint" style="margin-top:5px;">Use the calendar/clock picker to stamp a specific date and time, or leave it on Current date &amp; time.</div>
+        <div class="hint" style="margin-top:5px;">Pick a real date from the calendar and time from the clock. Tap <strong>Now</strong> to use the current date and time.</div>
       </fieldset>
 
       <fieldset>
@@ -1173,7 +1175,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>Stamp Library</h4>
-        <p>A <strong>stamp</strong> is narrower than a preset — it's just the mark itself: text or logo, colour, opacity, rotation, and position. Applying a stamp leaves your page targeting, extras, and output settings exactly as they were, so switching from "DRAFT" to "APPROVED" mid-job never resets your Bates numbering. Eleven built-in stamps are always available as one-click chips; save your own from the current text/logo styling with <strong>Save current as stamp</strong>. In short: <strong>Stamp</strong> = the mark, <strong>Preset</strong> = all watermark settings, <strong>Job Profile</strong> = a complete named job for Quick Mode, <strong>Project</strong> = settings plus your actual files.</p>
+        <p>A <strong>stamp</strong> is narrower than a preset — it's just the mark itself: text or logo, colour, opacity, rotation, and position. Applying a stamp leaves your page targeting, extras, and output settings exactly as they were, so switching from "DRAFT" to "APPROVED" mid-job never resets your Bates numbering. 100 built-in stamps are always available as one-click chips; save your own from the current text/logo styling with <strong>Save current as stamp</strong>. In short: <strong>Stamp</strong> = the mark, <strong>Preset</strong> = all watermark settings, <strong>Job Profile</strong> = a complete named job for Quick Mode, <strong>Project</strong> = settings plus your actual files.</p>
       </div>
 
       <div class="help-section">
@@ -1245,6 +1247,11 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </div>
 
       <div class="help-section">
+        <h4>What's new in v2.2.3</h4>
+        <p>Expanded the Stamp Library to 100 built-in one-click stamps plus up to 100 user-saved stamps. Added a native calendar date picker, native clock/time picker, and a Now button for the device's local date and time. The selected date/time is used by the {date} and {time} watermark tokens. File name is optional: leave it blank to retain the original file name, with optional prefix/suffix controls still available.</p>
+      </div>
+
+      <div class="help-section">
         <h4>What's new in v2.2.2 — audit &amp; fix pass</h4>
         <p>A full control-by-control audit, tracing each one from UI event through to actual output rather than just reading the code. Found and fixed real bugs: clicking "Browse files" or "Browse folder" was also triggering the dropzone's own click handler underneath it, capable of opening a second file picker; switching Extras or Help tab → Quick Mode → back to Advanced Mode could leave two settings tabs simultaneously visible, stacked on top of each other; the background-box opacity slider was the one control in the app missing its paired precise-entry number field; the "🔒 documents processed locally" badge and two other components used a colour pairing that made their text nearly illegible in dark mode (fixed with a proper theme-invariant token, not a one-off patch); Job Profile cards were unfocusable clickable `&lt;div&gt;`s rather than real buttons, unreachable by keyboard or screen reader — the same category of bug already fixed once before for the 9-point placement grid; the six Extras checkboxes (page numbering, header, footer, date, Bates, border) had their labels as plain adjacent text rather than a proper associated `&lt;label&gt;`, so clicking the text didn't toggle them; and several newer controls (Stamp Library chips, the Quick/Advanced toggle, Job Profile buttons) were missing from touch-target sizing on phones/tablets. Also added WebP as a genuine output format (previously PNG/JPG only, despite input already accepting WebP), with an automatic fallback to PNG on browsers that can decode WebP but not encode it. No existing feature was removed or altered in behaviour.</p>
       </div>
@@ -1256,7 +1263,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>What's new in v2.1.1</h4>
-        <p>Quick Mode is now the default for first-time visitors (Advanced Mode remains one tap away, and your choice is remembered). Added the <strong>Stamp Library</strong> — eleven built-in one-click stamps (CONFIDENTIAL, DRAFT, APPROVED, REJECTED, and more) plus your own saved stamps, scoped to just the mark itself so applying one never resets your page range or Bates numbering. Replaced every browser alert/confirm/prompt with a consistent in-app dialog. Processing reports now include timestamps, per-file duration, and which stamp was used, with a CSV export alongside the text report. Added duplicate-file detection on upload. Fixed a memory leak where every download left an unreleased blob URL behind, and fixed a gap where an imported preset file could bypass validation entirely. This is a partial step toward the full v2.2 upgrade list — Stamp Library styling extras (background box, shadow, corner radius), the enhanced side-by-side preview, and Web Worker–based processing are still in progress.</p>
+        <p>Quick Mode is now the default for first-time visitors (Advanced Mode remains one tap away, and your choice is remembered). Added the <strong>Stamp Library</strong> — 100 built-in one-click stamps (CONFIDENTIAL, DRAFT, APPROVED, REJECTED, and many more) plus your own saved stamps, scoped to just the mark itself so applying one never resets your page range or Bates numbering. Replaced every browser alert/confirm/prompt with a consistent in-app dialog. Processing reports now include timestamps, per-file duration, and which stamp was used, with a CSV export alongside the text report. Added duplicate-file detection on upload. Fixed a memory leak where every download left an unreleased blob URL behind, and fixed a gap where an imported preset file could bypass validation entirely. This is a partial step toward the full v2.2 upgrade list — Stamp Library styling extras (background box, shadow, corner radius), the enhanced side-by-side preview, and Web Worker–based processing are still in progress.</p>
       </div>
 
       <div class="help-section">
@@ -1271,7 +1278,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.2.2</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.2.3</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
         <button class="btn btn-ghost btn-sm" id="copyDiagnosticsGeneralBtn" type="button" style="margin-top:6px;">Copy diagnostic info</button>
         <p class="hint" style="margin-top:4px;">Useful when reporting a bug — copies your app version, browser, and current settings (never your document content or filenames) for support.</p>
       </div>
@@ -2420,17 +2427,37 @@ document.getElementById('pnStart').addEventListener('input', e=>{ state.config.e
 document.getElementById('dateEnabled').addEventListener('change', e=>{ state.config.extras.dateStamp.enabled = e.target.checked; scheduleRender(); });
 document.getElementById('datePosition').addEventListener('change', e=>{ state.config.extras.dateStamp.position = e.target.value; scheduleRender(); });
 document.getElementById('dateFormat').addEventListener('change', e=>{ state.config.extras.dateStamp.format = e.target.value; scheduleRender(); });
-document.getElementById('dateSource').addEventListener('change', e=>{
-  state.config.extras.dateStamp.source = e.target.value;
-  document.getElementById('dateValueField').style.display = e.target.value === 'picked' ? 'block' : 'none';
-  if(e.target.value === 'picked' && !state.config.extras.dateStamp.value){
-    const d = new Date(); const local = new Date(d.getTime()-d.getTimezoneOffset()*60000);
-    document.getElementById('dateValue').value = local.toISOString().slice(0,16);
-    state.config.extras.dateStamp.value = document.getElementById('dateValue').value;
+function syncPickedDateTime(){
+  const dateEl = document.getElementById('datePicker');
+  const timeEl = document.getElementById('timePicker');
+  if(!dateEl || !timeEl) return;
+  if(dateEl.value && timeEl.value){
+    state.config.extras.dateStamp.source = 'picked';
+    state.config.extras.dateStamp.value = `${dateEl.value}T${timeEl.value}`;
   }
   scheduleRender();
+}
+function setDateTimePickersFromState(){
+  const ds = state.config.extras.dateStamp;
+  let d = (ds.source==='picked' && ds.value) ? new Date(ds.value) : new Date();
+  if(Number.isNaN(d.getTime())) d = new Date();
+  const local = new Date(d.getTime()-d.getTimezoneOffset()*60000);
+  document.getElementById('datePicker').value = local.toISOString().slice(0,10);
+  document.getElementById('timePicker').value = local.toISOString().slice(11,16);
+}
+['datePicker','timePicker'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', syncPickedDateTime);
+  document.getElementById(id).addEventListener('change', syncPickedDateTime);
 });
-document.getElementById('dateValue').addEventListener('input', e=>{ state.config.extras.dateStamp.value = e.target.value; scheduleRender(); });
+document.getElementById('useCurrentDateTimeBtn').addEventListener('click', ()=>{
+  const d = new Date();
+  const local = new Date(d.getTime()-d.getTimezoneOffset()*60000);
+  document.getElementById('datePicker').value = local.toISOString().slice(0,10);
+  document.getElementById('timePicker').value = local.toISOString().slice(11,16);
+  state.config.extras.dateStamp.source = 'picked';
+  state.config.extras.dateStamp.value = `${document.getElementById('datePicker').value}T${document.getElementById('timePicker').value}`;
+  scheduleRender();
+});
 
 // ---- Extras: bates ----
 document.getElementById('batesEnabled').addEventListener('change', e=>{ state.config.extras.bates.enabled = e.target.checked; scheduleRender(); });
@@ -3180,9 +3207,7 @@ function applyPresetToUI(cfg){
   document.getElementById('dateEnabled').checked = ex.dateStamp.enabled;
   document.getElementById('datePosition').value = ex.dateStamp.position;
   document.getElementById('dateFormat').value = ex.dateStamp.format;
-  document.getElementById('dateSource').value = ex.dateStamp.source || 'current';
-  document.getElementById('dateValue').value = ex.dateStamp.value || '';
-  document.getElementById('dateValueField').style.display = (ex.dateStamp.source || 'current') === 'picked' ? 'block' : 'none';
+  setDateTimePickersFromState();
   document.getElementById('batesEnabled').checked = ex.bates.enabled;
   document.getElementById('batesPrefix').value = ex.bates.prefix;
   document.getElementById('batesDigits').value = ex.bates.digits;
@@ -3556,18 +3581,107 @@ document.getElementById('saveJobProfileBtn').addEventListener('click', async ()=
 const STAMP_LIBRARY_KEY = 'stampit_stamp_library';
 const MAX_CUSTOM_STAMPS = 100;
 const BUILTIN_STAMP_DEFS = [
-  { name:'CONFIDENTIAL',      color:'#E2582B' },
-  { name:'DRAFT',             color:'#7A7568' },
-  { name:'COPY',              color:'#3D7BC9' },
-  { name:'ORIGINAL',          color:'#1F7A3D' },
-  { name:'APPROVED',          color:'#1F7A3D' },
-  { name:'REJECTED',          color:'#C4491F' },
-  { name:'PAID',              color:'#1F7A3D' },
-  { name:'CANCELLED',         color:'#C4491F' },
-  { name:'RECEIVED',          color:'#1D5DA8' },
-  { name:'FOR INTERNAL USE',  color:'#7A7568' },
-  { name:'BANK CONFIDENTIAL', color:'#0E0E10' },
-];
+  { name:'CONFIDENTIAL', color:'#E2582B' },
+  { name:'DRAFT', color:'#7A7568' },
+  { name:'COPY', color:'#3D7BC9' },
+  { name:'ORIGINAL', color:'#1F7A3D' },
+  { name:'APPROVED', color:'#C4491F' },
+  { name:'REJECTED', color:'#1D5DA8' },
+  { name:'PAID', color:'#6B4EA0' },
+  { name:'CANCELLED', color:'#9A5B13' },
+  { name:'RECEIVED', color:'#E2582B' },
+  { name:'FOR INTERNAL USE', color:'#7A7568' },
+  { name:'BANK CONFIDENTIAL', color:'#3D7BC9' },
+  { name:'URGENT', color:'#1F7A3D' },
+  { name:'IMPORTANT', color:'#C4491F' },
+  { name:'PRIORITY', color:'#1D5DA8' },
+  { name:'TOP PRIORITY', color:'#6B4EA0' },
+  { name:'ACTION REQUIRED', color:'#9A5B13' },
+  { name:'ACTION TODAY', color:'#E2582B' },
+  { name:'PLEASE SIGN', color:'#7A7568' },
+  { name:'PLEASE REVIEW', color:'#3D7BC9' },
+  { name:'REVIEWED', color:'#1F7A3D' },
+  { name:'CHECKED', color:'#C4491F' },
+  { name:'VERIFIED', color:'#1D5DA8' },
+  { name:'AUTHORISED', color:'#6B4EA0' },
+  { name:'AUTHORISED COPY', color:'#9A5B13' },
+  { name:'CERTIFIED', color:'#E2582B' },
+  { name:'CERTIFIED TRUE COPY', color:'#7A7568' },
+  { name:'ATTESTED', color:'#3D7BC9' },
+  { name:'NOTED', color:'#1F7A3D' },
+  { name:'ACKNOWLEDGED', color:'#C4491F' },
+  { name:'COMPLIED', color:'#1D5DA8' },
+  { name:'COMPLIANCE COPY', color:'#6B4EA0' },
+  { name:'OFFICIAL USE', color:'#9A5B13' },
+  { name:'OFFICE USE', color:'#E2582B' },
+  { name:'INTERNAL USE ONLY', color:'#7A7568' },
+  { name:'EXTERNAL USE', color:'#3D7BC9' },
+  { name:'PUBLIC COPY', color:'#1F7A3D' },
+  { name:'WORKING COPY', color:'#C4491F' },
+  { name:'MASTER COPY', color:'#1D5DA8' },
+  { name:'DUPLICATE', color:'#6B4EA0' },
+  { name:'ORIGINAL COPY', color:'#9A5B13' },
+  { name:'PHOTOCOPY', color:'#E2582B' },
+  { name:'SCANNED COPY', color:'#7A7568' },
+  { name:'SOFT COPY', color:'#3D7BC9' },
+  { name:'HARD COPY', color:'#1F7A3D' },
+  { name:'FINAL', color:'#C4491F' },
+  { name:'FINAL COPY', color:'#1D5DA8' },
+  { name:'FINAL DRAFT', color:'#6B4EA0' },
+  { name:'FIRST DRAFT', color:'#9A5B13' },
+  { name:'SECOND DRAFT', color:'#E2582B' },
+  { name:'REVISED', color:'#7A7568' },
+  { name:'REVISED COPY', color:'#3D7BC9' },
+  { name:'UPDATED', color:'#1F7A3D' },
+  { name:'AMENDED', color:'#C4491F' },
+  { name:'SUPERSEDED', color:'#1D5DA8' },
+  { name:'OBSOLETE', color:'#6B4EA0' },
+  { name:'VOID', color:'#9A5B13' },
+  { name:'VOID COPY', color:'#E2582B' },
+  { name:'CANCELLED COPY', color:'#7A7568' },
+  { name:'DECLINED', color:'#3D7BC9' },
+  { name:'PENDING', color:'#1F7A3D' },
+  { name:'ON HOLD', color:'#C4491F' },
+  { name:'UNDER PROCESS', color:'#1D5DA8' },
+  { name:'UNDER REVIEW', color:'#6B4EA0' },
+  { name:'UNDER APPROVAL', color:'#9A5B13' },
+  { name:'SUBMITTED', color:'#E2582B' },
+  { name:'SUBMITTED FOR APPROVAL', color:'#7A7568' },
+  { name:'SUBMITTED FOR REVIEW', color:'#3D7BC9' },
+  { name:'FOR INFORMATION', color:'#1F7A3D' },
+  { name:'FOR RECORD', color:'#C4491F' },
+  { name:'FOR REFERENCE', color:'#1D5DA8' },
+  { name:'FOR FILING', color:'#6B4EA0' },
+  { name:'FILE COPY', color:'#9A5B13' },
+  { name:'RECORD COPY', color:'#E2582B' },
+  { name:'ARCHIVE', color:'#7A7568' },
+  { name:'ARCHIVED', color:'#3D7BC9' },
+  { name:'CONFIRMED', color:'#1F7A3D' },
+  { name:'UNCONFIRMED', color:'#C4491F' },
+  { name:'PROVISIONAL', color:'#1D5DA8' },
+  { name:'TENTATIVE', color:'#6B4EA0' },
+  { name:'SAMPLE', color:'#9A5B13' },
+  { name:'DEMO', color:'#E2582B' },
+  { name:'TEST COPY', color:'#7A7568' },
+  { name:'NOT FOR SALE', color:'#3D7BC9' },
+  { name:'NOT FOR DISTRIBUTION', color:'#1F7A3D' },
+  { name:'DO NOT COPY', color:'#C4491F' },
+  { name:'DO NOT DUPLICATE', color:'#1D5DA8' },
+  { name:'DO NOT FORWARD', color:'#6B4EA0' },
+  { name:'DO NOT DISCLOSE', color:'#9A5B13' },
+  { name:'CONFIDENTIAL & RESTRICTED', color:'#E2582B' },
+  { name:'STRICTLY CONFIDENTIAL', color:'#7A7568' },
+  { name:'PRIVILEGED', color:'#3D7BC9' },
+  { name:'LEGAL PRIVILEGE', color:'#1F7A3D' },
+  { name:'AUDIT COPY', color:'#C4491F' },
+  { name:'AUDIT REVIEW', color:'#1D5DA8' },
+  { name:'AUDITED', color:'#6B4EA0' },
+  { name:'UNAUDITED', color:'#9A5B13' },
+  { name:'BANK USE ONLY', color:'#E2582B' },
+  { name:'CUSTOMER COPY', color:'#7A7568' },
+  { name:'CUSTOMER ORIGINAL', color:'#3D7BC9' },
+  { name:'BRANCH COPY', color:'#1F7A3D' },
+]
 const BUILTIN_STAMPS = BUILTIN_STAMP_DEFS.map(def=>{
   const d = defaultConfig();
   return {
@@ -3592,8 +3706,10 @@ function saveStampLibrary(list){
 }
 function renderStampBuiltinChips(){
   document.getElementById('stampBuiltinChips').innerHTML = BUILTIN_STAMPS.map((s,i)=>
-    `<button type="button" class="stamp-chip" onclick="applyBuiltinStamp(${i})">${escapeHtml(s.name)}</button>`
+    `<button type="button" class="stamp-chip" onclick="applyBuiltinStamp(${i})" title="Apply ${escapeHtml(s.name)}">${escapeHtml(s.name)}</button>`
   ).join('');
+  const count = document.getElementById('stampBuiltinCount');
+  if(count) count.textContent = `Built-in stamps: ${BUILTIN_STAMPS.length} · Your saved stamps: ${loadStampLibrary().length} / ${MAX_CUSTOM_STAMPS}`;
 }
 function refreshStampLibrarySelect(selectName){
   const sel = document.getElementById('stampLibrarySelect');
@@ -3603,7 +3719,7 @@ function refreshStampLibrarySelect(selectName){
   if(selectName) sel.value = selectName;
   const count = document.getElementById('stampLibraryCount');
   if(count){
-    count.textContent = `My saved stamps: ${list.length} / ${MAX_CUSTOM_STAMPS}`;
+    count.textContent = `Built-in stamps: ${BUILTIN_STAMPS.length} · Your saved stamps: ${list.length} / ${MAX_CUSTOM_STAMPS}`;
     count.classList.toggle('warn', list.length >= MAX_CUSTOM_STAMPS);
   }
 }
@@ -4695,7 +4811,7 @@ document.querySelectorAll('.quick-step-btn').forEach(btn=>{
 /* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v2.2.2';
+const APP_VERSION = 'v2.2.3';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
@@ -4728,6 +4844,7 @@ function mergeConfigWithDefaults(defaults, saved){
     }
   } catch(e){ /* corrupted/unavailable storage — just start from defaults */ }
 })();
+setDateTimePickersFromState();
 pushHistorySnapshot(); // seed the undo baseline with whatever config we just started from
 updateOutputExample();
 updateProcessButtonState();
