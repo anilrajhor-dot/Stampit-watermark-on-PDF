@@ -753,7 +753,9 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       <label>Stamp Library <span class="hint" style="font-weight:400;">— one-click styled stamps (text, logo, colour, position — everything but page/output settings)</span></label>
       <div class="stamp-chip-row" id="stampBuiltinChips"></div>
       <select id="stampLibrarySelect"><option value="">My saved stamps…</option></select>
+      <div class="hint" id="stampLibraryCount" style="margin-top:5px;">My saved stamps: 0 / 100</div>
       <div class="preset-actions">
+        <button class="btn btn-amber btn-sm" id="addStampBtn" type="button">＋ Add new stamp</button>
         <button class="btn btn-ghost btn-sm" id="applyStampBtn">Apply</button>
         <button class="btn btn-ghost btn-sm" id="saveStampBtn">Save current as stamp</button>
         <button class="btn btn-ghost btn-sm" id="renameStampBtn">Rename</button>
@@ -1027,7 +1029,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </fieldset>
 
       <fieldset>
-        <legend><label class="legend-check"><input type="checkbox" id="dateEnabled"> Date stamp</label></legend>
+        <legend><label class="legend-check"><input type="checkbox" id="dateEnabled"> Date / time stamp</label></legend>
         <div class="row-2">
           <div class="field"><label>Position</label>
             <select id="datePosition">
@@ -1040,11 +1042,27 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
           <div class="field"><label>Format</label>
             <select id="dateFormat">
               <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+              <option value="DD/MM/YYYY HH:mm">DD/MM/YYYY HH:mm</option>
               <option value="DD-MMM-YYYY">DD-MMM-YYYY</option>
+              <option value="DD-MMM-YYYY HH:mm">DD-MMM-YYYY HH:mm</option>
               <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+              <option value="YYYY-MM-DD HH:mm">YYYY-MM-DD HH:mm</option>
             </select>
           </div>
         </div>
+        <div class="row-2" style="margin-top:8px;">
+          <div class="field"><label>When</label>
+            <select id="dateSource">
+              <option value="current">Current date &amp; time</option>
+              <option value="picked">Pick date &amp; time</option>
+            </select>
+          </div>
+          <div class="field" id="dateValueField" style="display:none;">
+            <label for="dateValue">Select date &amp; time</label>
+            <input type="datetime-local" id="dateValue" step="60" aria-label="Select date and time">
+          </div>
+        </div>
+        <div class="hint" style="margin-top:5px;">Use the calendar/clock picker to stamp a specific date and time, or leave it on Current date &amp; time.</div>
       </fieldset>
 
       <fieldset>
@@ -1069,13 +1087,20 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
     <!-- OUTPUT TAB -->
     <div class="tab-panel" data-tabpanel="output">
       <div class="field">
-        <label for="outPrefix">Filename prefix</label>
-        <input type="text" id="outPrefix" value="WM_">
+        <label for="outCustomName">File name <span class="hint" style="font-weight:400;">(optional)</span></label>
+        <input type="text" id="outCustomName" value="" placeholder="Leave blank to keep the original file name">
       </div>
-      <div class="field">
-        <label for="outSuffix">Filename suffix</label>
-        <input type="text" id="outSuffix" value="">
+      <div class="row-2">
+        <div class="field">
+          <label for="outPrefix">Filename prefix <span class="hint" style="font-weight:400;">(optional)</span></label>
+          <input type="text" id="outPrefix" value="">
+        </div>
+        <div class="field">
+          <label for="outSuffix">Filename suffix <span class="hint" style="font-weight:400;">(optional)</span></label>
+          <input type="text" id="outSuffix" value="">
+        </div>
       </div>
+      <div class="hint" style="margin-top:4px;">If File name is blank, StampIt keeps the original file name and only applies any optional prefix/suffix.</div>
       <div class="token-row">
         <span class="token-chip" data-fntoken="{filename}">{filename}</span>
         <span class="token-chip" data-fntoken="{date}">{date}</span>
@@ -1220,7 +1245,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </div>
 
       <div class="help-section">
-        <h4>What's new in v2.2.0 — audit &amp; fix pass</h4>
+        <h4>What's new in v2.2.2 — audit &amp; fix pass</h4>
         <p>A full control-by-control audit, tracing each one from UI event through to actual output rather than just reading the code. Found and fixed real bugs: clicking "Browse files" or "Browse folder" was also triggering the dropzone's own click handler underneath it, capable of opening a second file picker; switching Extras or Help tab → Quick Mode → back to Advanced Mode could leave two settings tabs simultaneously visible, stacked on top of each other; the background-box opacity slider was the one control in the app missing its paired precise-entry number field; the "🔒 documents processed locally" badge and two other components used a colour pairing that made their text nearly illegible in dark mode (fixed with a proper theme-invariant token, not a one-off patch); Job Profile cards were unfocusable clickable `&lt;div&gt;`s rather than real buttons, unreachable by keyboard or screen reader — the same category of bug already fixed once before for the 9-point placement grid; the six Extras checkboxes (page numbering, header, footer, date, Bates, border) had their labels as plain adjacent text rather than a proper associated `&lt;label&gt;`, so clicking the text didn't toggle them; and several newer controls (Stamp Library chips, the Quick/Advanced toggle, Job Profile buttons) were missing from touch-target sizing on phones/tablets. Also added WebP as a genuine output format (previously PNG/JPG only, despite input already accepting WebP), with an automatic fallback to PNG on browsers that can decode WebP but not encode it. No existing feature was removed or altered in behaviour.</p>
       </div>
 
@@ -1386,11 +1411,11 @@ function defaultConfig(){
       pageNumber: { enabled:false, format:'Page n of t', position:'bottom-center', size:10, start:1 },
       header: { enabled:false, left:'', center:'', right:'' },
       footer: { enabled:false, left:'', center:'', right:'' },
-      dateStamp: { enabled:false, position:'top-right', format:'DD/MM/YYYY' },
+      dateStamp: { enabled:false, position:'top-right', format:'DD/MM/YYYY HH:mm', source:'current', value:'' },
       bates: { enabled:false, prefix:'ABC-', digits:6, start:1 },
       border: { enabled:false, color:'#0E0E10', thickness:1 },
     },
-    output: { prefix:'WM_', suffix:'', downloadMode:'zip', imageFormat:'png', jpgQuality:90 },
+    output: { customName:'', prefix:'', suffix:'', downloadMode:'zip', imageFormat:'png', jpgQuality:90 },
   };
 }
 
@@ -1424,14 +1449,28 @@ function nowTimeStr(){
   return pad(d.getHours(),2)+':'+pad(d.getMinutes(),2);
 }
 const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-function formatDate(fmt){
-  const d = new Date();
+function getStampDateTime(){
+  const ds = state?.config?.extras?.dateStamp;
+  if(ds?.source === 'picked' && ds.value){
+    const picked = new Date(ds.value);
+    if(!Number.isNaN(picked.getTime())) return picked;
+  }
+  return new Date();
+}
+function formatDate(fmt, dateObj=getStampDateTime()){
+  const d = dateObj instanceof Date ? dateObj : new Date(dateObj);
   const dd = pad(d.getDate(),2), mm = pad(d.getMonth()+1,2), yyyy = d.getFullYear();
+  const hh = pad(d.getHours(),2), mi = pad(d.getMinutes(),2);
   if(fmt === 'DD/MM/YYYY') return `${dd}/${mm}/${yyyy}`;
+  if(fmt === 'DD/MM/YYYY HH:mm') return `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
   if(fmt === 'DD-MMM-YYYY') return `${dd}-${MONTHS[d.getMonth()]}-${yyyy}`;
+  if(fmt === 'DD-MMM-YYYY HH:mm') return `${dd}-${MONTHS[d.getMonth()]}-${yyyy} ${hh}:${mi}`;
   if(fmt === 'YYYY-MM-DD') return `${yyyy}-${mm}-${dd}`;
+  if(fmt === 'YYYY-MM-DD HH:mm') return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
   return `${dd}/${mm}/${yyyy}`;
 }
+function stampDateToken(){ return formatDate(state.config.extras.dateStamp.format, getStampDateTime()); }
+function stampTimeToken(){ const d=getStampDateTime(); return pad(d.getHours(),2)+':'+pad(d.getMinutes(),2); }
 
 // These two are the SINGLE source of truth for how page-number and
 // Bates labels are formatted. Both the live preview and the real
@@ -2381,6 +2420,17 @@ document.getElementById('pnStart').addEventListener('input', e=>{ state.config.e
 document.getElementById('dateEnabled').addEventListener('change', e=>{ state.config.extras.dateStamp.enabled = e.target.checked; scheduleRender(); });
 document.getElementById('datePosition').addEventListener('change', e=>{ state.config.extras.dateStamp.position = e.target.value; scheduleRender(); });
 document.getElementById('dateFormat').addEventListener('change', e=>{ state.config.extras.dateStamp.format = e.target.value; scheduleRender(); });
+document.getElementById('dateSource').addEventListener('change', e=>{
+  state.config.extras.dateStamp.source = e.target.value;
+  document.getElementById('dateValueField').style.display = e.target.value === 'picked' ? 'block' : 'none';
+  if(e.target.value === 'picked' && !state.config.extras.dateStamp.value){
+    const d = new Date(); const local = new Date(d.getTime()-d.getTimezoneOffset()*60000);
+    document.getElementById('dateValue').value = local.toISOString().slice(0,16);
+    state.config.extras.dateStamp.value = document.getElementById('dateValue').value;
+  }
+  scheduleRender();
+});
+document.getElementById('dateValue').addEventListener('input', e=>{ state.config.extras.dateStamp.value = e.target.value; scheduleRender(); });
 
 // ---- Extras: bates ----
 document.getElementById('batesEnabled').addEventListener('change', e=>{ state.config.extras.bates.enabled = e.target.checked; scheduleRender(); });
@@ -2420,8 +2470,9 @@ function buildOutputFilename(baseName, ext, batchN){
 
   const prefix = replaceFilenameTokens(cfg.prefix);
   const suffix = replaceFilenameTokens(cfg.suffix);
+  const custom = String(cfg.customName || '').trim();
   const usesFilenameToken = /\{filename\}/i.test((cfg.prefix||'') + (cfg.suffix||''));
-  const middle = usesFilenameToken ? '' : baseName;
+  const middle = custom ? custom : (usesFilenameToken ? '' : baseName);
   // Strip characters that are unsafe in filenames on Windows/macOS/iOS,
   // since this file may get shared or synced across platforms.
   const safeName = `${prefix}${middle}${suffix}`.replace(/[\\/:*?"<>|]/g, '_').trim() || 'output';
@@ -2440,6 +2491,7 @@ function updateOutputExample(){
   const ext = sample && sample.kind==='image' ? imageFormatExt(cfg.imageFormat) : 'pdf';
   document.getElementById('outExample').textContent = buildOutputFilename(base, ext, 1);
 }
+document.getElementById('outCustomName').addEventListener('input', e=>{ state.config.output.customName = e.target.value; updateOutputExample(); });
 document.getElementById('outPrefix').addEventListener('input', e=>{ state.config.output.prefix = e.target.value; updateOutputExample(); });
 document.getElementById('outSuffix').addEventListener('input', e=>{ state.config.output.suffix = e.target.value; updateOutputExample(); });
 let lastFocusedOutputField = 'outSuffix';
@@ -2606,6 +2658,7 @@ async function renderPreview(){
   const batchOffset = computeBatchPageOffset(f.id);
   const tokenCtx = {
     filename: f.name, page: state.previewPage, total: f.kind==='pdf'?f.pages:1, n: 1,
+    date: stampDateToken(), time: stampTimeToken(),
     batchPageIndex0: batchOffset + (state.previewPage - 1),
   };
   // Cached so drag-to-reposition can redraw just the overlay, instantly,
@@ -3127,6 +3180,9 @@ function applyPresetToUI(cfg){
   document.getElementById('dateEnabled').checked = ex.dateStamp.enabled;
   document.getElementById('datePosition').value = ex.dateStamp.position;
   document.getElementById('dateFormat').value = ex.dateStamp.format;
+  document.getElementById('dateSource').value = ex.dateStamp.source || 'current';
+  document.getElementById('dateValue').value = ex.dateStamp.value || '';
+  document.getElementById('dateValueField').style.display = (ex.dateStamp.source || 'current') === 'picked' ? 'block' : 'none';
   document.getElementById('batesEnabled').checked = ex.bates.enabled;
   document.getElementById('batesPrefix').value = ex.bates.prefix;
   document.getElementById('batesDigits').value = ex.bates.digits;
@@ -3135,6 +3191,7 @@ function applyPresetToUI(cfg){
   document.getElementById('borderColor').value = ex.border.color;
   document.getElementById('borderThickness').value = ex.border.thickness;
 
+  document.getElementById('outCustomName').value = state.config.output.customName || '';
   document.getElementById('outPrefix').value = state.config.output.prefix;
   document.getElementById('outSuffix').value = state.config.output.suffix;
   document.getElementById('downloadMode').value = state.config.output.downloadMode;
@@ -3497,6 +3554,7 @@ document.getElementById('saveJobProfileBtn').addEventListener('click', async ()=
    create/rename/delete, all stored locally.
    --------------------------------------------------------------- */
 const STAMP_LIBRARY_KEY = 'stampit_stamp_library';
+const MAX_CUSTOM_STAMPS = 100;
 const BUILTIN_STAMP_DEFS = [
   { name:'CONFIDENTIAL',      color:'#E2582B' },
   { name:'DRAFT',             color:'#7A7568' },
@@ -3543,6 +3601,11 @@ function refreshStampLibrarySelect(selectName){
   sel.innerHTML = '<option value="">My saved stamps…</option>' +
     list.map(s=>`<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
   if(selectName) sel.value = selectName;
+  const count = document.getElementById('stampLibraryCount');
+  if(count){
+    count.textContent = `My saved stamps: ${list.length} / ${MAX_CUSTOM_STAMPS}`;
+    count.classList.toggle('warn', list.length >= MAX_CUSTOM_STAMPS);
+  }
 }
 
 // Captures just the stamp-defining slice of the current config — not
@@ -3578,20 +3641,28 @@ document.getElementById('applyStampBtn').addEventListener('click', ()=>{
   const found = loadStampLibrary().find(s=>s.name===name);
   if(found) applyStampToConfig(found.stamp);
 });
-document.getElementById('saveStampBtn').addEventListener('click', async ()=>{
+async function saveCurrentStampFlow(){
   const name = await showAppPrompt('Save stamp', 'Name this stamp:');
   if(!name) return;
+  const cleanName = name.trim();
+  if(!cleanName) return;
   const list = loadStampLibrary();
-  const idx = list.findIndex(s=>s.name===name);
-  const record = { name, stamp: captureStampSnapshot() };
+  const idx = list.findIndex(s=>s.name.toLowerCase()===cleanName.toLowerCase());
+  if(idx < 0 && list.length >= MAX_CUSTOM_STAMPS){
+    showAppAlert('Stamp Library full', `You can save up to ${MAX_CUSTOM_STAMPS} custom stamps. Delete an unused stamp before adding another.`);
+    return;
+  }
+  const record = { name: cleanName, stamp: captureStampSnapshot() };
   if(idx>=0) list[idx] = record; else list.push(record);
   if(!saveStampLibrary(list)){
     showAppAlert('Could not save', 'Browser storage may be full — try removing an unused stamp (especially ones with a logo image) first.');
     return;
   }
-  refreshStampLibrarySelect(name);
-  showAppAlert('Saved', `Stamp "${name}" saved to your library.`);
-});
+  refreshStampLibrarySelect(cleanName);
+  showAppAlert('Saved', `Stamp "${cleanName}" saved to your library.`);
+}
+document.getElementById('addStampBtn').addEventListener('click', ()=>saveCurrentStampFlow());
+document.getElementById('saveStampBtn').addEventListener('click', ()=>saveCurrentStampFlow());
 document.getElementById('renameStampBtn').addEventListener('click', async ()=>{
   const sel = document.getElementById('stampLibrarySelect');
   const name = sel.value;
@@ -3811,7 +3882,8 @@ async function processPdfFile(rec, fileIndex, batchN){
   for(let i=0;i<pages.length;i++){
     const pageNum = i+1;
     const tokenCtx = {
-      filename: rec.name, page: pageNum, total: totalPages, n: batchN, date: todayStr(), time: nowTimeStr(),
+      filename: rec.name, page: pageNum, total: totalPages, n: batchN,
+      date: stampDateToken(), time: stampTimeToken(),
       batchPageIndex0: fileBatchOffset + i,
     };
     await stampPdfPage(doc, pages[i], pageNum, totalPages, fonts, logoImg, tokenCtx);
