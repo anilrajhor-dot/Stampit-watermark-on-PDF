@@ -26,6 +26,9 @@
    ================================================================ */
 :root{
   --charcoal:#0E0E10;      /* fixed dark chip colour (badges, active tabs) — stays dark in both themes */
+  --chip-text:#F4EDE2;     /* light text ON that fixed-dark chip — deliberately NOT the same token as
+                               --cream, which flips to a dark colour in dark mode and would make chip
+                               text unreadable against a background that stays dark in both themes */
   --text:#0E0E10;          /* body text, labels, headings */
   --text-soft:#4a463c;     /* secondary/help paragraph text */
   --amber:#F5B301;
@@ -120,7 +123,7 @@ button:focus-visible, .cell:focus-visible, .chip:focus-visible{outline-offset:1p
   font-weight:800;font-size:16px;flex-shrink:0;
 }
 .privacy-badge{
-  display:flex;align-items:center;gap:8px;background:var(--charcoal);color:var(--cream);
+  display:flex;align-items:center;gap:8px;background:var(--charcoal);color:var(--chip-text);
   padding:8px 14px;border-radius:999px;font-size:13px;font-weight:600;
 }
 .privacy-badge .dot{width:7px;height:7px;border-radius:50%;background:#3ECF6F;box-shadow:0 0 0 3px rgba(62,207,111,0.25);}
@@ -146,7 +149,7 @@ html[data-theme="dark"] .connectivity-pill.ready{background:#122334;color:#8FC4F
 
 .update-banner{
   display:flex;align-items:center;gap:10px;justify-content:center;flex-wrap:wrap;
-  background:var(--charcoal);color:var(--cream);padding:8px 14px;font-size:12.5px;
+  background:var(--charcoal);color:var(--chip-text);padding:8px 14px;font-size:12.5px;
 }
 .update-banner .btn{padding:5px 12px;font-size:11.5px;}
 /* ---------- Layout ---------- */
@@ -220,15 +223,19 @@ body.quick-mode .quick-only{display:block;}
 .job-profiles-header{margin-bottom:8px;}
 .job-profile-cards{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
 .job-profile-card{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:10px 12px;border-radius:9px;border:1px solid var(--line);background:var(--white);
-  cursor:pointer;text-align:left;
+  display:flex;align-items:stretch;gap:4px;
+  border-radius:9px;border:1px solid var(--line);background:var(--white);overflow:hidden;
 }
-.job-profile-card:hover{background:var(--cream);border-color:var(--amber-dark);}
+.job-profile-card .jp-main{
+  flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  padding:10px 12px;background:none;border:none;cursor:pointer;text-align:left;font:inherit;
+}
+.job-profile-card .jp-main:hover{background:var(--cream);}
 .job-profile-card .jp-name{font-size:12.5px;font-weight:700;color:var(--text);}
-.job-profile-card .jp-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.job-profile-card .jp-desc{font-size:11px;color:var(--muted);}
 .job-profile-card .jp-delete{
-  background:none;border:none;color:var(--rust);font-size:14px;cursor:pointer;padding:4px;flex-shrink:0;
+  background:none;border:none;color:var(--rust);font-size:14px;cursor:pointer;padding:4px 10px;flex-shrink:0;
+  align-self:center;
 }
 .job-profile-save-row{margin-top:10px;}
 .stamp-chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
@@ -279,7 +286,7 @@ body.quick-mode .quick-only{display:block;}
 .btn-rust:hover{background:var(--rust-dark);}
 .btn-ghost{background:var(--cream);color:var(--text);border:1px solid var(--line);}
 .btn-ghost:hover{background:#EFE7D6;}
-.btn-dark{background:var(--charcoal);color:var(--cream);}
+.btn-dark{background:var(--charcoal);color:var(--chip-text);}
 .btn-sm{padding:6px 10px;font-size:12px;border-radius:7px;}
 .btn-block{width:100%;justify-content:center;}
 
@@ -433,6 +440,8 @@ body.quick-mode .quick-only{display:block;}
 
 fieldset{border:1px solid var(--line);border-radius:10px;padding:10px 12px 12px;margin:0 0 12px 0;}
 legend{font-size:12px;font-weight:700;padding:0 6px;color:var(--text);}
+.legend-check{display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:2px 0;}
+.legend-check input{cursor:pointer;}
 fieldset[disabled] {opacity:0.45;}
 
 /* ---------- Process bar ---------- */
@@ -536,6 +545,13 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
   input[type=checkbox]{width:19px;height:19px;}
   .grid9 .cell{min-height:0;}
   select, .field input[type=text], .field input[type=number]{min-height:40px;}
+  .legend-check{min-height:38px;}
+  .stamp-chip{min-height:36px;padding:8px 12px;}
+  .quick-mode-toggle{min-height:36px;padding:8px 14px;}
+  .job-profile-card .jp-main{min-height:44px;justify-content:center;}
+  .job-profile-card .jp-delete{min-width:36px;}
+  .guides-toggle{min-height:36px;padding:4px 6px;}
+  .guides-toggle input{width:19px;height:19px;}
 }
 @media (max-width: 900px){
   .preview-toolbar select{max-width:none;flex:1 1 140px;}
@@ -546,10 +562,10 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.1.2</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.2.0</span></div>
   <div class="topbar-right">
     <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
-    <span class="connectivity-pill" id="connectivityStatus" title="Connection status">🟢 Online</span>
+    <span class="connectivity-pill" id="connectivityStatus" title="Connection status" role="status" aria-live="polite">🟢 Online</span>
     <div class="privacy-badge"><span class="dot"></span> 🔒 Your documents are processed locally in your browser</div>
     <button class="theme-toggle" id="themeToggle" type="button" title="Toggle dark mode (D)" aria-label="Toggle dark mode">
       <svg id="themeIconSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" stroke-linecap="round"/></svg>
@@ -824,7 +840,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         <div id="boxControls" style="display:none;">
           <div class="row-2">
             <div class="field"><label for="boxColor">Box colour</label><input type="color" id="boxColor" value="#FFFFFF"></div>
-            <div class="field"><label for="boxOpacity">Box opacity <span id="boxOpacityVal">80%</span></label><input type="range" id="boxOpacity" min="5" max="100" value="80"></div>
+            <div class="field"><label for="boxOpacity">Box opacity <span id="boxOpacityVal">80%</span></label><div class="slider-row"><input type="range" id="boxOpacity" min="5" max="100" value="80"><input type="number" id="boxOpacityNum" class="slider-num" min="5" max="100" value="80" aria-label="Box opacity, percent"></div></div>
           </div>
           <div class="field"><label for="boxPadding">Padding (pt)</label><input type="number" id="boxPadding" value="10" min="0" max="80"></div>
           <div class="checkbox-row">
@@ -966,7 +982,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
     <!-- EXTRAS TAB -->
     <div class="tab-panel" data-tabpanel="extras">
       <fieldset>
-        <legend><input type="checkbox" id="pnEnabled"> Page numbering</legend>
+        <legend><label class="legend-check"><input type="checkbox" id="pnEnabled"> Page numbering</label></legend>
         <div class="field">
           <label>Format</label>
           <select id="pnFormat">
@@ -987,13 +1003,13 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
               <option value="top-left">Top left</option>
             </select>
           </div>
-          <div class="field"><label>Font size</label><input type="number" id="pnSize" value="10"></div>
+          <div class="field"><label>Font size</label><input type="number" id="pnSize" value="10" min="4" max="72"></div>
         </div>
-        <div class="field"><label>Starting number</label><input type="number" id="pnStart" value="1"></div>
+        <div class="field"><label>Starting number</label><input type="number" id="pnStart" value="1" min="0" max="99999"></div>
       </fieldset>
 
       <fieldset>
-        <legend><input type="checkbox" id="headerEnabled"> Header strip</legend>
+        <legend><label class="legend-check"><input type="checkbox" id="headerEnabled"> Header strip</label></legend>
         <div class="row-3">
           <div class="field"><label>Left</label><input type="text" id="headerLeft"></div>
           <div class="field"><label>Centre</label><input type="text" id="headerCenter"></div>
@@ -1002,7 +1018,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </fieldset>
 
       <fieldset>
-        <legend><input type="checkbox" id="footerEnabled"> Footer strip</legend>
+        <legend><label class="legend-check"><input type="checkbox" id="footerEnabled"> Footer strip</label></legend>
         <div class="row-3">
           <div class="field"><label>Left</label><input type="text" id="footerLeft"></div>
           <div class="field"><label>Centre</label><input type="text" id="footerCenter"></div>
@@ -1011,7 +1027,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </fieldset>
 
       <fieldset>
-        <legend><input type="checkbox" id="dateEnabled"> Date stamp</legend>
+        <legend><label class="legend-check"><input type="checkbox" id="dateEnabled"> Date stamp</label></legend>
         <div class="row-2">
           <div class="field"><label>Position</label>
             <select id="datePosition">
@@ -1032,20 +1048,20 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </fieldset>
 
       <fieldset>
-        <legend><input type="checkbox" id="batesEnabled"> Bates numbering</legend>
+        <legend><label class="legend-check"><input type="checkbox" id="batesEnabled"> Bates numbering</label></legend>
         <div class="row-3">
           <div class="field"><label>Prefix</label><input type="text" id="batesPrefix" value="ABC-"></div>
-          <div class="field"><label>Digits</label><input type="number" id="batesDigits" value="6"></div>
-          <div class="field"><label>Start at</label><input type="number" id="batesStart" value="1"></div>
+          <div class="field"><label>Digits</label><input type="number" id="batesDigits" value="6" min="1" max="12"></div>
+          <div class="field"><label>Start at</label><input type="number" id="batesStart" value="1" min="0" max="999999999"></div>
         </div>
         <div class="small-note">Continues sequentially across every file in the batch.</div>
       </fieldset>
 
       <fieldset>
-        <legend><input type="checkbox" id="borderEnabled"> Border box around corner stamp</legend>
+        <legend><label class="legend-check"><input type="checkbox" id="borderEnabled"> Border box around corner stamp</label></legend>
         <div class="row-2">
           <div class="field"><label>Colour</label><input type="color" id="borderColor" value="#0E0E10"></div>
-          <div class="field"><label>Thickness (pt)</label><input type="number" id="borderThickness" value="1"></div>
+          <div class="field"><label>Thickness (pt)</label><input type="number" id="borderThickness" value="1" min="0.5" max="20" step="0.5"></div>
         </div>
       </fieldset>
     </div>
@@ -1084,11 +1100,12 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
         <select id="imageFormat">
           <option value="png">PNG (preserves transparency)</option>
           <option value="jpeg">JPG</option>
+          <option value="webp">WebP</option>
         </select>
       </div>
       <div class="field" id="jpgQualityField" style="display:none;">
-        <label for="jpgQuality">JPG quality <span id="jpgQualityVal">90%</span></label>
-        <div class="slider-row"><input type="range" id="jpgQuality" min="10" max="100" value="90"><input type="number" id="jpgQualityNum" class="slider-num" min="10" max="100" value="90" aria-label="JPG quality, percent"></div>
+        <label for="jpgQuality">Quality <span id="jpgQualityVal">90%</span></label>
+        <div class="slider-row"><input type="range" id="jpgQuality" min="10" max="100" value="90"><input type="number" id="jpgQualityNum" class="slider-num" min="10" max="100" value="90" aria-label="Image quality, percent"></div>
       </div>
     </div>
 
@@ -1203,6 +1220,11 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
       </div>
 
       <div class="help-section">
+        <h4>What's new in v2.2.0 — audit &amp; fix pass</h4>
+        <p>A full control-by-control audit, tracing each one from UI event through to actual output rather than just reading the code. Found and fixed real bugs: clicking "Browse files" or "Browse folder" was also triggering the dropzone's own click handler underneath it, capable of opening a second file picker; switching Extras or Help tab → Quick Mode → back to Advanced Mode could leave two settings tabs simultaneously visible, stacked on top of each other; the background-box opacity slider was the one control in the app missing its paired precise-entry number field; the "🔒 documents processed locally" badge and two other components used a colour pairing that made their text nearly illegible in dark mode (fixed with a proper theme-invariant token, not a one-off patch); Job Profile cards were unfocusable clickable `&lt;div&gt;`s rather than real buttons, unreachable by keyboard or screen reader — the same category of bug already fixed once before for the 9-point placement grid; the six Extras checkboxes (page numbering, header, footer, date, Bates, border) had their labels as plain adjacent text rather than a proper associated `&lt;label&gt;`, so clicking the text didn't toggle them; and several newer controls (Stamp Library chips, the Quick/Advanced toggle, Job Profile buttons) were missing from touch-target sizing on phones/tablets. Also added WebP as a genuine output format (previously PNG/JPG only, despite input already accepting WebP), with an automatic fallback to PNG on browsers that can decode WebP but not encode it. No existing feature was removed or altered in behaviour.</p>
+      </div>
+
+      <div class="help-section">
         <h4>What's new in v2.1.2</h4>
         <p>Background box behind text with border, padding, and independent opacity — plus a <strong>Fit within safe margins</strong> option that's rotation-aware, unlike auto-fit. Live preview now has an optional <strong>Guides</strong> toggle showing the safe-margin line and the watermark's exact rotated footprint. Storage usage is now visible in Help, with a warning before a project save that might exceed the browser's quota, and a <strong>Clear all cached app data</strong> option. Added <strong>Copy diagnostic info</strong> for bug reports (never includes document content). While building the fit-within-margins option, found and fixed a real bug: auto-fit had only ever worked in the actual exported PDF, never in the live preview — the two now share one function so they can't drift apart again.</p>
       </div>
@@ -1224,7 +1246,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.1.2</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.2.0</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
         <button class="btn btn-ghost btn-sm" id="copyDiagnosticsGeneralBtn" type="button" style="margin-top:6px;">Copy diagnostic info</button>
         <p class="hint" style="margin-top:4px;">Useful when reporting a bug — copies your app version, browser, and current settings (never your document content or filenames) for support.</p>
       </div>
@@ -1569,6 +1591,9 @@ dropzone.addEventListener('drop', e=>{
     ingestFiles(Array.from(e.dataTransfer.files));
   }
 });
+// Clicking blank dropzone space (not a button) still opens the file
+// picker. stopPropagation() on both buttons above means their clicks
+// never reach here, so this can no longer double-trigger.
 dropzone.addEventListener('click', ()=>fileInput.click());
 
 function readEntries(entries){
@@ -2123,11 +2148,7 @@ document.getElementById('boxEnabled').addEventListener('change', e=>{
   scheduleRender();
 });
 document.getElementById('boxColor').addEventListener('input', e=>{ state.config.text.box.color = e.target.value; scheduleRender(); });
-document.getElementById('boxOpacity').addEventListener('input', e=>{
-  state.config.text.box.opacity = Number(e.target.value);
-  document.getElementById('boxOpacityVal').textContent = e.target.value+'%';
-  scheduleRender();
-});
+bindSlider('boxOpacity','boxOpacityVal', v=>{ state.config.text.box.opacity = v; return v+'%'; });
 document.getElementById('boxPadding').addEventListener('input', e=>{ state.config.text.box.padding = Math.min(80, Math.max(0, Number(e.target.value)||0)); scheduleRender(); });
 document.getElementById('boxBorderEnabled').addEventListener('change', e=>{
   state.config.text.box.borderEnabled = e.target.checked;
@@ -2316,8 +2337,8 @@ document.getElementById('customRange').addEventListener('input', e=>{ state.conf
 document.getElementById('pnEnabled').addEventListener('change', e=>{ state.config.extras.pageNumber.enabled = e.target.checked; scheduleRender(); });
 document.getElementById('pnFormat').addEventListener('change', e=>{ state.config.extras.pageNumber.format = e.target.value; scheduleRender(); });
 document.getElementById('pnPosition').addEventListener('change', e=>{ state.config.extras.pageNumber.position = e.target.value; scheduleRender(); });
-document.getElementById('pnSize').addEventListener('input', e=>{ state.config.extras.pageNumber.size = Number(e.target.value)||10; scheduleRender(); });
-document.getElementById('pnStart').addEventListener('input', e=>{ state.config.extras.pageNumber.start = Number(e.target.value)||1; scheduleRender(); });
+document.getElementById('pnSize').addEventListener('input', e=>{ state.config.extras.pageNumber.size = Math.min(72, Math.max(4, Number(e.target.value)||10)); scheduleRender(); });
+document.getElementById('pnStart').addEventListener('input', e=>{ state.config.extras.pageNumber.start = Math.min(99999, Math.max(0, Number(e.target.value)||1)); scheduleRender(); });
 
 // ---- Extras: header / footer ----
 ['header','footer'].forEach(kind=>{
@@ -2337,13 +2358,13 @@ document.getElementById('dateFormat').addEventListener('change', e=>{ state.conf
 // ---- Extras: bates ----
 document.getElementById('batesEnabled').addEventListener('change', e=>{ state.config.extras.bates.enabled = e.target.checked; scheduleRender(); });
 document.getElementById('batesPrefix').addEventListener('input', e=>{ state.config.extras.bates.prefix = e.target.value; scheduleRender(); });
-document.getElementById('batesDigits').addEventListener('input', e=>{ state.config.extras.bates.digits = Number(e.target.value)||6; scheduleRender(); });
-document.getElementById('batesStart').addEventListener('input', e=>{ state.config.extras.bates.start = Number(e.target.value)||1; scheduleRender(); });
+document.getElementById('batesDigits').addEventListener('input', e=>{ state.config.extras.bates.digits = Math.min(12, Math.max(1, Number(e.target.value)||6)); scheduleRender(); });
+document.getElementById('batesStart').addEventListener('input', e=>{ state.config.extras.bates.start = Math.min(999999999, Math.max(0, Number(e.target.value)||1)); scheduleRender(); });
 
 // ---- Extras: border ----
 document.getElementById('borderEnabled').addEventListener('change', e=>{ state.config.extras.border.enabled = e.target.checked; scheduleRender(); });
 document.getElementById('borderColor').addEventListener('input', e=>{ state.config.extras.border.color = e.target.value; scheduleRender(); });
-document.getElementById('borderThickness').addEventListener('input', e=>{ state.config.extras.border.thickness = Number(e.target.value)||1; scheduleRender(); });
+document.getElementById('borderThickness').addEventListener('input', e=>{ state.config.extras.border.thickness = Math.min(20, Math.max(0.5, Number(e.target.value)||1)); scheduleRender(); });
 
 // ---- Output ----
 // Shared by both the live "example" preview and the real export, so
@@ -2380,11 +2401,16 @@ function buildOutputFilename(baseName, ext, batchN){
   return `${safeName}.${ext}`;
 }
 
+function imageFormatExt(fmt){
+  if(fmt==='webp') return 'webp';
+  if(fmt==='jpeg') return 'jpg';
+  return 'png';
+}
 function updateOutputExample(){
   const cfg = state.config.output;
   const sample = state.files.find(f=>f.kind!=='error');
   const base = sample ? sample.name.replace(/\.[^.]+$/,'') : 'report';
-  const ext = sample && sample.kind==='image' ? (cfg.imageFormat==='png'?'png':'jpg') : 'pdf';
+  const ext = sample && sample.kind==='image' ? imageFormatExt(cfg.imageFormat) : 'pdf';
   document.getElementById('outExample').textContent = buildOutputFilename(base, ext, 1);
 }
 document.getElementById('outPrefix').addEventListener('input', e=>{ state.config.output.prefix = e.target.value; updateOutputExample(); });
@@ -2407,7 +2433,7 @@ document.querySelectorAll('[data-fntoken]').forEach(chip=>{
 document.getElementById('downloadMode').addEventListener('change', e=>{ state.config.output.downloadMode = e.target.value; });
 document.getElementById('imageFormat').addEventListener('change', e=>{
   state.config.output.imageFormat = e.target.value;
-  document.getElementById('jpgQualityField').style.display = e.target.value==='jpeg' ? 'block' : 'none';
+  document.getElementById('jpgQualityField').style.display = (e.target.value==='jpeg'||e.target.value==='webp') ? 'block' : 'none';
   updateOutputExample();
 });
 function syncJpgQuality(v){
@@ -3003,6 +3029,7 @@ function applyPresetToUI(cfg){
   document.getElementById('boxControls').style.display = box.enabled ? 'block' : 'none';
   document.getElementById('boxColor').value = box.color;
   document.getElementById('boxOpacity').value = box.opacity;
+  document.getElementById('boxOpacityNum').value = box.opacity;
   document.getElementById('boxOpacityVal').textContent = box.opacity+'%';
   document.getElementById('boxPadding').value = box.padding;
   document.getElementById('boxBorderEnabled').checked = box.borderEnabled;
@@ -3085,7 +3112,7 @@ function applyPresetToUI(cfg){
   document.getElementById('outSuffix').value = state.config.output.suffix;
   document.getElementById('downloadMode').value = state.config.output.downloadMode;
   document.getElementById('imageFormat').value = state.config.output.imageFormat;
-  document.getElementById('jpgQualityField').style.display = state.config.output.imageFormat==='jpeg'?'block':'none';
+  document.getElementById('jpgQualityField').style.display = (state.config.output.imageFormat==='jpeg'||state.config.output.imageFormat==='webp')?'block':'none';
   document.getElementById('jpgQuality').value = state.config.output.jpgQuality;
   document.getElementById('jpgQualityNum').value = state.config.output.jpgQuality;
   document.getElementById('jpgQualityVal').textContent = state.config.output.jpgQuality+'%';
@@ -3397,12 +3424,12 @@ function renderJobProfileCards(){
   const all = [...BUILTIN_JOB_PROFILES, ...loadJobProfiles()];
   if(!all.length){ container.innerHTML = '<p class="hint">No job profiles yet — configure a job, then save it from the Process step.</p>'; return; }
   container.innerHTML = all.map((p,i)=>`
-    <div class="job-profile-card" onclick="loadJobProfile(${i})">
-      <div>
-        <div class="jp-name">${escapeHtml(p.name)}</div>
-        ${p.description ? `<div class="jp-desc">${escapeHtml(p.description)}</div>` : ''}
-      </div>
-      ${p.builtin ? '' : `<button class="jp-delete" onclick="event.stopPropagation(); deleteJobProfile(${i-BUILTIN_JOB_PROFILES.length})" title="Delete" aria-label="Delete ${escapeHtml(p.name)}">✕</button>`}
+    <div class="job-profile-card">
+      <button type="button" class="jp-main" onclick="loadJobProfile(${i})" aria-label="Apply job profile: ${escapeHtml(p.name)}">
+        <span class="jp-name">${escapeHtml(p.name)}</span>
+        ${p.description ? `<span class="jp-desc">${escapeHtml(p.description)}</span>` : ''}
+      </button>
+      ${p.builtin ? '' : `<button type="button" class="jp-delete" onclick="deleteJobProfile(${i-BUILTIN_JOB_PROFILES.length})" title="Delete" aria-label="Delete ${escapeHtml(p.name)}">✕</button>`}
     </div>
   `).join('');
 }
@@ -3780,11 +3807,23 @@ async function processImageFile(rec, fileIndex, batchN){
     batchPageIndex0: computeBatchPageOffset(rec.id), // fixes: every image used to get the same Bates number
   };
   drawWatermarkOnCanvas(ctx, canvas.width, canvas.height, 1, tokenCtx, canvas.width, canvas.height, false);
-  const format = cfg.output.imageFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
+
+  const mimeFor = fmt => fmt==='webp' ? 'image/webp' : fmt==='jpeg' ? 'image/jpeg' : 'image/png';
   const quality = cfg.output.jpgQuality/100;
-  const blob = await new Promise(res=>canvas.toBlob(res, format, quality));
+  let format = mimeFor(cfg.output.imageFormat);
+  let blob = await new Promise(res=>canvas.toBlob(res, format, quality));
+  // Some browsers (older Safari in particular) can DECODE WebP but not
+  // ENCODE it — canvas.toBlob just silently returns null rather than
+  // throwing, so fall back to PNG rather than producing a broken file.
+  if(!blob && format === 'image/webp'){
+    console.warn('WebP encoding unsupported in this browser — falling back to PNG for', rec.name);
+    format = 'image/png';
+    blob = await new Promise(res=>canvas.toBlob(res, format));
+  }
+  if(!blob) throw new Error('This browser could not encode the output image');
   const bytes = new Uint8Array(await blob.arrayBuffer());
-  return { bytes, mime: format, ext: format==='image/jpeg' ? 'jpg' : 'png' };
+  const ext = format==='image/webp' ? 'webp' : format==='image/jpeg' ? 'jpg' : 'png';
+  return { bytes, mime: format, ext };
 }
 
 function outputFilename(rec, ext, batchN){
@@ -4495,8 +4534,21 @@ function applyQuickStep(){
   // Position/Pages/Output steps: show exactly one tab-panel, matching
   // what that tab already contains in Advanced Mode — no duplicated markup.
   document.querySelectorAll('.tab-panel').forEach(p=>{
-    if(p.dataset.tabpanel==='extras' || p.dataset.tabpanel==='help') return; // stays hidden regardless
-    p.classList.toggle('active', step.tab && p.dataset.tabpanel===step.tab);
+    const isExtrasOrHelp = p.dataset.tabpanel==='extras' || p.dataset.tabpanel==='help';
+    if(step.tab){
+      // This quick step implies a specific Advanced tab — exactly that
+      // one is active, everything else (including extras/help) is not.
+      p.classList.toggle('active', p.dataset.tabpanel===step.tab);
+    } else if(isExtrasOrHelp){
+      // Files/Watermark/Process steps never legitimately activate
+      // extras/help — clear any stale .active left over from before
+      // Quick Mode was entered, so returning to Advanced Mode can't
+      // reveal two tab-panels stacked on top of each other.
+      p.classList.remove('active');
+    }
+    // Otherwise (non-tab step, and this is placement/pages/output):
+    // leave it exactly as it was — preserving whatever Advanced Mode
+    // had active before Quick Mode was entered.
   });
   // Keep Advanced Mode's own tab buttons in sync, so switching back to
   // Advanced Mode never shows a tab button highlighted that doesn't
@@ -4544,7 +4596,7 @@ document.querySelectorAll('.quick-step-btn').forEach(btn=>{
 /* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v2.1.2';
+const APP_VERSION = 'v2.2.0';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
