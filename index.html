@@ -562,7 +562,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.2.0</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.2.1</span></div>
   <div class="topbar-right">
     <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
     <span class="connectivity-pill" id="connectivityStatus" title="Connection status" role="status" aria-live="polite">🟢 Online</span>
@@ -1202,7 +1202,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>Privacy &amp; offline use</h4>
-        <p>🔒 <strong>Your documents are processed locally in your browser</strong> — files are never uploaded anywhere, on any visit, cached or not. StampIt does load its libraries (pdf-lib, pdf.js, JSZip) and Indian-language fonts from public CDNs, so the very first visit needs an internet connection. If <code>sw.js</code> was deployed alongside this file, those libraries and fonts get cached on-device after that, so later visits — even offline — can load and run without internet. This never applies to your documents, only to the app's own code. The pill in the top-right corner shows your current state: <strong>🟢 Online</strong>, <strong>✅ Offline Ready</strong> (cached and good to go without internet), or <strong>🔴 Offline</strong> (no connection right now).</p>
+        <p>🔒 <strong>Your documents are processed locally in your browser</strong> — files are never uploaded anywhere, on any visit, cached or not. StampIt does load its libraries (pdf-lib, pdf.js, JSZip) and Indian-language fonts from public CDNs, so the very first visit needs an internet connection. If <code>sw.js</code> is deployed alongside this file, those libraries and fonts get cached on-device after that, so later visits — even offline — can load and run without internet. This never applies to your documents, only to the app's own code. The pill in the top-right corner shows your current state: <strong>🟢 Online</strong>, <strong>✅ Offline Ready</strong> (cached and good to go without internet), or <strong>🔴 Offline</strong> (no connection right now).</p>
         <p id="offlineStatus" class="hint" style="margin-top:6px;">Offline caching: checking…</p>
       </div>
 
@@ -1246,7 +1246,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.2.0</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.2.1</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
         <button class="btn btn-ghost btn-sm" id="copyDiagnosticsGeneralBtn" type="button" style="margin-top:6px;">Copy diagnostic info</button>
         <p class="hint" style="margin-top:4px;">Useful when reporting a bug — copies your app version, browser, and current settings (never your document content or filenames) for support.</p>
       </div>
@@ -1286,7 +1286,34 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
   </div>
 </div>
 
+<script>
+/* ---------------------------------------------------------------
+   RELEASE-SAFETY: dependency guard
+   The app depends on four CDN libraries. If one fails to load, stop
+   cleanly with a useful message instead of throwing a cryptic error.
+   --------------------------------------------------------------- */
+(function(){
+  const checks = [
+    ['pdf-lib', () => !!window.PDFLib],
+    ['fontkit', () => !!window.fontkit],
+    ['pdf.js', () => !!window.pdfjsLib],
+    ['JSZip', () => !!window.JSZip],
+  ];
+  const missing = checks.filter(([, ok]) => !ok()).map(([name]) => name);
+  window.__STAMPIT_DEPS_READY__ = missing.length === 0;
+  window.__STAMPIT_MISSING_DEPS__ = missing;
+  if(missing.length){
+    document.documentElement.classList.add('deps-missing');
+    const panel = document.createElement('div');
+    panel.style.cssText = 'position:fixed;inset:0;z-index:9999;background:#F4EDE2;color:#0E0E10;display:flex;align-items:center;justify-content:center;padding:24px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;';
+    panel.innerHTML = '<div style="max-width:560px;background:#fff;padding:24px;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.12)"><h2 style="margin:0 0 10px">StampIt could not start</h2><p style="line-height:1.55">One or more required libraries could not be loaded. Connect to the internet and reload this page. If the problem continues, check whether your browser, network or content blocker is blocking the CDN libraries.</p><p style="font-weight:700">Missing: '+missing.join(', ')+'</p><button onclick="location.reload()" style="padding:10px 16px;border:0;border-radius:8px;background:#F5B301;color:#0E0E10;font-weight:700;cursor:pointer">Reload</button></div>';
+    document.addEventListener('DOMContentLoaded',()=>document.body.appendChild(panel),{once:true});
+  }
+})();
+</script>
+
 <script id="app-script">
+if(window.__STAMPIT_DEPS_READY__){
 /* ================================================================
    STAMPIT — application script
    Sections: STATE → HELPERS → FONTS → FILE INTAKE → SETTINGS UI →
@@ -4227,7 +4254,7 @@ function initOfflineCaching(){
   // not just first-time activation — and is worth telling the person about.
   const hadControllerAtLoad = !!navigator.serviceWorker.controller;
 
-  navigator.serviceWorker.register('sw.js').then(reg=>{
+  navigator.serviceWorker.register('./sw.js', { scope: './' }).then(reg=>{
     document.getElementById('offlineStatus').textContent = 'Offline caching: active for this device.';
     reg.addEventListener('updatefound', ()=>{
       const installing = reg.installing;
@@ -4596,7 +4623,7 @@ document.querySelectorAll('.quick-step-btn').forEach(btn=>{
 /* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v2.2.0';
+const APP_VERSION = 'v2.2.1';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
@@ -4646,8 +4673,16 @@ refreshStorageUsageDisplay();
 })();
 window.addEventListener('error', e=>{
   console.error('StampIt error:', e.error||e.message);
+  const status = document.getElementById('offlineStatus');
+  if(status && !navigator.onLine){
+    status.textContent = 'Offline: an application error occurred. Reload after reconnecting.';
+  }
+});
+window.addEventListener('unhandledrejection', e=>{
+  console.error('StampIt unhandled rejection:', e.reason);
 });
 
+}
 </script>
 </body>
 </html>
