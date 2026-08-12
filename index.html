@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StampIt v2.3.2 — Bulk Watermark &amp; Stamp Tool</title>
+<title>StampIt v2.3.3 — Bulk Watermark &amp; Stamp Tool</title>
 
 <!-- ============================================================
      FONTS — Poppins for headings, system sans for body text
@@ -559,7 +559,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 }
 
 /* ================================================================
-   v2.3.2 UI/UX REDESIGN
+   v2.3.3 UI/UX REDESIGN
    Cleaner three-panel workspace, stronger preview hierarchy,
    compact controls and more discoverable library/workflow actions.
    Functional behaviour is intentionally unchanged.
@@ -624,7 +624,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
 
 /* ================================================================
-   STAMPIT v2.3.2 — DESKTOP/LAPTOP UX REFINEMENT
+   STAMPIT v2.3.3 — DESKTOP/LAPTOP UX REFINEMENT
    Desktop is the primary workspace: Files | Live Preview | Configure.
    Mobile keeps the step-by-step workflow.
    ================================================================ */
@@ -778,7 +778,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 }
 
 /* ================================================================
-   v2.3.2 mobile refinement
+   v2.3.3 mobile refinement
    ================================================================ */
 @media (max-width: 999px){
   .quick-steps,
@@ -796,7 +796,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.2</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.3</span></div>
   <div class="topbar-right">
     <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
     <span class="connectivity-pill" id="connectivityStatus" title="Connection status" role="status" aria-live="polite">🟢 Online</span>
@@ -1445,7 +1445,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
       <div class="help-section">
         <h4>Save again &amp; Share</h4>
-        <p>Output downloads automatically once processing finishes. If you need it again — a download got blocked, or you closed it by mistake — <strong>Save again</strong> re-triggers the same download. On a phone or any browser that supports it, a <strong>Share…</strong> button also appears, handing the actual output file(s) straight to your device's native share sheet (Mail, WhatsApp, Files, AirDrop, and so on) instead of only saving to Downloads.</p>
+        <p>On desktop, output downloads automatically once processing finishes. On phones, StampIt keeps the result in the app first and gives you View, Save and Share actions. If you need it again — a download got blocked, or you closed it by mistake — <strong>Save again</strong> re-triggers the same download. On a phone or any browser that supports it, a <strong>Share…</strong> button also appears, handing the actual output file(s) straight to your device's native share sheet (Mail, WhatsApp, Files, AirDrop, and so on) instead of only saving to Downloads.</p>
       </div>
 
       <div class="divider"></div>
@@ -1470,7 +1470,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
       </div>
 
       <div class="help-section">
-        <h4>What's new in v2.3.2 — audit &amp; fix pass</h4>
+        <h4>What's new in v2.3.3 — audit &amp; fix pass</h4>
         <p>A full control-by-control audit, tracing each one from UI event through to actual output rather than just reading the code. Found and fixed real bugs: clicking "Browse files" or "Browse folder" was also triggering the dropzone's own click handler underneath it, capable of opening a second file picker; switching Extras or Help tab → Quick Mode → back to Advanced Mode could leave two settings tabs simultaneously visible, stacked on top of each other; the background-box opacity slider was the one control in the app missing its paired precise-entry number field; the "🔒 documents processed locally" badge and two other components used a colour pairing that made their text nearly illegible in dark mode (fixed with a proper theme-invariant token, not a one-off patch); Job Profile cards were unfocusable clickable `&lt;div&gt;`s rather than real buttons, unreachable by keyboard or screen reader — the same category of bug already fixed once before for the 9-point placement grid; the six Extras checkboxes (page numbering, header, footer, date, Bates, border) had their labels as plain adjacent text rather than a proper associated `&lt;label&gt;`, so clicking the text didn't toggle them; and several newer controls (Stamp Library chips, the Quick/Advanced toggle, Job Profile buttons) were missing from touch-target sizing on phones/tablets. Also added WebP as a genuine output format (previously PNG/JPG only, despite input already accepting WebP), with an automatic fallback to PNG on browsers that can decode WebP but not encode it. No existing feature was removed or altered in behaviour.</p>
       </div>
 
@@ -1496,7 +1496,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.2</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.3</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
         <button class="btn btn-ghost btn-sm" id="copyDiagnosticsGeneralBtn" type="button" style="margin-top:6px;">Copy diagnostic info</button>
         <p class="hint" style="margin-top:4px;">Useful when reporting a bug — copies your app version, browser, and current settings (never your document content or filenames) for support.</p>
       </div>
@@ -1537,7 +1537,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 </div>
 
 <script id="app-script">
-const STAMPIT_VERSION = 'v2.3.2';
+const STAMPIT_VERSION = 'v2.3.3';
 /* ================================================================
    STAMPIT — application script
    Sections: STATE → HELPERS → FONTS → FILE INTAKE → SETTINGS UI →
@@ -4526,9 +4526,16 @@ async function runBatch(filesToProcess){
   progressInner.style.width='100%';
   progressLabel.textContent = (state.cancelRequested ? 'Cancelled' : 'Done') + ` · ${totalElapsed} total`;
 
-  let lastOutputFiles = []; // File[] — used by the Save-again and Share buttons below
+  function isMobileOutputBrowser(){
+    return !!(window.matchMedia && window.matchMedia('(max-width: 700px)').matches) ||
+      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+  }
+
+  let lastOutputFiles = []; // retained for View / Save / Share actions
+  let outputWasZip = false;
   if(results.length){
     if(state.config.output.downloadMode === 'zip'){
+      outputWasZip = true;
       progressLabel.textContent = 'Compressing into .zip…';
       const zip = new JSZip();
       results.forEach(r=>zip.file(r.name, r.bytes));
@@ -4536,12 +4543,14 @@ async function runBatch(filesToProcess){
         progressLabel.textContent = `Compressing into .zip… ${Math.round(metadata.percent)}%`;
       });
       lastOutputFiles = [new File([blob], 'StampIt_output.zip', { type:'application/zip' })];
-      triggerDownload(blob, 'StampIt_output.zip');
+      if(!isMobileOutputBrowser()) triggerDownload(blob, 'StampIt_output.zip');
     } else {
       lastOutputFiles = results.map(r=>new File([r.bytes], r.name, { type:r.mime }));
-      for(const r of results){
-        triggerDownload(new Blob([r.bytes], {type:r.mime}), r.name);
-        await new Promise(res=>setTimeout(res, 250)); // avoid the browser blocking rapid-fire downloads
+      if(!isMobileOutputBrowser()){
+        for(const r of results){
+          triggerDownload(new Blob([r.bytes], {type:r.mime}), r.name);
+          await new Promise(res=>setTimeout(res, 250));
+        }
       }
     }
   }
@@ -4556,18 +4565,30 @@ async function runBatch(filesToProcess){
     (failedCount ? ` · ${failedCount} failed` : '') +
     (skippedCount ? ` · ${skippedCount} skipped` : '') +
     ((failedCount||skippedCount) ? `<ul>${report.filter(r=>r.status!=='processed').map(r=>`<li>${escapeHtml(r.name)} — ${escapeHtml(r.detail)}</li>`).join('')}</ul>` : '') +
-    `<div class="summary-actions">` +
-      (lastOutputFiles.length ? `<button class="btn btn-ghost btn-sm" id="saveAgainBtn" type="button">Save again</button>` : '') +
+    `<div class="summary-actions output-actions">` +
+      ((!outputWasZip && lastOutputFiles.length) ? `<button class="btn btn-ghost btn-sm" id="viewOutputBtn" type="button">View${lastOutputFiles.length>1?' first':''}</button>` : '') +
+      (lastOutputFiles.length ? `<button class="btn btn-amber btn-sm" id="saveAgainBtn" type="button">${isMobileOutputBrowser()?'Save output':'Save again'}</button>` : '') +
       (canShareFiles ? `<button class="btn btn-amber btn-sm" id="shareOutputBtn" type="button">Share…</button>` : '') +
       `<button class="btn btn-ghost btn-sm" id="downloadReportBtn" type="button">Report (.txt)</button>` +
       `<button class="btn btn-ghost btn-sm" id="downloadReportCsvBtn" type="button">Report (.csv)</button>` +
       (failedCount ? `<button class="btn btn-ghost btn-sm" id="copyDiagnosticsBtn" type="button">Copy diagnostic info</button>` : '') +
-    `</div>`;
+    `</div>` +
+    (outputWasZip ? `<div class="output-view-note">ZIP output is ready. Use <strong>Save output</strong> or <strong>Share</strong> to send it to Files or another app.</div>` : `<div class="output-view-note">Output is ready. You can view it, save it again, or share it without leaving StampIt.</div>`); 
   document.getElementById('downloadReportBtn').addEventListener('click', ()=>downloadReport(report, 'txt'));
   document.getElementById('downloadReportCsvBtn').addEventListener('click', ()=>downloadReport(report, 'csv'));
   if(failedCount){
     document.getElementById('copyDiagnosticsBtn').addEventListener('click', ()=>{
       copyDiagnostics({ failedFiles: report.filter(r=>r.status==='failed').map(r=>({ detail:r.detail })) });
+    });
+  }
+  if(lastOutputFiles.length && !outputWasZip){
+    const viewBtn = document.getElementById('viewOutputBtn');
+    if(viewBtn) viewBtn.addEventListener('click', ()=>{
+      const file = lastOutputFiles[0];
+      const url = URL.createObjectURL(file);
+      const win = window.open(url, '_blank');
+      if(!win) window.location.href = url;
+      else setTimeout(()=>URL.revokeObjectURL(url), 60000);
     });
   }
   if(lastOutputFiles.length){
@@ -5076,7 +5097,7 @@ document.querySelectorAll('.quick-step-btn').forEach(btn=>{
 /* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v2.3.2';
+const APP_VERSION = 'v2.3.3';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
