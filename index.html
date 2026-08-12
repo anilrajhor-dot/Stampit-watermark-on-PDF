@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StampIt v2.3.10 — Bulk Watermark &amp; Stamp Tool</title>
+<title>StampIt v2.3.11 — Bulk Watermark &amp; Stamp Tool</title>
 
 <!-- ============================================================
      FONTS — Poppins for headings, system sans for body text
@@ -561,7 +561,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 }
 
 /* ================================================================
-   v2.3.10 UI/UX REDESIGN
+   v2.3.11 UI/UX REDESIGN
    Cleaner three-panel workspace, stronger preview hierarchy,
    compact controls and more discoverable library/workflow actions.
    Functional behaviour is intentionally unchanged.
@@ -626,7 +626,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
 
 /* ================================================================
-   STAMPIT v2.3.10 — DESKTOP/LAPTOP UX REFINEMENT
+   STAMPIT v2.3.11 — DESKTOP/LAPTOP UX REFINEMENT
    Desktop is the primary workspace: Files | Live Preview | Configure.
    Mobile keeps the step-by-step workflow.
    ================================================================ */
@@ -780,7 +780,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 }
 
 /* ================================================================
-   v2.3.10 mobile refinement
+   v2.3.11 mobile refinement
    ================================================================ */
 @media (max-width: 999px){
   .quick-steps,
@@ -794,7 +794,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 }
 
 
-/* v2.3.10 — processing confirmation feedback */
+/* v2.3.11 — processing confirmation feedback */
 #summaryConfirmBtn:disabled{opacity:.65;cursor:wait;}
 
 
@@ -808,12 +808,18 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
   .app-credit{font-size:11px;}
 }
 
+
+/* v2.3.11 result-first mobile layout */
+#previewPanel > #summaryBox{margin-bottom:14px;}
+#previewPanel > #summaryBox .output-actions{display:flex;justify-content:flex-start;}
+#previewPanel > #summaryBox #viewOutputBtn{min-width:150px;font-size:16px;padding:12px 18px;}
+
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.10</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.11</span></div>
   <div class="topbar-right">
     <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
     <span class="connectivity-pill" id="connectivityStatus" title="Connection status" role="status" aria-live="polite">🟢 Online</span>
@@ -906,6 +912,8 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
   <!-- ============ CENTER: LIVE PREVIEW ============ -->
   <div class="panel" id="previewPanel">
+    <!-- v2.3.11: result is placed at the top so mobile users see it immediately after processing. -->
+    <div id="summaryBox" class="summary-box" style="display:none;" aria-live="polite"></div>
     <h2>Live preview</h2>
     <div class="preview-toolbar">
       <select id="previewFileSelect" aria-label="File to preview"><option>No files yet</option></select>
@@ -952,7 +960,6 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
         <div class="progress-outer"><div class="progress-inner" id="progressInner"></div></div>
         <div class="progress-label" id="progressLabel">—</div>
       </div>
-      <div id="summaryBox" class="summary-box" style="display:none;" aria-live="polite"></div>
     </div>
   </div>
 
@@ -1487,7 +1494,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
       </div>
 
       <div class="help-section">
-        <h4>What's new in v2.3.10 — audit &amp; fix pass</h4>
+        <h4>What's new in v2.3.11 — audit &amp; fix pass</h4>
         <p>A full control-by-control audit, tracing each one from UI event through to actual output rather than just reading the code. Found and fixed real bugs: clicking "Browse files" or "Browse folder" was also triggering the dropzone's own click handler underneath it, capable of opening a second file picker; switching Extras or Help tab → Quick Mode → back to Advanced Mode could leave two settings tabs simultaneously visible, stacked on top of each other; the background-box opacity slider was the one control in the app missing its paired precise-entry number field; the "🔒 documents processed locally" badge and two other components used a colour pairing that made their text nearly illegible in dark mode (fixed with a proper theme-invariant token, not a one-off patch); Job Profile cards were unfocusable clickable `&lt;div&gt;`s rather than real buttons, unreachable by keyboard or screen reader — the same category of bug already fixed once before for the 9-point placement grid; the six Extras checkboxes (page numbering, header, footer, date, Bates, border) had their labels as plain adjacent text rather than a proper associated `&lt;label&gt;`, so clicking the text didn't toggle them; and several newer controls (Stamp Library chips, the Quick/Advanced toggle, Job Profile buttons) were missing from touch-target sizing on phones/tablets. Also added WebP as a genuine output format (previously PNG/JPG only, despite input already accepting WebP), with an automatic fallback to PNG on browsers that can decode WebP but not encode it. No existing feature was removed or altered in behaviour.</p>
       </div>
 
@@ -1513,7 +1520,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.10</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.11</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
         <button class="btn btn-ghost btn-sm" id="copyDiagnosticsGeneralBtn" type="button" style="margin-top:6px;">Copy diagnostic info</button>
         <p class="hint" style="margin-top:4px;">Useful when reporting a bug — copies your app version, browser, and current settings (never your document content or filenames) for support.</p>
       </div>
@@ -1554,7 +1561,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 </div>
 
 <script id="app-script">
-const STAMPIT_VERSION = 'v2.3.10';
+const STAMPIT_VERSION = 'v2.3.11';
 /* ================================================================
    STAMPIT — application script
    Sections: STATE → HELPERS → FONTS → FILE INTAKE → SETTINGS UI →
@@ -4711,7 +4718,7 @@ async function runBatch(filesToProcess){
      `</div>` +
      (outputWasZip ? `<div class="output-view-note">Output is ready. Tap <strong>View first</strong>. Save and Share are available inside the viewer.</div>` : `<div class="output-view-note">Output is ready. Tap <strong>View</strong>. Save and Share are available inside the viewer.</div>`);
  
-  // v2.3.10: force the result panel open after processing.
+  // v2.3.11: force the result panel open after processing.
   const filesPanelEl=document.getElementById('filesPanel');
   const settingsPanelEl=document.getElementById('settingsPanel');
   const previewPanelEl=document.getElementById('previewPanel');
@@ -4738,10 +4745,13 @@ async function runBatch(filesToProcess){
       b.setAttribute('aria-selected',String(active));
     });
   }
+  // v2.3.11: the result card is physically at the top of Preview & Process.
+  // Reset the page/panel scroll so the user sees View immediately.
   setTimeout(()=>{
     previewPanelEl.scrollIntoView({behavior:'smooth',block:'start'});
-    summaryBox.scrollIntoView({behavior:'smooth',block:'center'});
-  },100);
+    window.scrollTo({top:0,behavior:'smooth'});
+    summaryBox.scrollIntoView({behavior:'smooth',block:'start'});
+  },120);
 
   if(viewOutputFile){
     const viewBtn=document.getElementById('viewOutputBtn');
@@ -5235,7 +5245,7 @@ document.querySelectorAll('.quick-step-btn').forEach(btn=>{
 /* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v2.3.10';
+const APP_VERSION = 'v2.3.11';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();

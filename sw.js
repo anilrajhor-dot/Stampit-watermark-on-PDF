@@ -1,8 +1,4 @@
-/* ==================================================================
-   StampIt service worker — v2.3.10
-   ================================================================== */
-
-const CACHE_NAME = 'stampit-v2.3.10-cache-v1';
+const CACHE_NAME = 'stampit-v2.3.11-cache-v1';
 
 const CORE_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js',
@@ -15,15 +11,15 @@ const CORE_ASSETS = [
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return Promise.all(
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.all(
         CORE_ASSETS.map(url =>
           fetch(url, { mode: 'no-cors' })
-            .then(res => cache.put(url, res))
+            .then(response => cache.put(url, response))
             .catch(() => {})
         )
-      );
-    }).then(() => self.skipWaiting())
+      )
+    ).then(() => self.skipWaiting())
   );
 });
 
@@ -40,22 +36,22 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  const req = event.request;
+  const request = event.request;
 
-  if (req.method !== 'GET') return;
+  if (request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(req).then(cached => {
+    caches.match(request).then(cached => {
       if (cached) return cached;
 
-      return fetch(req).then(res => {
-        const copy = res.clone();
+      return fetch(request).then(response => {
+        const copy = response.clone();
 
         caches.open(CACHE_NAME)
-          .then(cache => cache.put(req, copy))
+          .then(cache => cache.put(request, copy))
           .catch(() => {});
 
-        return res;
+        return response;
       });
     })
   );
