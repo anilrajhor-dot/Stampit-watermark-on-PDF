@@ -1,41 +1,25 @@
-const CACHE_NAME = 'stampit-v2.3.13-cache-v1';
-
-const CORE_ASSETS = [
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js',
-  'https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js',
-  'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap'
-];
+const CACHE_NAME = 'stampit-v2.3.14-cache-v1';
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache =>
-        Promise.all(
-          CORE_ASSETS.map(url =>
-            fetch(url, { mode: 'no-cors' })
-              .then(response => cache.put(url, response))
-              .catch(() => {})
-          )
-        )
-      )
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(cache => {
+      return cache.addAll([
+        './',
+        './index.html'
+      ]).catch(() => {});
+    }).then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys()
-      .then(names =>
-        Promise.all(
-          names
-            .filter(name => name !== CACHE_NAME)
-            .map(name => caches.delete(name))
-        )
+    caches.keys().then(keys =>
+      Promise.all(
+        keys
+          .filter(key => key !== CACHE_NAME)
+          .map(key => caches.delete(key))
       )
-      .then(() => self.clients.claim())
+    ).then(() => self.clients.claim())
   );
 });
 
@@ -43,20 +27,8 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    caches.match(event.request)
-      .then(cached => {
-        if (cached) return cached;
-
-        return fetch(event.request)
-          .then(response => {
-            const copy = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(cache => cache.put(event.request, copy))
-              .catch(() => {});
-
-            return response;
-          });
-      })
+    caches.match(event.request).then(cached => {
+      return cached || fetch(event.request);
+    })
   );
 });
