@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StampIt v2.3.18 — Bulk Watermark &amp; Stamp Tool</title>
+<title>StampIt v2.3.19 — Bulk Watermark &amp; Stamp Tool</title>
 
 <!-- ============================================================
      FONTS — Poppins for headings, system sans for body text
@@ -887,6 +887,30 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
   order:-9;
 }
 
+
+/* v2.3.19 — always-visible mobile workflow controls.
+   Prevents the user getting stranded deep inside Live Preview on iPhone/iPad. */
+.workflow-next-bar{display:none;}
+@media (max-width:1180px){
+  .workflow-next-bar{
+    position:fixed;left:0;right:0;bottom:0;z-index:9998;
+    display:flex;gap:8px;padding:10px 12px;
+    padding-bottom:calc(10px + env(safe-area-inset-bottom));
+    background:rgba(255,255,255,.97);backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);box-shadow:0 -5px 20px rgba(0,0,0,.12);
+  }
+  .workflow-next-bar .wf-btn{flex:1;min-height:46px;border-radius:12px;font-weight:800;font-size:15px;border:1px solid var(--line);background:var(--cream);color:var(--text);}
+  .workflow-next-bar .wf-next{background:var(--amber);border-color:var(--amber-dark);color:var(--charcoal);}
+  .workflow-next-bar .wf-process{background:var(--charcoal);border-color:var(--charcoal);color:var(--amber);}
+  body.quick-mode .workflow-next-bar{display:flex;}
+  body.quick-mode .workflow-next-bar .wf-back{display:block;}
+  body.quick-mode .workflow-next-bar .wf-next{display:block;}
+  body.quick-mode .workflow-next-bar .wf-process{display:block;}
+  body.quick-mode .workflow-next-bar.is-process{display:none;}
+  body:not(.quick-mode) .workflow-next-bar{display:flex;}
+  body:not(.quick-mode) .workflow-next-bar.is-process{display:none;}
+}
+@media (min-width:1181px){.workflow-next-bar{display:none!important;}}
 </style>
 </head>
 <body>
@@ -5231,6 +5255,7 @@ function applyMobileStep(){
   requestAnimationFrame(()=>{
     active.scrollIntoView({behavior:'smooth',block:'start'});
   });
+  if(window.__stampitRefreshWorkflowNav) window.__stampitRefreshWorkflowNav();
 }
 
 function goToMobileStep(step){
@@ -5362,6 +5387,7 @@ function applyQuickStep(){
   requestAnimationFrame(()=>{
     activePanel.scrollIntoView({behavior:'smooth', block:'start'});
   });
+  if(window.__stampitRefreshWorkflowNav) window.__stampitRefreshWorkflowNav();
 }
 
 const QUICK_MODE_KEY = 'stampit_quick_mode';
@@ -5384,7 +5410,7 @@ function setQuickMode(on){
     applyMobileStep();
   }
 }
-document.getElementById('quickModeToggle').addEventListener('click', ()=>setQuickMode(!state.quickMode));
+document.getElementById('quickModeToggle').addEventListener('click', ()=>{setQuickMode(!state.quickMode); if(window.__stampitRefreshWorkflowNav) window.__stampitRefreshWorkflowNav();});
 // v2.3.18: capture-phase delegated Quick Mode navigation.
 document.addEventListener('click', e=>{
   const btn=e.target.closest && e.target.closest('.quick-step-btn');
@@ -5399,7 +5425,66 @@ document.addEventListener('click', e=>{
 }, true);
 
 
-const APP_VERSION = 'v2.3.18';
+
+/* v2.3.19 — persistent workflow navigation.
+   This is deliberately independent of the top sticky tabs, so a long
+   preview can never hide the only way to advance. */
+(function installWorkflowNav(){
+  const bar=document.getElementById('workflowNextBar');
+  const back=document.getElementById('workflowBackBtn');
+  const next=document.getElementById('workflowNextBtn');
+  const proc=document.getElementById('workflowProcessBtn');
+  if(!bar||!back||!next||!proc) return;
+
+  function refresh(){
+    const quick=!!state.quickMode;
+    const step=quick ? Number(state.quickStep||1) : Number(mobileStep||1);
+    const last=quick ? 6 : 3;
+    bar.classList.toggle('is-process', step===last);
+    back.disabled=step<=1;
+    back.style.display=step<=1?'none':'';
+    if(step===last){
+      next.style.display='none';
+      proc.style.display=quick ? 'block' : 'block';
+    }else{
+      proc.style.display='none';
+      next.style.display='block';
+      next.textContent=quick && step===5 ? 'Go to Process ›' : 'Next ›';
+    }
+  }
+
+  back.addEventListener('click',e=>{
+    e.preventDefault();
+    if(state.quickMode){
+      if(state.quickStep>1){state.quickStep--;applyQuickStep();}
+    }else if(mobileStep>1){
+      goToMobileStep(mobileStep-1);
+    }
+    refresh();
+  });
+
+  next.addEventListener('click',e=>{
+    e.preventDefault();
+    if(state.quickMode){
+      if(state.quickStep<6){state.quickStep++;applyQuickStep();}
+    }else if(mobileStep<3){
+      goToMobileStep(mobileStep+1);
+    }
+    refresh();
+  });
+
+  proc.addEventListener('click',e=>{
+    e.preventDefault();
+    const real=document.getElementById('processBtn');
+    if(real) real.click();
+  });
+
+  window.__stampitRefreshWorkflowNav=refresh;
+  setTimeout(refresh,0);
+  window.addEventListener('resize',()=>setTimeout(refresh,20));
+})();
+
+const APP_VERSION = 'v2.3.19';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 // v2.3.18: establish the initial workflow panel explicitly.
 setTimeout(()=>applyMobileStep(),0);
@@ -5457,5 +5542,12 @@ window.addEventListener('error', e=>{
 
 </script>
 <footer class="app-footer"><div class="app-credit">Developed by Anil Sharma · Former General Manager, Central Bank of India</div></footer>
+
+<!-- v2.3.19: persistent mobile workflow controls -->
+<div class="workflow-next-bar" id="workflowNextBar" aria-label="Workflow navigation">
+  <button type="button" class="wf-btn wf-back" id="workflowBackBtn">‹ Back</button>
+  <button type="button" class="wf-btn wf-next" id="workflowNextBtn">Next ›</button>
+  <button type="button" class="wf-btn wf-process" id="workflowProcessBtn" style="display:none;">Process &amp; Download</button>
+</div>
 </body>
 </html>
