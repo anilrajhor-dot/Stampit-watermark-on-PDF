@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StampIt v2.3.5 — Bulk Watermark &amp; Stamp Tool</title>
+<title>StampIt v2.3.8 — Bulk Watermark &amp; Stamp Tool</title>
 
 <!-- ============================================================
      FONTS — Poppins for headings, system sans for body text
@@ -559,7 +559,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 }
 
 /* ================================================================
-   v2.3.5 UI/UX REDESIGN
+   v2.3.8 UI/UX REDESIGN
    Cleaner three-panel workspace, stronger preview hierarchy,
    compact controls and more discoverable library/workflow actions.
    Functional behaviour is intentionally unchanged.
@@ -624,7 +624,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
 
 /* ================================================================
-   STAMPIT v2.3.5 — DESKTOP/LAPTOP UX REFINEMENT
+   STAMPIT v2.3.8 — DESKTOP/LAPTOP UX REFINEMENT
    Desktop is the primary workspace: Files | Live Preview | Configure.
    Mobile keeps the step-by-step workflow.
    ================================================================ */
@@ -778,7 +778,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 }
 
 /* ================================================================
-   v2.3.5 mobile refinement
+   v2.3.8 mobile refinement
    ================================================================ */
 @media (max-width: 999px){
   .quick-steps,
@@ -791,12 +791,27 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
   }
 }
 
+
+/* v2.3.8 — processing confirmation feedback */
+#summaryConfirmBtn:disabled{opacity:.65;cursor:wait;}
+
+
+.app-footer{width:100%;padding:18px 16px 24px;text-align:center;}
+.app-credit{
+  font-size:11px;font-weight:700;letter-spacing:.02em;
+  color:var(--muted,#777);opacity:.9;
+}
+@media(min-width:1000px){
+  .app-footer{padding:12px 20px 20px;}
+  .app-credit{font-size:11px;}
+}
+
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.5</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.8</span></div>
   <div class="topbar-right">
     <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
     <span class="connectivity-pill" id="connectivityStatus" title="Connection status" role="status" aria-live="polite">🟢 Online</span>
@@ -1470,7 +1485,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
       </div>
 
       <div class="help-section">
-        <h4>What's new in v2.3.5 — audit &amp; fix pass</h4>
+        <h4>What's new in v2.3.8 — audit &amp; fix pass</h4>
         <p>A full control-by-control audit, tracing each one from UI event through to actual output rather than just reading the code. Found and fixed real bugs: clicking "Browse files" or "Browse folder" was also triggering the dropzone's own click handler underneath it, capable of opening a second file picker; switching Extras or Help tab → Quick Mode → back to Advanced Mode could leave two settings tabs simultaneously visible, stacked on top of each other; the background-box opacity slider was the one control in the app missing its paired precise-entry number field; the "🔒 documents processed locally" badge and two other components used a colour pairing that made their text nearly illegible in dark mode (fixed with a proper theme-invariant token, not a one-off patch); Job Profile cards were unfocusable clickable `&lt;div&gt;`s rather than real buttons, unreachable by keyboard or screen reader — the same category of bug already fixed once before for the 9-point placement grid; the six Extras checkboxes (page numbering, header, footer, date, Bates, border) had their labels as plain adjacent text rather than a proper associated `&lt;label&gt;`, so clicking the text didn't toggle them; and several newer controls (Stamp Library chips, the Quick/Advanced toggle, Job Profile buttons) were missing from touch-target sizing on phones/tablets. Also added WebP as a genuine output format (previously PNG/JPG only, despite input already accepting WebP), with an automatic fallback to PNG on browsers that can decode WebP but not encode it. No existing feature was removed or altered in behaviour.</p>
       </div>
 
@@ -1496,7 +1511,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.5</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.8</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
         <button class="btn btn-ghost btn-sm" id="copyDiagnosticsGeneralBtn" type="button" style="margin-top:6px;">Copy diagnostic info</button>
         <p class="hint" style="margin-top:4px;">Useful when reporting a bug — copies your app version, browser, and current settings (never your document content or filenames) for support.</p>
       </div>
@@ -1537,7 +1552,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 </div>
 
 <script id="app-script">
-const STAMPIT_VERSION = 'v2.3.5';
+const STAMPIT_VERSION = 'v2.3.8';
 /* ================================================================
    STAMPIT — application script
    Sections: STATE → HELPERS → FONTS → FILE INTAKE → SETTINGS UI →
@@ -4068,6 +4083,49 @@ document.getElementById('stampFavouritesBtn').addEventListener('click', ()=>{
 populateStampCategories();
 renderStampLibrary();
 
+function openOutputViewer(file){
+  if(!file)return;
+  const viewer=document.getElementById('outputViewer');
+  const body=document.getElementById('outputViewerBody');
+  const title=document.getElementById('outputViewerTitle');
+  const saveBtn=document.getElementById('outputViewerSave');
+  const shareBtn=document.getElementById('outputViewerShare');
+  const oldUrl=viewer.dataset.objectUrl;
+  if(oldUrl)URL.revokeObjectURL(oldUrl);
+  const url=URL.createObjectURL(file);
+  viewer.dataset.objectUrl=url;
+  title.textContent=file.name;
+  body.innerHTML='';
+  if(file.type==='application/pdf'){
+    const iframe=document.createElement('iframe');
+    iframe.title='PDF preview'; iframe.src=url; body.appendChild(iframe);
+  }else{
+    const img=document.createElement('img');
+    img.alt=file.name; img.src=url; body.appendChild(img);
+  }
+  saveBtn.onclick=()=>triggerDownload(file,file.name);
+  shareBtn.onclick=async()=>{
+    try{
+      if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],title:'StampIt output',text:'Watermarked file from StampIt'});
+      }else{
+        triggerDownload(file,file.name);
+        showAppAlert('Share not available','Your browser does not support file sharing. The file has been saved/downloaded instead.');
+      }
+    }catch(err){if(err&&err.name!=='AbortError')console.warn('Share failed',err);}
+  };
+  viewer.classList.add('open'); viewer.setAttribute('aria-hidden','false');
+}
+function closeOutputViewer(){
+  const viewer=document.getElementById('outputViewer');
+  const url=viewer.dataset.objectUrl;
+  if(url)URL.revokeObjectURL(url);
+  viewer.dataset.objectUrl='';
+  document.getElementById('outputViewerBody').innerHTML='';
+  viewer.classList.remove('open'); viewer.setAttribute('aria-hidden','true');
+}
+document.getElementById('outputViewerClose').addEventListener('click',closeOutputViewer);
+
 /* ---------------------------------------------------------------
    7. PROCESSING ENGINE
    Runs the whole batch sequentially, yielding to the UI thread
@@ -4449,10 +4507,56 @@ document.getElementById('summaryCancelBtn').addEventListener('click', closeProce
 document.getElementById('processSummaryBackdrop').addEventListener('click', e=>{
   if(e.target.id === 'processSummaryBackdrop') closeProcessSummary();
 });
-document.getElementById('summaryConfirmBtn').addEventListener('click', ()=>{
-  const batch = pendingBatch;
+document.getElementById('summaryConfirmBtn').addEventListener('click', async (e)=>{
+  e.preventDefault();
+  e.stopPropagation();
+
+  const batch = pendingBatch ? [...pendingBatch] : [];
+  if(!batch.length){
+    closeProcessSummary();
+    showAppAlert('No files selected', 'Please select at least one file before processing.');
+    return;
+  }
+
+  const btn = e.currentTarget;
+  btn.disabled = true;
+  btn.textContent = 'Starting…';
+
+  // Close the confirmation sheet immediately. This is important on iPhone:
+  // the result/progress screen must replace the confirmation modal instead
+  // of leaving the user looking at a frozen-looking overlay.
   closeProcessSummary();
-  if(batch) runBatch(batch);
+
+  // Move to the process/result panel before starting the asynchronous work.
+  // This guarantees visible progress even if the batch takes a few seconds.
+  try{
+    if(state.quickMode){
+      state.quickStep = 6;
+      applyQuickStep();
+      const fp=document.getElementById('filesPanel');
+      const sp=document.getElementById('settingsPanel');
+      const pp=document.getElementById('previewPanel');
+      fp.style.display='none'; sp.style.display='none'; pp.style.display='block';
+      pp.scrollIntoView({behavior:'smooth', block:'start'});
+    }else if(isMobileLayout()){
+      mobileStep = 3;
+      applyMobileStep();
+      const fp=document.getElementById('filesPanel');
+      const sp=document.getElementById('settingsPanel');
+      const pp=document.getElementById('previewPanel');
+      fp.style.display='none'; sp.style.display='none'; pp.style.display='block';
+      pp.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    await new Promise(resolve=>setTimeout(resolve, 80));
+    await runBatch(batch);
+  }catch(err){
+    console.error('StampIt processing error:', err);
+    showAppAlert('Processing error', (err && err.message) ? err.message : 'The processing operation could not be started.');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'Confirm & Process';
+  }
 });
 
 document.getElementById('retryFailedBtn').addEventListener('click', ()=>{
@@ -4568,62 +4672,45 @@ async function runBatch(filesToProcess){
     (skippedCount ? ` · ${skippedCount} skipped` : '') +
     ((failedCount||skippedCount) ? `<ul>${report.filter(r=>r.status!=='processed').map(r=>`<li>${escapeHtml(r.name)} — ${escapeHtml(r.detail)}</li>`).join('')}</ul>` : '') +
     `<div class="summary-actions output-actions">` +
-      (viewOutputFile ? `<button class="btn btn-ghost btn-sm" id="viewOutputBtn" type="button">View${results.length>1 || outputWasZip ? ' first' : ''}</button>` : '') +
-      (lastOutputFiles.length ? `<button class="btn btn-amber btn-sm" id="saveAgainBtn" type="button">${isMobileOutputBrowser()?'Save output':'Save again'}</button>` : '') +
-      (canShareFiles ? `<button class="btn btn-amber btn-sm" id="shareOutputBtn" type="button">Share…</button>` : '') +
-      `<button class="btn btn-ghost btn-sm" id="downloadReportBtn" type="button">Report (.txt)</button>` +
-      `<button class="btn btn-ghost btn-sm" id="downloadReportCsvBtn" type="button">Report (.csv)</button>` +
-      (failedCount ? `<button class="btn btn-ghost btn-sm" id="copyDiagnosticsBtn" type="button">Copy diagnostic info</button>` : '') +
-    `</div>` +
-    (outputWasZip ? `<div class="output-view-note">ZIP output is ready. <strong>View first</strong> previews the first processed file; <strong>Save output</strong> or <strong>Share</strong> handles the complete ZIP.</div>` : `<div class="output-view-note">Output is ready. You can view it, save it again, or share it without leaving StampIt.</div>`);
-
-  // v2.3.5: after processing on a phone, never leave the user looking at
-  // the previous settings screen. The result card is inside the Preview
-  // panel, so move directly to that panel. Quick Mode goes to step 6;
-  // normal mobile Advanced Mode goes to panel 3.
+       (viewOutputFile ? `<button class="btn btn-amber btn-sm" id="viewOutputBtn" type="button">View${results.length>1 || outputWasZip ? ' first' : ''}</button>` : '') +
+     `</div>` +
+     (outputWasZip ? `<div class="output-view-note">Output is ready. Tap <strong>View first</strong>. Save and Share are available inside the viewer.</div>` : `<div class="output-view-note">Output is ready. Tap <strong>View</strong>. Save and Share are available inside the viewer.</div>`);
+ 
+  // v2.3.8: force the result panel open after processing.
+  const filesPanelEl=document.getElementById('filesPanel');
+  const settingsPanelEl=document.getElementById('settingsPanel');
+  const previewPanelEl=document.getElementById('previewPanel');
   if(state.quickMode){
-    state.quickStep = 6;
+    state.quickStep=6;
     applyQuickStep();
-    setTimeout(()=>summaryBox.scrollIntoView({behavior:'smooth', block:'center'}), 60);
-  } else if(isMobileLayout()){
-    mobileStep = 3;
+    filesPanelEl.style.display='none';
+    settingsPanelEl.style.display='none';
+    previewPanelEl.style.display='block';
+    document.querySelectorAll('.quick-step-btn').forEach(b=>{
+      const active=Number(b.dataset.qstep)===6;
+      b.classList.toggle('active',active);
+      b.setAttribute('aria-selected',String(active));
+    });
+  }else if(isMobileLayout()){
+    mobileStep=3;
     applyMobileStep();
-    setTimeout(()=>summaryBox.scrollIntoView({behavior:'smooth', block:'center'}), 60);
+    filesPanelEl.style.display='none';
+    settingsPanelEl.style.display='none';
+    previewPanelEl.style.display='block';
+    document.querySelectorAll('.mobile-step-btn').forEach(b=>{
+      const active=Number(b.dataset.step)===3;
+      b.classList.toggle('active',active);
+      b.setAttribute('aria-selected',String(active));
+    });
   }
+  setTimeout(()=>{
+    previewPanelEl.scrollIntoView({behavior:'smooth',block:'start'});
+    summaryBox.scrollIntoView({behavior:'smooth',block:'center'});
+  },100);
 
-  document.getElementById('downloadReportBtn').addEventListener('click', ()=>downloadReport(report, 'txt'));
-  document.getElementById('downloadReportCsvBtn').addEventListener('click', ()=>downloadReport(report, 'csv'));
-  if(failedCount){
-    document.getElementById('copyDiagnosticsBtn').addEventListener('click', ()=>{
-      copyDiagnostics({ failedFiles: report.filter(r=>r.status==='failed').map(r=>({ detail:r.detail })) });
-    });
-  }
   if(viewOutputFile){
-    const viewBtn = document.getElementById('viewOutputBtn');
-    if(viewBtn) viewBtn.addEventListener('click', ()=>{
-      const url = URL.createObjectURL(viewOutputFile);
-      const win = window.open(url, '_blank');
-      if(!win) window.location.href = url;
-      else setTimeout(()=>URL.revokeObjectURL(url), 60000);
-    });
-  }
-  if(lastOutputFiles.length){
-    document.getElementById('saveAgainBtn').addEventListener('click', ()=>{
-      lastOutputFiles.forEach(f=>triggerDownload(f, f.name));
-    });
-  }
-  if(canShareFiles){
-    document.getElementById('shareOutputBtn').addEventListener('click', async ()=>{
-      try{
-        await navigator.share({
-          files: lastOutputFiles,
-          title: 'StampIt output',
-          text: `${lastOutputFiles.length} watermarked file${lastOutputFiles.length!==1?'s':''} from StampIt`,
-        });
-      } catch(err){
-        if(err && err.name !== 'AbortError') console.warn('Share failed', err);
-      }
-    });
+    const viewBtn=document.getElementById('viewOutputBtn');
+    if(viewBtn) viewBtn.addEventListener('click',()=>openOutputViewer(viewOutputFile));
   }
 
   state.processing = false;
@@ -5113,7 +5200,7 @@ document.querySelectorAll('.quick-step-btn').forEach(btn=>{
 /* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v2.3.5';
+const APP_VERSION = 'v2.3.8';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
@@ -5166,5 +5253,18 @@ window.addEventListener('error', e=>{
 });
 
 </script>
+<div id="outputViewer" class="output-viewer" aria-hidden="true">
+  <div class="output-viewer-head">
+    <button type="button" class="btn btn-ghost btn-sm" id="outputViewerClose">✕ Close</button>
+    <strong id="outputViewerTitle">Output preview</strong>
+    <div class="output-viewer-actions">
+      <button type="button" class="btn btn-ghost btn-sm" id="outputViewerSave">Save</button>
+      <button type="button" class="btn btn-amber btn-sm" id="outputViewerShare">Share</button>
+    </div>
+  </div>
+  <div class="output-viewer-body" id="outputViewerBody"></div>
+  <div class="output-viewer-foot">Share opens your device's share sheet — email, WhatsApp and other installed apps appear when supported.</div>
+</div>
+<footer class="app-footer"><div class="app-credit">Developed by Anil Sharma · Former General Manager, Central Bank of India</div></footer>
 </body>
 </html>
