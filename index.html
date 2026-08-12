@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StampIt v2.3.4 — Bulk Watermark &amp; Stamp Tool</title>
+<title>StampIt v2.3.5 — Bulk Watermark &amp; Stamp Tool</title>
 
 <!-- ============================================================
      FONTS — Poppins for headings, system sans for body text
@@ -559,7 +559,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 }
 
 /* ================================================================
-   v2.3.4 UI/UX REDESIGN
+   v2.3.5 UI/UX REDESIGN
    Cleaner three-panel workspace, stronger preview hierarchy,
    compact controls and more discoverable library/workflow actions.
    Functional behaviour is intentionally unchanged.
@@ -624,7 +624,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
 
 /* ================================================================
-   STAMPIT v2.3.4 — DESKTOP/LAPTOP UX REFINEMENT
+   STAMPIT v2.3.5 — DESKTOP/LAPTOP UX REFINEMENT
    Desktop is the primary workspace: Files | Live Preview | Configure.
    Mobile keeps the step-by-step workflow.
    ================================================================ */
@@ -778,7 +778,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 }
 
 /* ================================================================
-   v2.3.4 mobile refinement
+   v2.3.5 mobile refinement
    ================================================================ */
 @media (max-width: 999px){
   .quick-steps,
@@ -796,7 +796,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.4</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.5</span></div>
   <div class="topbar-right">
     <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
     <span class="connectivity-pill" id="connectivityStatus" title="Connection status" role="status" aria-live="polite">🟢 Online</span>
@@ -1470,7 +1470,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
       </div>
 
       <div class="help-section">
-        <h4>What's new in v2.3.4 — audit &amp; fix pass</h4>
+        <h4>What's new in v2.3.5 — audit &amp; fix pass</h4>
         <p>A full control-by-control audit, tracing each one from UI event through to actual output rather than just reading the code. Found and fixed real bugs: clicking "Browse files" or "Browse folder" was also triggering the dropzone's own click handler underneath it, capable of opening a second file picker; switching Extras or Help tab → Quick Mode → back to Advanced Mode could leave two settings tabs simultaneously visible, stacked on top of each other; the background-box opacity slider was the one control in the app missing its paired precise-entry number field; the "🔒 documents processed locally" badge and two other components used a colour pairing that made their text nearly illegible in dark mode (fixed with a proper theme-invariant token, not a one-off patch); Job Profile cards were unfocusable clickable `&lt;div&gt;`s rather than real buttons, unreachable by keyboard or screen reader — the same category of bug already fixed once before for the 9-point placement grid; the six Extras checkboxes (page numbering, header, footer, date, Bates, border) had their labels as plain adjacent text rather than a proper associated `&lt;label&gt;`, so clicking the text didn't toggle them; and several newer controls (Stamp Library chips, the Quick/Advanced toggle, Job Profile buttons) were missing from touch-target sizing on phones/tablets. Also added WebP as a genuine output format (previously PNG/JPG only, despite input already accepting WebP), with an automatic fallback to PNG on browsers that can decode WebP but not encode it. No existing feature was removed or altered in behaviour.</p>
       </div>
 
@@ -1496,7 +1496,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.4</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.5</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
         <button class="btn btn-ghost btn-sm" id="copyDiagnosticsGeneralBtn" type="button" style="margin-top:6px;">Copy diagnostic info</button>
         <p class="hint" style="margin-top:4px;">Useful when reporting a bug — copies your app version, browser, and current settings (never your document content or filenames) for support.</p>
       </div>
@@ -1537,7 +1537,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 </div>
 
 <script id="app-script">
-const STAMPIT_VERSION = 'v2.3.4';
+const STAMPIT_VERSION = 'v2.3.5';
 /* ================================================================
    STAMPIT — application script
    Sections: STATE → HELPERS → FONTS → FILE INTAKE → SETTINGS UI →
@@ -4531,9 +4531,11 @@ async function runBatch(filesToProcess){
       /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
   }
 
-  let lastOutputFiles = []; // retained for View / Save / Share actions
+  let lastOutputFiles = []; // retained for Save / Share actions
+  let viewOutputFile = null;   // first processed PDF/image, for in-app View
   let outputWasZip = false;
   if(results.length){
+    viewOutputFile = new File([results[0].bytes], results[0].name, { type: results[0].mime });
     if(state.config.output.downloadMode === 'zip'){
       outputWasZip = true;
       progressLabel.textContent = 'Compressing into .zip…';
@@ -4566,16 +4568,16 @@ async function runBatch(filesToProcess){
     (skippedCount ? ` · ${skippedCount} skipped` : '') +
     ((failedCount||skippedCount) ? `<ul>${report.filter(r=>r.status!=='processed').map(r=>`<li>${escapeHtml(r.name)} — ${escapeHtml(r.detail)}</li>`).join('')}</ul>` : '') +
     `<div class="summary-actions output-actions">` +
-      ((!outputWasZip && lastOutputFiles.length) ? `<button class="btn btn-ghost btn-sm" id="viewOutputBtn" type="button">View${lastOutputFiles.length>1?' first':''}</button>` : '') +
+      (viewOutputFile ? `<button class="btn btn-ghost btn-sm" id="viewOutputBtn" type="button">View${results.length>1 || outputWasZip ? ' first' : ''}</button>` : '') +
       (lastOutputFiles.length ? `<button class="btn btn-amber btn-sm" id="saveAgainBtn" type="button">${isMobileOutputBrowser()?'Save output':'Save again'}</button>` : '') +
       (canShareFiles ? `<button class="btn btn-amber btn-sm" id="shareOutputBtn" type="button">Share…</button>` : '') +
       `<button class="btn btn-ghost btn-sm" id="downloadReportBtn" type="button">Report (.txt)</button>` +
       `<button class="btn btn-ghost btn-sm" id="downloadReportCsvBtn" type="button">Report (.csv)</button>` +
       (failedCount ? `<button class="btn btn-ghost btn-sm" id="copyDiagnosticsBtn" type="button">Copy diagnostic info</button>` : '') +
     `</div>` +
-    (outputWasZip ? `<div class="output-view-note">ZIP output is ready. Use <strong>Save output</strong> or <strong>Share</strong> to send it to Files or another app.</div>` : `<div class="output-view-note">Output is ready. You can view it, save it again, or share it without leaving StampIt.</div>`);
+    (outputWasZip ? `<div class="output-view-note">ZIP output is ready. <strong>View first</strong> previews the first processed file; <strong>Save output</strong> or <strong>Share</strong> handles the complete ZIP.</div>` : `<div class="output-view-note">Output is ready. You can view it, save it again, or share it without leaving StampIt.</div>`);
 
-  // v2.3.4: after processing on a phone, never leave the user looking at
+  // v2.3.5: after processing on a phone, never leave the user looking at
   // the previous settings screen. The result card is inside the Preview
   // panel, so move directly to that panel. Quick Mode goes to step 6;
   // normal mobile Advanced Mode goes to panel 3.
@@ -4596,11 +4598,10 @@ async function runBatch(filesToProcess){
       copyDiagnostics({ failedFiles: report.filter(r=>r.status==='failed').map(r=>({ detail:r.detail })) });
     });
   }
-  if(lastOutputFiles.length && !outputWasZip){
+  if(viewOutputFile){
     const viewBtn = document.getElementById('viewOutputBtn');
     if(viewBtn) viewBtn.addEventListener('click', ()=>{
-      const file = lastOutputFiles[0];
-      const url = URL.createObjectURL(file);
+      const url = URL.createObjectURL(viewOutputFile);
       const win = window.open(url, '_blank');
       if(!win) window.location.href = url;
       else setTimeout(()=>URL.revokeObjectURL(url), 60000);
@@ -5112,7 +5113,7 @@ document.querySelectorAll('.quick-step-btn').forEach(btn=>{
 /* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v2.3.4';
+const APP_VERSION = 'v2.3.5';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
