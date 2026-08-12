@@ -1,7 +1,7 @@
-// StampIt v2.3.16 — reliable offline shell + runtime caching.
+// StampIt v2.3.17 — reliable offline shell + runtime caching.
 // Keep this file beside index.html on the same GitHub Pages path.
 
-const CACHE_NAME = 'stampit-v2.3.16-cache-v1';
+const CACHE_NAME = 'stampit-v2.3.17-cache-v1';
 
 const APP_SHELL = [
   './',
@@ -12,8 +12,6 @@ self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
 
-    // Never let one optional shell URL prevent the service worker
-    // from installing.
     await Promise.all(
       APP_SHELL.map(url =>
         cache.add(url).catch(() => undefined)
@@ -41,10 +39,10 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const request = event.request;
 
-  // Never interfere with POST/PUT/etc.
+  // Never interfere with non-GET requests.
   if (request.method !== 'GET') return;
 
-  // Navigation: use live page first, cached app shell when offline.
+  // Page navigation: network first, cached version if offline.
   if (request.mode === 'navigate') {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
@@ -69,8 +67,7 @@ self.addEventListener('fetch', event => {
             {
               status: 503,
               headers: {
-                'Content-Type':
-                  'text/plain; charset=utf-8'
+                'Content-Type': 'text/plain; charset=utf-8'
               }
             }
           )
@@ -81,8 +78,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Assets/libraries: network first while online,
-  // then use cached copy.
+  // Other GET requests: network first, then cache.
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
 
@@ -93,8 +89,7 @@ self.addEventListener('fetch', event => {
         response &&
         (response.ok || response.type === 'opaque')
       ) {
-        cache.put(request, response.clone())
-          .catch(() => undefined);
+        cache.put(request, response.clone()).catch(() => undefined);
       }
 
       return response;
@@ -103,7 +98,9 @@ self.addEventListener('fetch', event => {
 
       const cached = await cache.match(request);
 
-      if (cached) return cached;
+      if (cached) {
+        return cached;
+      }
 
       throw error;
     }
