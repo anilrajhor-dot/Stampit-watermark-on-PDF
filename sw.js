@@ -1,4 +1,4 @@
-const CACHE_NAME = 'stampit-v2.3.11-cache-v1';
+const CACHE_NAME = 'stampit-v2.3.12-cache-v1';
 
 const CORE_ASSETS = [
   'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js',
