@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StampIt v2.3.1 — Bulk Watermark &amp; Stamp Tool</title>
+<title>StampIt v2.3.2 — Bulk Watermark &amp; Stamp Tool</title>
 
 <!-- ============================================================
      FONTS — Poppins for headings, system sans for body text
@@ -559,7 +559,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 }
 
 /* ================================================================
-   v2.3.1 UI/UX REDESIGN
+   v2.3.2 UI/UX REDESIGN
    Cleaner three-panel workspace, stronger preview hierarchy,
    compact controls and more discoverable library/workflow actions.
    Functional behaviour is intentionally unchanged.
@@ -624,7 +624,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
 
 /* ================================================================
-   STAMPIT v2.3.1 — DESKTOP/LAPTOP UX REFINEMENT
+   STAMPIT v2.3.2 — DESKTOP/LAPTOP UX REFINEMENT
    Desktop is the primary workspace: Files | Live Preview | Configure.
    Mobile keeps the step-by-step workflow.
    ================================================================ */
@@ -778,7 +778,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 }
 
 /* ================================================================
-   v2.3.1 mobile refinement
+   v2.3.2 mobile refinement
    ================================================================ */
 @media (max-width: 999px){
   .quick-steps,
@@ -796,7 +796,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.1</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.2</span></div>
   <div class="topbar-right">
     <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
     <span class="connectivity-pill" id="connectivityStatus" title="Connection status" role="status" aria-live="polite">🟢 Online</span>
@@ -984,12 +984,28 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
     </div>
 
     <div class="field" id="stampLibraryField">
-      <label>Stamp Library <span class="hint" style="font-weight:400;">— one-click styled stamps (text, logo, colour, position — everything but page/output settings)</span></label>
-      <div class="stamp-chip-row" id="stampBuiltinChips"></div>
+      <label>Stamp Library
+        <span class="hint" style="font-weight:400;">— built-in stamps + your saved stamps</span>
+      </label>
+      <div class="stamp-library-meta">
+        <span id="stampLibraryCount">100 built-in · 0 saved</span>
+        <span id="stampRecentLabel" class="hint"></span>
+      </div>
+      <div class="stamp-library-tools">
+        <input type="search" id="stampSearch" placeholder="Search stamps…" aria-label="Search stamps">
+        <select id="stampCategory" aria-label="Stamp category">
+          <option value="all">All categories</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" id="stampFavouritesBtn" type="button" aria-pressed="false">☆ Favourites</button>
+      </div>
+      <div class="stamp-recent-row" id="stampRecentChips" aria-label="Recently used stamps"></div>
+      <div class="stamp-library-section-title">Built-in stamps <span class="hint">100</span></div>
+      <div class="stamp-chip-row stamp-library-grid" id="stampBuiltinChips"></div>
+      <div class="stamp-library-section-title">My saved stamps <span class="hint" id="stampSavedCount">0 / 100</span></div>
       <select id="stampLibrarySelect"><option value="">My saved stamps…</option></select>
       <div class="preset-actions">
         <button class="btn btn-ghost btn-sm" id="applyStampBtn">Apply</button>
-        <button class="btn btn-ghost btn-sm" id="saveStampBtn">Save current as stamp</button>
+        <button class="btn btn-amber btn-sm" id="saveStampBtn">＋ Add / Save current stamp</button>
         <button class="btn btn-ghost btn-sm" id="renameStampBtn">Rename</button>
         <button class="btn btn-rust btn-sm" id="deleteStampBtn">Delete</button>
       </div>
@@ -1454,7 +1470,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
       </div>
 
       <div class="help-section">
-        <h4>What's new in v2.3.1 — audit &amp; fix pass</h4>
+        <h4>What's new in v2.3.2 — audit &amp; fix pass</h4>
         <p>A full control-by-control audit, tracing each one from UI event through to actual output rather than just reading the code. Found and fixed real bugs: clicking "Browse files" or "Browse folder" was also triggering the dropzone's own click handler underneath it, capable of opening a second file picker; switching Extras or Help tab → Quick Mode → back to Advanced Mode could leave two settings tabs simultaneously visible, stacked on top of each other; the background-box opacity slider was the one control in the app missing its paired precise-entry number field; the "🔒 documents processed locally" badge and two other components used a colour pairing that made their text nearly illegible in dark mode (fixed with a proper theme-invariant token, not a one-off patch); Job Profile cards were unfocusable clickable `&lt;div&gt;`s rather than real buttons, unreachable by keyboard or screen reader — the same category of bug already fixed once before for the 9-point placement grid; the six Extras checkboxes (page numbering, header, footer, date, Bates, border) had their labels as plain adjacent text rather than a proper associated `&lt;label&gt;`, so clicking the text didn't toggle them; and several newer controls (Stamp Library chips, the Quick/Advanced toggle, Job Profile buttons) were missing from touch-target sizing on phones/tablets. Also added WebP as a genuine output format (previously PNG/JPG only, despite input already accepting WebP), with an automatic fallback to PNG on browsers that can decode WebP but not encode it. No existing feature was removed or altered in behaviour.</p>
       </div>
 
@@ -1480,7 +1496,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.1</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.2</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
         <button class="btn btn-ghost btn-sm" id="copyDiagnosticsGeneralBtn" type="button" style="margin-top:6px;">Copy diagnostic info</button>
         <p class="hint" style="margin-top:4px;">Useful when reporting a bug — copies your app version, browser, and current settings (never your document content or filenames) for support.</p>
       </div>
@@ -1521,7 +1537,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 </div>
 
 <script id="app-script">
-const STAMPIT_VERSION = 'v2.3.1';
+const STAMPIT_VERSION = 'v2.3.2';
 /* ================================================================
    STAMPIT — application script
    Sections: STATE → HELPERS → FONTS → FILE INTAKE → SETTINGS UI →
@@ -3705,23 +3721,118 @@ document.getElementById('saveJobProfileBtn').addEventListener('click', async ()=
    create/rename/delete, all stored locally.
    --------------------------------------------------------------- */
 const STAMP_LIBRARY_KEY = 'stampit_stamp_library';
+const STAMP_RECENT_KEY = 'stampit_stamp_recent';
+const STAMP_FAV_KEY = 'stampit_stamp_favourites';
+const MAX_SAVED_STAMPS = 100;
+
 const BUILTIN_STAMP_DEFS = [
-  { name:'CONFIDENTIAL',      color:'#E2582B' },
-  { name:'DRAFT',             color:'#7A7568' },
-  { name:'COPY',              color:'#3D7BC9' },
-  { name:'ORIGINAL',          color:'#1F7A3D' },
-  { name:'APPROVED',          color:'#1F7A3D' },
-  { name:'REJECTED',          color:'#C4491F' },
-  { name:'PAID',              color:'#1F7A3D' },
-  { name:'CANCELLED',         color:'#C4491F' },
-  { name:'RECEIVED',          color:'#1D5DA8' },
-  { name:'FOR INTERNAL USE',  color:'#7A7568' },
-  { name:'BANK CONFIDENTIAL', color:'#0E0E10' },
+  { name:"CONFIDENTIAL", category:"Confidentiality", color:"#C4491F" },
+  { name:"STRICTLY CONFIDENTIAL", category:"Confidentiality", color:"#C4491F" },
+  { name:"PRIVATE", category:"Confidentiality", color:"#C4491F" },
+  { name:"TOP SECRET", category:"Confidentiality", color:"#C4491F" },
+  { name:"RESTRICTED", category:"Confidentiality", color:"#C4491F" },
+  { name:"INTERNAL USE", category:"Confidentiality", color:"#C4491F" },
+  { name:"FOR INTERNAL USE", category:"Confidentiality", color:"#C4491F" },
+  { name:"NOT FOR DISTRIBUTION", category:"Confidentiality", color:"#C4491F" },
+  { name:"DO NOT COPY", category:"Confidentiality", color:"#C4491F" },
+  { name:"CLASSIFIED", category:"Confidentiality", color:"#C4491F" },
+  { name:"DRAFT", category:"Document Status", color:"#7A7568" },
+  { name:"DRAFT COPY", category:"Document Status", color:"#7A7568" },
+  { name:"FINAL", category:"Document Status", color:"#7A7568" },
+  { name:"FINAL COPY", category:"Document Status", color:"#7A7568" },
+  { name:"ORIGINAL", category:"Document Status", color:"#7A7568" },
+  { name:"COPY", category:"Document Status", color:"#7A7568" },
+  { name:"MASTER COPY", category:"Document Status", color:"#7A7568" },
+  { name:"REVISED", category:"Document Status", color:"#7A7568" },
+  { name:"SUPERSEDED", category:"Document Status", color:"#7A7568" },
+  { name:"VOID", category:"Document Status", color:"#7A7568" },
+  { name:"APPROVED", category:"Approval", color:"#1F7A3D" },
+  { name:"APPROVED AS NOTED", category:"Approval", color:"#1F7A3D" },
+  { name:"PENDING APPROVAL", category:"Approval", color:"#1F7A3D" },
+  { name:"AUTHORISED", category:"Approval", color:"#1F7A3D" },
+  { name:"AUTHORISED COPY", category:"Approval", color:"#1F7A3D" },
+  { name:"VERIFIED", category:"Approval", color:"#1F7A3D" },
+  { name:"CHECKED", category:"Approval", color:"#1F7A3D" },
+  { name:"REVIEWED", category:"Approval", color:"#1F7A3D" },
+  { name:"ACCEPTED", category:"Approval", color:"#1F7A3D" },
+  { name:"REJECTED", category:"Approval", color:"#1F7A3D" },
+  { name:"PAID", category:"Finance", color:"#1F7A3D" },
+  { name:"UNPAID", category:"Finance", color:"#1F7A3D" },
+  { name:"PART PAID", category:"Finance", color:"#1F7A3D" },
+  { name:"PAYMENT DUE", category:"Finance", color:"#1F7A3D" },
+  { name:"RECEIVED", category:"Finance", color:"#1F7A3D" },
+  { name:"RECEIVED FOR PAYMENT", category:"Finance", color:"#1F7A3D" },
+  { name:"ACCOUNTED", category:"Finance", color:"#1F7A3D" },
+  { name:"CANCELLED", category:"Finance", color:"#1F7A3D" },
+  { name:"REFUNDED", category:"Finance", color:"#1F7A3D" },
+  { name:"PROCESSED", category:"Finance", color:"#1F7A3D" },
+  { name:"BANK CONFIDENTIAL", category:"Banking", color:"#1D5DA8" },
+  { name:"BANK USE ONLY", category:"Banking", color:"#1D5DA8" },
+  { name:"CUSTOMER COPY", category:"Banking", color:"#1D5DA8" },
+  { name:"BANK COPY", category:"Banking", color:"#1D5DA8" },
+  { name:"BRANCH COPY", category:"Banking", color:"#1D5DA8" },
+  { name:"FOR BANK RECORD", category:"Banking", color:"#1D5DA8" },
+  { name:"LOAN DOCUMENT", category:"Banking", color:"#1D5DA8" },
+  { name:"CREDIT FILE", category:"Banking", color:"#1D5DA8" },
+  { name:"DEBIT FILE", category:"Banking", color:"#1D5DA8" },
+  { name:"KYC DOCUMENT", category:"Banking", color:"#1D5DA8" },
+  { name:"AUDIT COPY", category:"Audit", color:"#6A4C93" },
+  { name:"AUDIT USE ONLY", category:"Audit", color:"#6A4C93" },
+  { name:"AUDITED", category:"Audit", color:"#6A4C93" },
+  { name:"AUDIT PENDING", category:"Audit", color:"#6A4C93" },
+  { name:"VERIFIED BY AUDIT", category:"Audit", color:"#6A4C93" },
+  { name:"FOR INSPECTION", category:"Audit", color:"#6A4C93" },
+  { name:"INSPECTED", category:"Audit", color:"#6A4C93" },
+  { name:"AUDIT TRAIL", category:"Audit", color:"#6A4C93" },
+  { name:"AUDIT RECORD", category:"Audit", color:"#6A4C93" },
+  { name:"CONTROL COPY", category:"Audit", color:"#6A4C93" },
+  { name:"LEGAL COPY", category:"Legal", color:"#7A4E2D" },
+  { name:"FOR LEGAL USE", category:"Legal", color:"#7A4E2D" },
+  { name:"LEGAL HOLD", category:"Legal", color:"#7A4E2D" },
+  { name:"WITHOUT PREJUDICE", category:"Legal", color:"#7A4E2D" },
+  { name:"CERTIFIED COPY", category:"Legal", color:"#7A4E2D" },
+  { name:"ATTESTED COPY", category:"Legal", color:"#7A4E2D" },
+  { name:"NOTARISED COPY", category:"Legal", color:"#7A4E2D" },
+  { name:"COURT COPY", category:"Legal", color:"#7A4E2D" },
+  { name:"EVIDENCE COPY", category:"Legal", color:"#7A4E2D" },
+  { name:"FOR RECORD", category:"Legal", color:"#7A4E2D" },
+  { name:"URGENT", category:"Office", color:"#C48700" },
+  { name:"ACTION REQUIRED", category:"Office", color:"#C48700" },
+  { name:"PLEASE REVIEW", category:"Office", color:"#C48700" },
+  { name:"PLEASE SIGN", category:"Office", color:"#C48700" },
+  { name:"SIGNATURE REQUIRED", category:"Office", color:"#C48700" },
+  { name:"FOR APPROVAL", category:"Office", color:"#C48700" },
+  { name:"FOR INFORMATION", category:"Office", color:"#C48700" },
+  { name:"FOR RECORD", category:"Office", color:"#C48700" },
+  { name:"CIRCULATION COPY", category:"Office", color:"#C48700" },
+  { name:"OFFICE COPY", category:"Office", color:"#C48700" },
+  { name:"QUALITY CHECK", category:"Quality", color:"#2F6F62" },
+  { name:"QC PASSED", category:"Quality", color:"#2F6F62" },
+  { name:"QC FAILED", category:"Quality", color:"#2F6F62" },
+  { name:"INSPECTED", category:"Quality", color:"#2F6F62" },
+  { name:"COMPLIANT", category:"Quality", color:"#2F6F62" },
+  { name:"NON-COMPLIANT", category:"Quality", color:"#2F6F62" },
+  { name:"CERTIFIED", category:"Quality", color:"#2F6F62" },
+  { name:"CERTIFIED TRUE COPY", category:"Quality", color:"#2F6F62" },
+  { name:"CONTROLLED COPY", category:"Quality", color:"#2F6F62" },
+  { name:"UNCONTROLLED COPY", category:"Quality", color:"#2F6F62" },
+  { name:"RECEIVED & ENTERED", category:"Operations", color:"#3D6F9E" },
+  { name:"SCANNED", category:"Operations", color:"#3D6F9E" },
+  { name:"UPLOADED", category:"Operations", color:"#3D6F9E" },
+  { name:"ARCHIVED", category:"Operations", color:"#3D6F9E" },
+  { name:"ARCHIVE COPY", category:"Operations", color:"#3D6F9E" },
+  { name:"FILED", category:"Operations", color:"#3D6F9E" },
+  { name:"FOR PROCESSING", category:"Operations", color:"#3D6F9E" },
+  { name:"PROCESSING COMPLETE", category:"Operations", color:"#3D6F9E" },
+  { name:"DUPLICATE", category:"Operations", color:"#3D6F9E" },
+  { name:"REFERENCE COPY", category:"Operations", color:"#3D6F9E" }
 ];
+
 const BUILTIN_STAMPS = BUILTIN_STAMP_DEFS.map(def=>{
   const d = defaultConfig();
   return {
     name: def.name,
+    category: def.category,
     builtin: true,
     stamp: {
       mode: 'text',
@@ -3740,17 +3851,120 @@ function saveStampLibrary(list){
   try{ localStorage.setItem(STAMP_LIBRARY_KEY, JSON.stringify(list)); return true; }
   catch(e){ console.warn('Stamp library save failed (storage full?)', e); return false; }
 }
-function renderStampBuiltinChips(){
-  document.getElementById('stampBuiltinChips').innerHTML = BUILTIN_STAMPS.map((s,i)=>
-    `<button type="button" class="stamp-chip" onclick="applyBuiltinStamp(${i})">${escapeHtml(s.name)}</button>`
-  ).join('');
+function loadStampRecent(){
+  try{ return JSON.parse(localStorage.getItem(STAMP_RECENT_KEY)||'[]'); }catch(e){ return []; }
+}
+function saveStampRecent(list){
+  try{ localStorage.setItem(STAMP_RECENT_KEY, JSON.stringify(list.slice(0,12))); }catch(e){}
+}
+function loadStampFavourites(){
+  try{ return JSON.parse(localStorage.getItem(STAMP_FAV_KEY)||'[]'); }catch(e){ return []; }
+}
+function saveStampFavourites(list){
+  try{ localStorage.setItem(STAMP_FAV_KEY, JSON.stringify(list)); }catch(e){}
+}
+function stampKey(name, builtin){ return (builtin?'b:':'c:') + name; }
+
+function markStampUsed(name, builtin){
+  const key = stampKey(name, builtin);
+  const recent = loadStampRecent().filter(x=>x!==key);
+  recent.unshift(key);
+  saveStampRecent(recent);
+  renderStampLibrary();
+}
+
+function toggleStampFavourite(name, builtin){
+  const key = stampKey(name, builtin);
+  const favs = loadStampFavourites();
+  const i = favs.indexOf(key);
+  if(i>=0) favs.splice(i,1); else favs.unshift(key);
+  saveStampFavourites(favs);
+  renderStampLibrary();
+}
+function isStampFavourite(name, builtin){
+  return loadStampFavourites().includes(stampKey(name,builtin));
+}
+function getStampByKey(key){
+  if(key.startsWith('b:')){
+    return BUILTIN_STAMPS.find(s=>stampKey(s.name,true)===key);
+  }
+  return loadStampLibrary().find(s=>stampKey(s.name,false)===key);
+}
+function applyStampRecord(record){
+  if(!record) return;
+  applyStampToConfig(record.stamp);
+  markStampUsed(record.name, !!record.builtin);
+}
+function renderStampLibrary(){
+  const search = (document.getElementById('stampSearch')?.value || '').trim().toLowerCase();
+  const category = document.getElementById('stampCategory')?.value || 'all';
+  const favOnly = document.getElementById('stampFavouritesBtn')?.getAttribute('aria-pressed') === 'true';
+  const favs = loadStampFavourites();
+
+  const matches = s => {
+    const hay = `${s.name} ${s.category||''}`.toLowerCase();
+    return (!search || hay.includes(search))
+      && (category==='all' || s.category===category)
+      && (!favOnly || favs.includes(stampKey(s.name, !!s.builtin)));
+  };
+
+  const chips = document.getElementById('stampBuiltinChips');
+  const builtins = BUILTIN_STAMPS.filter(matches);
+  chips.innerHTML = builtins.map(s=>{
+    const i = BUILTIN_STAMPS.indexOf(s);
+    const fav = isStampFavourite(s.name,true);
+    return `<button type="button" class="stamp-chip ${fav?'is-favourite':''}" data-stamp-index="${i}" title="${escapeHtml(s.category)}${fav?' — favourite':''}">
+      ${fav?'★ ':''}${escapeHtml(s.name)}</button>`;
+  }).join('') || '<span class="hint">No built-in stamps match your search/filter.</span>';
+
+  chips.querySelectorAll('[data-stamp-index]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const i = Number(btn.dataset.stampIndex);
+      applyBuiltinStamp(i);
+    });
+    btn.addEventListener('contextmenu', e=>{
+      e.preventDefault();
+      const s = BUILTIN_STAMPS[Number(btn.dataset.stampIndex)];
+      if(s) toggleStampFavourite(s.name,true);
+    });
+  });
+
+  const recentHost = document.getElementById('stampRecentChips');
+  const recent = loadStampRecent().map(getStampByKey).filter(Boolean).filter(matches).slice(0,8);
+  recentHost.innerHTML = recent.length
+    ? recent.map(s=>`<button type="button" class="stamp-chip recent-chip" data-recent-key="${escapeHtml(stampKey(s.name,!!s.builtin))}">↻ ${escapeHtml(s.name)}</button>`).join('')
+    : '';
+  recentHost.querySelectorAll('[data-recent-key]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const s = getStampByKey(btn.dataset.recentKey);
+      if(s) applyStampRecord(s);
+    });
+  });
+
+  const saved = loadStampLibrary();
+  const sel = document.getElementById('stampLibrarySelect');
+  const savedMatches = saved.filter(matches);
+  sel.innerHTML = '<option value="">My saved stamps…</option>' +
+    savedMatches.map(s=>`<option value="${escapeHtml(s.name)}">${isStampFavourite(s.name,false)?'★ ':''}${escapeHtml(s.name)}</option>`).join('');
+
+  document.getElementById('stampLibraryCount').textContent =
+    `100 built-in · ${saved.length} saved`;
+  document.getElementById('stampSavedCount').textContent = `${saved.length} / ${MAX_SAVED_STAMPS}`;
+  const recentLabel = document.getElementById('stampRecentLabel');
+  recentLabel.textContent = recent.length ? 'Recently used' : '';
+
+  document.getElementById('stampFavouritesBtn').textContent =
+    favOnly ? '★ Favourites only' : '☆ Favourites';
+}
+function populateStampCategories(){
+  const sel = document.getElementById('stampCategory');
+  const cats = [...new Set(BUILTIN_STAMPS.map(s=>s.category))].sort();
+  sel.innerHTML = '<option value="all">All categories</option>' +
+    cats.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
 }
 function refreshStampLibrarySelect(selectName){
-  const sel = document.getElementById('stampLibrarySelect');
-  const list = loadStampLibrary();
-  sel.innerHTML = '<option value="">My saved stamps…</option>' +
-    list.map(s=>`<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`).join('');
-  if(selectName) sel.value = selectName;
+  renderStampLibrary();
+  if(selectName) document.getElementById('stampLibrarySelect').value = selectName;
 }
 
 // Captures just the stamp-defining slice of the current config — not
@@ -3778,27 +3992,35 @@ function applyStampToConfig(snap){
 }
 function applyBuiltinStamp(i){
   const s = BUILTIN_STAMPS[i];
-  if(s) applyStampToConfig(s.stamp);
+  if(s) applyStampRecord(s);
 }
 document.getElementById('applyStampBtn').addEventListener('click', ()=>{
   const name = document.getElementById('stampLibrarySelect').value;
   if(!name) return;
   const found = loadStampLibrary().find(s=>s.name===name);
-  if(found) applyStampToConfig(found.stamp);
+  if(found) applyStampRecord(found);
 });
 document.getElementById('saveStampBtn').addEventListener('click', async ()=>{
   const name = await showAppPrompt('Save stamp', 'Name this stamp:');
   if(!name) return;
+  const cleanName = name.trim();
+  if(!cleanName) return;
   const list = loadStampLibrary();
-  const idx = list.findIndex(s=>s.name===name);
-  const record = { name, stamp: captureStampSnapshot() };
-  if(idx>=0) list[idx] = record; else list.push(record);
+  const idx = list.findIndex(s=>s.name.toLowerCase()===cleanName.toLowerCase());
+  if(idx<0 && list.length >= MAX_SAVED_STAMPS){
+    showAppAlert('Stamp Library full', `You can save up to ${MAX_SAVED_STAMPS} personal stamps. Delete an unused stamp first.`);
+    return;
+  }
+  const record = { name: cleanName, category:'My Stamps', builtin:false, stamp: captureStampSnapshot() };
+  if(idx>=0) list[idx] = { ...list[idx], ...record };
+  else list.push(record);
   if(!saveStampLibrary(list)){
     showAppAlert('Could not save', 'Browser storage may be full — try removing an unused stamp (especially ones with a logo image) first.');
     return;
   }
-  refreshStampLibrarySelect(name);
-  showAppAlert('Saved', `Stamp "${name}" saved to your library.`);
+  markStampUsed(cleanName, false);
+  refreshStampLibrarySelect(cleanName);
+  showAppAlert('Saved', `Stamp "${cleanName}" saved to your library.`);
 });
 document.getElementById('renameStampBtn').addEventListener('click', async ()=>{
   const sel = document.getElementById('stampLibrarySelect');
@@ -3808,10 +4030,18 @@ document.getElementById('renameStampBtn').addEventListener('click', async ()=>{
   const idx = list.findIndex(s=>s.name===name);
   if(idx<0) return;
   const newName = await showAppPrompt('Rename stamp', 'New name:', name);
-  if(!newName || newName===name) return;
-  list[idx].name = newName;
+  if(!newName || newName.trim()===name) return;
+  const clean = newName.trim();
+  if(list.some((s,i)=>i!==idx && s.name.toLowerCase()===clean.toLowerCase())){
+    showAppAlert('Name already used', 'Choose a different stamp name.');
+    return;
+  }
+  const oldKey = stampKey(name,false);
+  list[idx].name = clean;
   saveStampLibrary(list);
-  refreshStampLibrarySelect(newName);
+  saveStampRecent(loadStampRecent().map(k=>k===oldKey?stampKey(clean,false):k));
+  saveStampFavourites(loadStampFavourites().map(k=>k===oldKey?stampKey(clean,false):k));
+  refreshStampLibrarySelect(clean);
 });
 document.getElementById('deleteStampBtn').addEventListener('click', async ()=>{
   const sel = document.getElementById('stampLibrarySelect');
@@ -3819,9 +4049,24 @@ document.getElementById('deleteStampBtn').addEventListener('click', async ()=>{
   if(!name) return;
   const ok = await showAppConfirm('Delete stamp?', `Delete stamp "${name}"?`, 'Delete', true);
   if(!ok) return;
+  const key = stampKey(name,false);
   saveStampLibrary(loadStampLibrary().filter(s=>s.name!==name));
+  saveStampRecent(loadStampRecent().filter(k=>k!==key));
+  saveStampFavourites(loadStampFavourites().filter(k=>k!==key));
   refreshStampLibrarySelect();
 });
+
+document.getElementById('stampSearch').addEventListener('input', renderStampLibrary);
+document.getElementById('stampCategory').addEventListener('change', renderStampLibrary);
+document.getElementById('stampFavouritesBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('stampFavouritesBtn');
+  const on = btn.getAttribute('aria-pressed') === 'true';
+  btn.setAttribute('aria-pressed', String(!on));
+  renderStampLibrary();
+});
+
+populateStampCategories();
+renderStampLibrary();
 
 /* ---------------------------------------------------------------
    7. PROCESSING ENGINE
@@ -4831,7 +5076,7 @@ document.querySelectorAll('.quick-step-btn').forEach(btn=>{
 /* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v2.3.1';
+const APP_VERSION = 'v2.3.2';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
