@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StampIt v2.3.0 — Bulk Watermark &amp; Stamp Tool</title>
+<title>StampIt v2.3.1 — Bulk Watermark &amp; Stamp Tool</title>
 
 <!-- ============================================================
      FONTS — Poppins for headings, system sans for body text
@@ -559,7 +559,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 }
 
 /* ================================================================
-   v2.3.0 UI/UX REDESIGN
+   v2.3.1 UI/UX REDESIGN
    Cleaner three-panel workspace, stronger preview hierarchy,
    compact controls and more discoverable library/workflow actions.
    Functional behaviour is intentionally unchanged.
@@ -622,12 +622,181 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
   .process-dock{position:sticky;bottom:4px;}
 }
 
+
+/* ================================================================
+   STAMPIT v2.3.1 — DESKTOP/LAPTOP UX REFINEMENT
+   Desktop is the primary workspace: Files | Live Preview | Configure.
+   Mobile keeps the step-by-step workflow.
+   ================================================================ */
+
+/* Large desktop: generous preview, balanced side panels */
+@media (min-width: 1401px){
+  .app{
+    grid-template-columns: 320px minmax(560px,1fr) 390px;
+    max-width: 1800px;
+    gap: 20px;
+    padding: 20px 24px 28px;
+  }
+  #filesPanel,
+  #settingsPanel,
+  #previewPanel{
+    min-width: 0;
+  }
+  #filesPanel,
+  #settingsPanel{
+    position: sticky;
+    top: 82px;
+    max-height: calc(100vh - 102px);
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+  #previewPanel{
+    position: sticky;
+    top: 82px;
+  }
+  .preview-stage{
+    min-height: 650px;
+    padding: 24px;
+  }
+}
+
+/* Laptop / medium desktop: keep the professional 3-column workspace
+   down to 1000px instead of collapsing prematurely at 1180px. */
+@media (min-width: 1000px) and (max-width: 1400px){
+  .app{
+    grid-template-columns: 270px minmax(420px,1fr) 330px;
+    max-width: 1440px;
+    gap: 14px;
+    padding: 14px 16px 24px;
+  }
+  #filesPanel,
+  #settingsPanel{
+    position: sticky;
+    top: 78px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+  #previewPanel{
+    position: sticky;
+    top: 78px;
+  }
+  .preview-stage{
+    min-height: 560px;
+    padding: 18px;
+  }
+  .panel{
+    padding: 14px;
+  }
+  .panel h2{
+    margin-bottom: 10px;
+  }
+}
+
+/* The original mobile rule hides all panels below 1180px.
+   Override it for laptops between 1000–1180px. */
+@media (min-width: 1000px) and (max-width: 1180px){
+  #filesPanel,
+  #previewPanel,
+  #settingsPanel{
+    display:block;
+  }
+  .mobile-steps,
+  .mobile-sticky-bar{
+    display:none !important;
+  }
+  .app{
+    grid-template-columns: 245px minmax(390px,1fr) 300px;
+  }
+}
+
+/* Desktop workspace polish */
+@media (min-width: 1000px){
+  .topbar{
+    padding: 11px 20px;
+  }
+  .brand{
+    font-size: 21px;
+  }
+  .version-tag{
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+  .quick-mode-toggle,
+  .connectivity-pill{
+    min-height: 34px;
+  }
+  .panel{
+    border: 1px solid var(--line);
+  }
+  .panel h2{
+    font-size: 13px;
+  }
+  .dropzone{
+    min-height: 210px;
+  }
+  .preview-toolbar{
+    margin-bottom: 10px;
+  }
+  .preview-toolbar select{
+    max-width: 220px;
+  }
+  .process-dock{
+    bottom: 12px;
+  }
+}
+
+/* Keep true mobile/tablet behaviour below 1000px. */
+@media (max-width: 999px){
+  .app{
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Ultra-wide screens: prevent the centre preview from becoming too wide. */
+@media (min-width: 1800px){
+  .app{
+    grid-template-columns: 340px minmax(600px, 1fr) 410px;
+  }
+}
+
+/* Cleaner scrollbars for desktop side panels */
+@media (min-width: 1000px){
+  #filesPanel::-webkit-scrollbar,
+  #settingsPanel::-webkit-scrollbar{
+    width: 8px;
+  }
+  #filesPanel::-webkit-scrollbar-thumb,
+  #settingsPanel::-webkit-scrollbar-thumb{
+    background: var(--line);
+    border-radius: 999px;
+  }
+  #filesPanel::-webkit-scrollbar-track,
+  #settingsPanel::-webkit-scrollbar-track{
+    background: transparent;
+  }
+}
+
+/* ================================================================
+   v2.3.1 mobile refinement
+   ================================================================ */
+@media (max-width: 999px){
+  .quick-steps,
+  .mobile-steps{
+    scrollbar-width: none;
+  }
+  .quick-steps::-webkit-scrollbar,
+  .mobile-steps::-webkit-scrollbar{
+    display:none;
+  }
+}
+
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.0</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.1</span></div>
   <div class="topbar-right">
     <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
     <span class="connectivity-pill" id="connectivityStatus" title="Connection status" role="status" aria-live="polite">🟢 Online</span>
@@ -1285,7 +1454,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
       </div>
 
       <div class="help-section">
-        <h4>What's new in v2.3.0 — audit &amp; fix pass</h4>
+        <h4>What's new in v2.3.1 — audit &amp; fix pass</h4>
         <p>A full control-by-control audit, tracing each one from UI event through to actual output rather than just reading the code. Found and fixed real bugs: clicking "Browse files" or "Browse folder" was also triggering the dropzone's own click handler underneath it, capable of opening a second file picker; switching Extras or Help tab → Quick Mode → back to Advanced Mode could leave two settings tabs simultaneously visible, stacked on top of each other; the background-box opacity slider was the one control in the app missing its paired precise-entry number field; the "🔒 documents processed locally" badge and two other components used a colour pairing that made their text nearly illegible in dark mode (fixed with a proper theme-invariant token, not a one-off patch); Job Profile cards were unfocusable clickable `&lt;div&gt;`s rather than real buttons, unreachable by keyboard or screen reader — the same category of bug already fixed once before for the 9-point placement grid; the six Extras checkboxes (page numbering, header, footer, date, Bates, border) had their labels as plain adjacent text rather than a proper associated `&lt;label&gt;`, so clicking the text didn't toggle them; and several newer controls (Stamp Library chips, the Quick/Advanced toggle, Job Profile buttons) were missing from touch-target sizing on phones/tablets. Also added WebP as a genuine output format (previously PNG/JPG only, despite input already accepting WebP), with an automatic fallback to PNG on browsers that can decode WebP but not encode it. No existing feature was removed or altered in behaviour.</p>
       </div>
 
@@ -1311,7 +1480,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.0</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.1</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
         <button class="btn btn-ghost btn-sm" id="copyDiagnosticsGeneralBtn" type="button" style="margin-top:6px;">Copy diagnostic info</button>
         <p class="hint" style="margin-top:4px;">Useful when reporting a bug — copies your app version, browser, and current settings (never your document content or filenames) for support.</p>
       </div>
@@ -1352,7 +1521,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 </div>
 
 <script id="app-script">
-const STAMPIT_VERSION = 'v2.3.0';
+const STAMPIT_VERSION = 'v2.3.1';
 /* ================================================================
    STAMPIT — application script
    Sections: STATE → HELPERS → FONTS → FILE INTAKE → SETTINGS UI →
@@ -4662,7 +4831,7 @@ document.querySelectorAll('.quick-step-btn').forEach(btn=>{
 /* ---------------------------------------------------------------
    11. INIT
    --------------------------------------------------------------- */
-const APP_VERSION = 'v2.3.0';
+const APP_VERSION = 'v2.3.1';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
