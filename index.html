@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>StampIt v2.3.24 — Bulk Watermark &amp; Stamp Tool</title>
+<title>StampIt v2.3.25 — Bulk Watermark &amp; Stamp Tool</title>
 
 <!-- ============================================================
      FONTS — Poppins for headings, system sans for body text
@@ -198,7 +198,7 @@ html[data-theme="dark"] .connectivity-pill.ready{background:#122334;color:#8FC4F
 }
 
 
-/* v2.3.24 — hard workflow navigation layer for mobile/tablet.
+/* v2.3.25 — hard workflow navigation layer for mobile/tablet.
    This deliberately does not depend on normal panel CSS specificity. */
 @media (max-width:1180px){
   body:not(.quick-mode) .app.workflow-nav-active #filesPanel.workflow-visible,
@@ -580,7 +580,7 @@ select#presetSelect{width:100%;padding:8px;border-radius:8px;border:1px solid va
 }
 
 /* ================================================================
-   v2.3.24 UI/UX REDESIGN
+   v2.3.25 UI/UX REDESIGN
    Cleaner three-panel workspace, stronger preview hierarchy,
    compact controls and more discoverable library/workflow actions.
    Functional behaviour is intentionally unchanged.
@@ -645,7 +645,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 
 
 /* ================================================================
-   STAMPIT v2.3.24 — DESKTOP/LAPTOP UX REFINEMENT
+   STAMPIT v2.3.25 — DESKTOP/LAPTOP UX REFINEMENT
    Desktop is the primary workspace: Files | Live Preview | Configure.
    Mobile keeps the step-by-step workflow.
    ================================================================ */
@@ -799,7 +799,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 }
 
 /* ================================================================
-   v2.3.24 mobile refinement
+   v2.3.25 mobile refinement
    ================================================================ */
 @media (max-width: 999px){
   .quick-steps,
@@ -813,7 +813,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 }
 
 
-/* v2.3.24 — processing confirmation feedback */
+/* v2.3.25 — processing confirmation feedback */
 #summaryConfirmBtn:disabled{opacity:.65;cursor:wait;}
 
 
@@ -828,13 +828,13 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 }
 
 
-/* v2.3.24 result-first mobile layout */
+/* v2.3.25 result-first mobile layout */
 #previewPanel > #summaryBox{margin-bottom:14px;}
 #previewPanel > #summaryBox .output-actions{display:flex;justify-content:flex-start;}
 #previewPanel > #summaryBox #viewOutputBtn{min-width:150px;font-size:16px;padding:12px 18px;}
 
 
-/* v2.3.24 — bulletproof stacked-step navigation */
+/* v2.3.25 — bulletproof stacked-step navigation */
 @media (max-width:1180px){
   #filesPanel.step-active,
   #settingsPanel.step-active,
@@ -844,7 +844,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
   #previewPanel:not(.step-active) { display:none !important; }
 }
 
-/* v2.3.24 — make the Process step visibly move to progress/results on iPhone.
+/* v2.3.25 — make the Process step visibly move to progress/results on iPhone.
    The previous layout scrolled to the Live Preview panel, but the actual
    progress controls were below the preview image, making processing look
    frozen even when the batch had started. */
@@ -912,7 +912,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 }
 @media (min-width:1181px){.workflow-next-bar{display:none!important;}}
 
-/* v2.3.24 — bulletproof in-app Output Viewer for iPhone/iPad */
+/* v2.3.25 — bulletproof in-app Output Viewer for iPhone/iPad */
 .output-viewer{
   position:fixed !important;
   inset:0 !important;
@@ -1030,7 +1030,7 @@ body.output-viewer-open{
 <body>
 
 <div class="topbar">
-  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.24</span></div>
+  <div class="brand"><div class="brand-mark">S</div>StampIt<span class="version-tag" id="brandVersion">v2.3.25</span></div>
   <div class="topbar-right">
     <button class="quick-mode-toggle" id="quickModeToggle" type="button">⚡ Quick Mode</button>
     <span class="connectivity-pill" id="connectivityStatus" title="Connection status" role="status" aria-live="polite">🟢 Online</span>
@@ -1123,7 +1123,7 @@ body.output-viewer-open{
 
   <!-- ============ CENTER: LIVE PREVIEW ============ -->
   <div class="panel" id="previewPanel">
-    <!-- v2.3.24: result is placed at the top so mobile users see it immediately after processing. -->
+    <!-- v2.3.25: result is placed at the top so mobile users see it immediately after processing. -->
     <div id="summaryBox" class="summary-box" style="display:none;" aria-live="polite"></div>
     <h2>Live preview</h2>
     <div class="preview-toolbar">
@@ -1705,7 +1705,7 @@ body.output-viewer-open{
       </div>
 
       <div class="help-section">
-        <h4>What's new in v2.3.24 — audit &amp; fix pass</h4>
+        <h4>What's new in v2.3.25 — audit &amp; fix pass</h4>
         <p>A full control-by-control audit, tracing each one from UI event through to actual output rather than just reading the code. Found and fixed real bugs: clicking "Browse files" or "Browse folder" was also triggering the dropzone's own click handler underneath it, capable of opening a second file picker; switching Extras or Help tab → Quick Mode → back to Advanced Mode could leave two settings tabs simultaneously visible, stacked on top of each other; the background-box opacity slider was the one control in the app missing its paired precise-entry number field; the "🔒 documents processed locally" badge and two other components used a colour pairing that made their text nearly illegible in dark mode (fixed with a proper theme-invariant token, not a one-off patch); Job Profile cards were unfocusable clickable `&lt;div&gt;`s rather than real buttons, unreachable by keyboard or screen reader — the same category of bug already fixed once before for the 9-point placement grid; the six Extras checkboxes (page numbering, header, footer, date, Bates, border) had their labels as plain adjacent text rather than a proper associated `&lt;label&gt;`, so clicking the text didn't toggle them; and several newer controls (Stamp Library chips, the Quick/Advanced toggle, Job Profile buttons) were missing from touch-target sizing on phones/tablets. Also added WebP as a genuine output format (previously PNG/JPG only, despite input already accepting WebP), with an automatic fallback to PNG on browsers that can decode WebP but not encode it. No existing feature was removed or altered in behaviour.</p>
       </div>
 
@@ -1731,7 +1731,7 @@ body.output-viewer-open{
 
       <div class="help-section">
         <h4>About</h4>
-        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.24</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
+        <p>StampIt — PDF &amp; Image Watermark Tool, <span id="helpVersion">v2.3.25</span>. A single self-contained HTML file: no build step, no sign-up, no server.</p>
         <button class="btn btn-ghost btn-sm" id="copyDiagnosticsGeneralBtn" type="button" style="margin-top:6px;">Copy diagnostic info</button>
         <p class="hint" style="margin-top:4px;">Useful when reporting a bug — copies your app version, browser, and current settings (never your document content or filenames) for support.</p>
       </div>
@@ -5531,7 +5531,7 @@ function setQuickMode(on){
   }
 }
 document.getElementById('quickModeToggle').addEventListener('click', ()=>{setQuickMode(!state.quickMode); if(window.__stampitRefreshWorkflowNav) window.__stampitRefreshWorkflowNav();});
-// v2.3.24: capture-phase delegated Quick Mode navigation.
+// v2.3.25: capture-phase delegated Quick Mode navigation.
 document.addEventListener('click', e=>{
   const btn=e.target.closest && e.target.closest('.quick-step-btn');
   if(!btn || !state.quickMode) return;
@@ -5611,9 +5611,9 @@ document.addEventListener('click', e=>{
   window.addEventListener('resize',()=>setTimeout(refresh,20));
 })();
 
-const APP_VERSION = 'v2.3.24';
+const APP_VERSION = 'v2.3.25';
 document.getElementById('brandVersion').textContent = APP_VERSION;
-// v2.3.24: establish the initial workflow panel explicitly.
+// v2.3.25: establish the initial workflow panel explicitly.
 setTimeout(()=>applyMobileStep(),0);
 document.getElementById('helpVersion').textContent = APP_VERSION;
 refreshPresetSelect();
@@ -5670,7 +5670,7 @@ window.addEventListener('error', e=>{
 </script>
 <footer class="app-footer"><div class="app-credit">Developed by Anil Sharma · Former General Manager, Central Bank of India</div></footer>
 
-<!-- v2.3.24: persistent mobile workflow controls -->
+<!-- v2.3.25: persistent mobile workflow controls -->
 <div class="workflow-next-bar" id="workflowNextBar" aria-label="Workflow navigation">
   <button type="button" class="wf-btn wf-back" id="workflowBackBtn">‹ Back</button>
   <button type="button" class="wf-btn wf-next" id="workflowNextBtn">Next ›</button>
@@ -5741,5 +5741,127 @@ window.addEventListener('error', e=>{
   }, true);
 })();
 </script>
+
+<!-- ================================================================
+     STAMPIT v2.3.25 — FLOATING ASK ME ASSISTANT
+     Local, privacy-first in-app help. No external AI/API dependency.
+     Answers are based on StampIt's own documented features and workflows.
+     ================================================================ -->
+<style>
+#askMeFab{
+  position:fixed;right:18px;bottom:18px;z-index:99990;
+  border:0;border-radius:999px;padding:12px 16px;
+  background:var(--charcoal,#0E0E10);color:var(--amber,#F5B301);
+  font-weight:800;font-size:13px;line-height:1;cursor:pointer;
+  box-shadow:0 8px 24px rgba(0,0,0,.22);
+  min-height:44px;touch-action:manipulation;
+}
+#askMeFab:focus{outline:3px solid var(--amber,#F5B301);outline-offset:2px}
+#askMePanel{
+  position:fixed;right:18px;bottom:74px;z-index:99991;
+  width:min(380px,calc(100vw - 28px));max-height:min(620px,calc(100vh - 100px));
+  display:none;flex-direction:column;overflow:hidden;
+  background:var(--white,#fff);color:var(--text,#0E0E10);
+  border:1px solid var(--line,#ddd);border-radius:16px;
+  box-shadow:0 18px 55px rgba(0,0,0,.24);
+}
+#askMePanel.open{display:flex}
+.ask-head{display:flex;align-items:center;justify-content:space-between;padding:13px 15px;background:var(--charcoal,#0E0E10);color:var(--amber,#F5B301)}
+.ask-head strong{font-size:15px}.ask-close{border:0;background:transparent;color:#fff;font-size:22px;cursor:pointer;padding:2px 7px}
+.ask-body{padding:12px;overflow:auto}
+.ask-intro{font-size:12px;line-height:1.45;color:var(--text-soft,#555);margin:0 0 10px}
+.ask-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.ask-chip{border:1px solid var(--line,#ddd);background:var(--surface-alt,#fff);border-radius:999px;padding:8px 10px;font-size:11.5px;font-weight:700;cursor:pointer;color:var(--text,#111);touch-action:manipulation}
+.ask-chip:hover{border-color:var(--amber-dark,#D99A00)}
+#askMeAnswer{display:none;border:1px solid var(--line,#ddd);background:var(--surface-alt,#fff);border-radius:11px;padding:10px;margin-bottom:10px;font-size:12px;line-height:1.5}
+#askMeAnswer.show{display:block}.ask-answer-title{font-weight:800;margin-bottom:4px}.ask-answer-body{white-space:pre-wrap}
+.ask-form{display:flex;gap:7px}.ask-input{flex:1;min-width:0;border:1px solid var(--line,#ddd);border-radius:10px;padding:10px;font:inherit;font-size:12px;background:var(--white,#fff);color:var(--text,#111)}
+.ask-send{border:0;border-radius:10px;background:var(--amber,#F5B301);color:var(--charcoal,#0E0E10);font-weight:800;padding:0 13px;cursor:pointer}
+.ask-note{font-size:10.5px;color:var(--muted,#777);margin-top:8px}
+@media(max-width:600px){#askMeFab{right:12px;bottom:12px;padding:12px 14px}#askMePanel{right:12px;bottom:68px;width:calc(100vw - 24px);max-height:70vh}}
+</style>
+
+<button id="askMeFab" type="button" aria-label="Open Ask Me help">💬 Ask Me</button>
+
+<div id="askMePanel" role="dialog" aria-modal="false" aria-labelledby="askMeTitle">
+  <div class="ask-head">
+    <strong id="askMeTitle">💬 Ask Me</strong>
+    <button class="ask-close" id="askMeClose" type="button" aria-label="Close Ask Me">×</button>
+  </div>
+  <div class="ask-body">
+    <p class="ask-intro">Ask about using StampIt or describe a problem. Answers are built into the app, so your documents are not sent anywhere.</p>
+    <div class="ask-chips">
+      <button class="ask-chip" type="button" data-ask="How do I add a watermark?">Add watermark</button>
+      <button class="ask-chip" type="button" data-ask="How do Quick Mode and Advanced Mode differ?">Quick vs Advanced</button>
+      <button class="ask-chip" type="button" data-ask="How do I move and rotate the watermark?">Move / rotate</button>
+      <button class="ask-chip" type="button" data-ask="How do I select pages?">Select pages</button>
+      <button class="ask-chip" type="button" data-ask="How do I view, save and share the output?">View / Save / Share</button>
+      <button class="ask-chip" type="button" data-ask="Why is the Next button not moving?">Navigation issue</button>
+      <button class="ask-chip" type="button" data-ask="Why can't I upload a file?">Upload issue</button>
+      <button class="ask-chip" type="button" data-ask="What is the Stamp Library?">Stamp Library</button>
+      <button class="ask-chip" type="button" data-ask="What is a Job Profile?">Job Profiles</button>
+      <button class="ask-chip" type="button" data-ask="How does offline mode work?">Offline mode</button>
+    </div>
+    <div id="askMeAnswer" aria-live="polite">
+      <div class="ask-answer-title" id="askMeAnswerTitle"></div>
+      <div class="ask-answer-body" id="askMeAnswerBody"></div>
+    </div>
+    <form class="ask-form" id="askMeForm">
+      <input class="ask-input" id="askMeInput" type="text" autocomplete="off" placeholder="Type your question or issue…" aria-label="Ask StampIt a question">
+      <button class="ask-send" type="submit">Send</button>
+    </form>
+    <div class="ask-note">For technical issues, include what you clicked, what happened, and your device/browser.</div>
+  </div>
+</div>
+
+<script>
+(function initAskMe(){
+  const fab=document.getElementById('askMeFab');
+  const panel=document.getElementById('askMePanel');
+  const close=document.getElementById('askMeClose');
+  const form=document.getElementById('askMeForm');
+  const input=document.getElementById('askMeInput');
+  const answer=document.getElementById('askMeAnswer');
+  const answerTitle=document.getElementById('askMeAnswerTitle');
+  const answerBody=document.getElementById('askMeAnswerBody');
+  if(!fab||!panel||!form) return;
+
+  const answers=[
+    {keys:['watermark','add watermark','stamp'],title:'Adding a watermark',body:'In Quick Mode, go to 2 · Watermark. Enter the text or choose a logo/stamp from the available controls, then continue to Position. In Advanced Mode, use the Placement settings. The live preview updates as you configure it.'},
+    {keys:['quick mode','advanced mode','difference'],title:'Quick Mode vs Advanced Mode',body:'Quick Mode is a simple six-step flow: Files → Watermark → Position → Pages → Output → Process. Advanced Mode exposes the fuller workspace, including Presets, Projects, Extras, Help and more detailed controls. Both modes use the same underlying settings, so switching modes does not discard your work.'},
+    {keys:['move','position','rotate','rotation'],title:'Move or rotate the watermark',body:'Use 3 · Position in Quick Mode or the Placement controls in Advanced Mode. The live preview shows the watermark position, and the positioning controls let you adjust placement and rotation.'},
+    {keys:['pages','select pages','page range'],title:'Selecting pages',body:'Use 4 · Pages in Quick Mode, or the Pages tab in Advanced Mode. You can choose the pages/range to which the watermark should be applied before processing.'},
+    {keys:['view','save','share','output'],title:'View, Save and Share',body:'After processing, the output-ready screen shows View first. Tap View to open the processed result. Save and Share are then available inside the viewer. On supported mobile browsers, Share uses the device share sheet.'},
+    {keys:['next','back','navigation','not moving','stuck','screen'],title:'Navigation problem',body:'First try the visible Back or Next control again. If a screen still does not move, refresh StampIt and retry. If the problem persists, note the exact button you tapped, the screen you were on, and whether you are using iPhone, Android, laptop or desktop.'},
+    {keys:['upload','browse','file','cannot upload','upload issue'],title:'File upload problem',body:'Use Browse files in the Files step and select a supported PDF or image. You can also use the drop area where available. If the picker does not open, refresh the page and try Browse files again. Check that the file is accessible from your device.'},
+    {keys:['stamp library','library'],title:'Stamp Library',body:'The Stamp Library contains ready-to-use stamps and allows you to save your own stamp styling. A Stamp is the mark itself; a Preset contains broader watermark settings; a Job Profile is a complete recurring-job starting point.'},
+    {keys:['job profile','profile'],title:'Job Profiles',body:'A Job Profile is a named starting point for a recurring type of job in Quick Mode. It saves the relevant setup so a common job can be started quickly without rebuilding the configuration each time.'},
+    {keys:['offline','offline ready','online'],title:'Online and Offline Ready',body:'StampIt processes documents locally in the browser. When the service worker is installed and controlling the page, the status can change to Offline Ready. The first successful visit normally needs internet so the app can be cached.'},
+    {keys:['privacy','local','document'],title:'Privacy',body:'StampIt is designed to process documents locally in your browser. The in-app Ask Me assistant is also local and does not send your document to an external AI service.'}
+  ];
+
+  function show(title,body){
+    answerTitle.textContent=title; answerBody.textContent=body; answer.classList.add('show');
+  }
+  function ask(q){
+    const text=(q||'').trim().toLowerCase();
+    if(!text) return;
+    let best=null,score=0;
+    for(const item of answers){
+      let s=0;
+      for(const k of item.keys) if(text.includes(k)) s += k.length + 2;
+      if(s>score){score=s;best=item;}
+    }
+    if(best){show(best.title,best.body);return;}
+    show('I need a little more detail','I can help with watermarking, Quick/Advanced Mode, files, positioning, pages, output, View/Save/Share, Stamp Library, Job Profiles, navigation and offline use. Please describe what you clicked and what happened.');
+  }
+  fab.addEventListener('click',()=>{panel.classList.toggle('open'); if(panel.classList.contains('open')) setTimeout(()=>input.focus(),50);});
+  close.addEventListener('click',()=>panel.classList.remove('open'));
+  document.querySelectorAll('[data-ask]').forEach(b=>b.addEventListener('click',()=>ask(b.dataset.ask)));
+  form.addEventListener('submit',e=>{e.preventDefault();ask(input.value);input.value='';});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape') panel.classList.remove('open');});
+})();
+</script>
+
 </body>
 </html>
