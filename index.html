@@ -5556,5 +5556,70 @@ window.addEventListener('error', e=>{
   <button type="button" class="wf-btn wf-next" id="workflowNextBtn">Next ›</button>
   <button type="button" class="wf-btn wf-process" id="workflowProcessBtn" style="display:none;">Process &amp; Download</button>
 </div>
+
+<!-- v2.3.21: hard navigation fallback. Delegated handlers are installed
+     after the workflow bar exists, so they cannot be defeated by script
+     ordering or DOMContentLoaded timing. -->
+<script>
+(function(){
+  if(window.__stampitHardWorkflowNav) return;
+  window.__stampitHardWorkflowNav = true;
+
+  function move(delta){
+    try {
+      if (typeof state === 'undefined') return;
+
+      if (state.quickMode) {
+        const current = Number(state.quickStep || 1);
+        const target = Math.max(1, Math.min(6, current + delta));
+        if (target !== current) {
+          state.quickStep = target;
+          if (typeof applyQuickStep === 'function') applyQuickStep();
+        }
+      } else {
+        const current = Number(window.mobileStep || 1);
+        const target = Math.max(1, Math.min(3, current + delta));
+        if (target !== current) {
+          if (typeof goToMobileStep === 'function') goToMobileStep(target);
+          else window.mobileStep = target;
+        }
+      }
+
+      if (typeof window.__stampitRefreshWorkflowNav === 'function') {
+        window.__stampitRefreshWorkflowNav();
+      }
+    } catch(err) {
+      console.error('StampIt workflow navigation error:', err);
+    }
+  }
+
+  document.addEventListener('click', function(e){
+    const back = e.target && e.target.closest ? e.target.closest('#workflowBackBtn') : null;
+    const next = e.target && e.target.closest ? e.target.closest('#workflowNextBtn') : null;
+    const process = e.target && e.target.closest ? e.target.closest('#workflowProcessBtn') : null;
+
+    if(back){
+      e.preventDefault();
+      e.stopPropagation();
+      move(-1);
+      return;
+    }
+
+    if(next){
+      e.preventDefault();
+      e.stopPropagation();
+      move(1);
+      return;
+    }
+
+    if(process){
+      e.preventDefault();
+      e.stopPropagation();
+      const real = document.getElementById('processBtn');
+      if(real) real.click();
+    }
+  }, true);
+})();
+</script>
 </body>
 </html>
