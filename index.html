@@ -619,6 +619,13 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 .divider{margin:12px 0;}
 .process-dock{position:sticky;bottom:10px;background:var(--white);border:1px solid var(--line);border-radius:12px;padding:9px;box-shadow:0 8px 24px rgba(14,14,16,.10);z-index:10;}
 .process-dock .btn-amber{font-weight:800;box-shadow:0 2px 0 rgba(0,0,0,.08);}
+.mobile-output-dock{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:10px 12px;background:var(--surface-alt);border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,.08);}
+.mobile-output-dock span{display:flex;flex-direction:column;gap:2px;min-width:0;}
+.mobile-output-dock strong{font-size:14px;}
+.mobile-output-dock small{font-size:11px;color:var(--muted);}
+.mobile-output-dock button{flex:0 0 auto;min-height:44px;font-weight:800;}
+@media(max-width:600px){.mobile-output-dock{position:sticky;top:6px;z-index:60;}}
+
 .quick-steps{padding:8px 12px;box-shadow:0 1px 0 var(--line);}
 .quick-step-btn{border-radius:9px;}
 .job-profile-card{border-radius:10px;}
@@ -831,7 +838,9 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
 /* v2.3.25 result-first mobile layout */
 #previewPanel > #summaryBox{margin-bottom:14px;}
 #previewPanel > #summaryBox .output-actions{display:flex;justify-content:flex-start;}
-#previewPanel > #summaryBox #viewOutputBtn{min-width:150px;font-size:16px;padding:12px 18px;}
+#previewPanel > #summaryBox #viewOutputBtn{min-width:170px;font-size:16px;padding:13px 20px;position:relative;z-index:50;pointer-events:auto;touch-action:manipulation;}
+#previewPanel > #summaryBox{position:relative;z-index:30;}
+#previewPanel > #summaryBox .output-view-note{font-weight:700;margin-top:8px;}
 
 
 /* v2.3.25 — bulletproof stacked-step navigation */
@@ -906,9 +915,7 @@ input[type=text]:focus,input[type=number]:focus,input[type=date]:focus,input[typ
   body.quick-mode .workflow-next-bar .wf-back{display:block;}
   body.quick-mode .workflow-next-bar .wf-next{display:block;}
   body.quick-mode .workflow-next-bar .wf-process{display:block;}
-  body.quick-mode .workflow-next-bar.is-process{display:none;}
   body:not(.quick-mode) .workflow-next-bar{display:flex;}
-  body:not(.quick-mode) .workflow-next-bar.is-process{display:none;}
 }
 @media (min-width:1181px){.workflow-next-bar{display:none!important;}}
 
@@ -1123,7 +1130,7 @@ body.output-viewer-open{
 
   <!-- ============ CENTER: LIVE PREVIEW ============ -->
   <div class="panel" id="previewPanel">
-    <!-- v2.3.25: result is placed at the top so mobile users see it immediately after processing. -->
+    <!-- v2.3.26: result is placed at the top so mobile users see it immediately after processing. -->
     <div id="summaryBox" class="summary-box" style="display:none;" aria-live="polite"></div>
     <h2>Live preview</h2>
     <div class="preview-toolbar">
@@ -1156,6 +1163,10 @@ body.output-viewer-open{
         <canvas id="pdfCanvas"></canvas>
         <canvas id="overlayCanvas"></canvas>
       </div>
+    </div>
+    <div id="mobileOutputDock" class="mobile-output-dock" style="display:none;">
+      <span><strong>Output ready</strong><small>Tap View first. Save and Share are inside the viewer.</small></span>
+      <button type="button" class="btn btn-amber" id="mobileViewOutputBtn">View first</button>
     </div>
     <p class="hint" id="dragHint" style="text-align:center;margin-top:6px;">🖐 Drag a ⊕ handle on the preview to reposition (amber = text, blue = independent logo) — only while placement isn't tiled. Snaps to centre and margin lines. Turn on <strong>Guides</strong> above to see the safe-margin line (blue, dashed) and the watermark's exact footprint (amber/blue box).</p>
 
@@ -4963,6 +4974,12 @@ async function runBatch(filesToProcess){
     if(viewBtn){
       const openView=()=>openOutputViewer(viewOutputFile);
       viewBtn.addEventListener('click',openView,{passive:true});
+      const dock=document.getElementById('mobileOutputDock');
+      const dockBtn=document.getElementById('mobileViewOutputBtn');
+      if(dock && dockBtn){
+        dock.style.display='flex';
+        dockBtn.onclick=openView;
+      }
       viewBtn.addEventListener('pointerup',e=>{
         if(e.pointerType==='touch') e.preventDefault();
       },{passive:false});
@@ -5571,8 +5588,9 @@ document.addEventListener('click', e=>{
     back.disabled=step<=1;
     back.style.display=step<=1?'none':'';
     if(step===last){
+      back.style.display=step<=1?'none':'block';
       next.style.display='none';
-      proc.style.display=quick ? 'block' : 'block';
+      proc.style.display='block';
     }else{
       proc.style.display='none';
       next.style.display='block';
@@ -5611,7 +5629,7 @@ document.addEventListener('click', e=>{
   window.addEventListener('resize',()=>setTimeout(refresh,20));
 })();
 
-const APP_VERSION = 'v2.3.25';
+const APP_VERSION = 'v2.3.26';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 // v2.3.25: establish the initial workflow panel explicitly.
 setTimeout(()=>applyMobileStep(),0);
@@ -5670,7 +5688,7 @@ window.addEventListener('error', e=>{
 </script>
 <footer class="app-footer"><div class="app-credit">Developed by Anil Sharma · Former General Manager, Central Bank of India</div></footer>
 
-<!-- v2.3.25: persistent mobile workflow controls -->
+<!-- v2.3.26: persistent mobile workflow controls -->
 <div class="workflow-next-bar" id="workflowNextBar" aria-label="Workflow navigation">
   <button type="button" class="wf-btn wf-back" id="workflowBackBtn">‹ Back</button>
   <button type="button" class="wf-btn wf-next" id="workflowNextBtn">Next ›</button>
@@ -5743,7 +5761,7 @@ window.addEventListener('error', e=>{
 </script>
 
 <!-- ================================================================
-     STAMPIT v2.3.25 — FLOATING ASK ME ASSISTANT
+     STAMPIT v2.3.26 — FLOATING ASK ME ASSISTANT
      Local, privacy-first in-app help. No external AI/API dependency.
      Answers are based on StampIt's own documented features and workflows.
      ================================================================ -->
