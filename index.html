@@ -5426,7 +5426,7 @@ document.addEventListener('click', e=>{
 
 
 
-/* v2.3.19 — persistent workflow navigation.
+/* v2.3.20 — persistent workflow navigation.
    This is deliberately independent of the top sticky tabs, so a long
    preview can never hide the only way to advance. */
 (function installWorkflowNav(){
@@ -5434,7 +5434,14 @@ document.addEventListener('click', e=>{
   const back=document.getElementById('workflowBackBtn');
   const next=document.getElementById('workflowNextBtn');
   const proc=document.getElementById('workflowProcessBtn');
-  if(!bar||!back||!next||!proc) return;
+  // The workflow bar is intentionally placed after the main script.
+  // On some browsers the script therefore runs before those buttons exist.
+  // Wait for DOMContentLoaded and initialise again instead of silently
+  // returning with dead buttons.
+  if(!bar||!back||!next||!proc){
+    document.addEventListener('DOMContentLoaded', installWorkflowNav, {once:true});
+    return;
+  }
 
   function refresh(){
     const quick=!!state.quickMode;
@@ -5484,7 +5491,7 @@ document.addEventListener('click', e=>{
   window.addEventListener('resize',()=>setTimeout(refresh,20));
 })();
 
-const APP_VERSION = 'v2.3.19';
+const APP_VERSION = 'v2.3.20';
 document.getElementById('brandVersion').textContent = APP_VERSION;
 // v2.3.18: establish the initial workflow panel explicitly.
 setTimeout(()=>applyMobileStep(),0);
@@ -5543,7 +5550,7 @@ window.addEventListener('error', e=>{
 </script>
 <footer class="app-footer"><div class="app-credit">Developed by Anil Sharma · Former General Manager, Central Bank of India</div></footer>
 
-<!-- v2.3.19: persistent mobile workflow controls -->
+<!-- v2.3.20: persistent mobile workflow controls -->
 <div class="workflow-next-bar" id="workflowNextBar" aria-label="Workflow navigation">
   <button type="button" class="wf-btn wf-back" id="workflowBackBtn">‹ Back</button>
   <button type="button" class="wf-btn wf-next" id="workflowNextBtn">Next ›</button>
